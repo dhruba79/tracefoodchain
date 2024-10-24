@@ -8,7 +8,7 @@ A comprehensive supply chain tracking application for the coffee industry, suppo
 
 ## Overview
 
-TraceFoodChain is a cross-platform application designed to digitize and streamline coffee supply chain operations. It enables various stakeholders including farmers, traders, processors, and importers to track coffee from farm to cup while ensuring compliance with EU Deforestation Regulation (EUDR).
+TraceFoodChain is a cross-platform application designed to digitize and streamline coffee supply chain operations. It enables various stakeholders including farmers, traders, processors, and importers to track coffee from farm to cup while ensuring compliance with EU Deforestation Regulation (EUDR). Since the code builds on Flutter, the app can be compiled as native Android or iOS app, webapp, windows, macos or linux. The intention is to minimise native cloud interaction but to use REST-API calls instead to allow to exchange the backend when needed. All internal and external data structures are openRAL.
 
 ### Key Features
 
