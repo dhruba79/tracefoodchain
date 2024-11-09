@@ -11,8 +11,10 @@ class LanguageSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final currentLocale = appState.locale;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Theme(data:customTheme,
+    return Theme(
+      data: customTheme,
       child: PopupMenuButton<Locale>(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -28,19 +30,19 @@ class LanguageSelector extends StatelessWidget {
         itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
           PopupMenuItem<Locale>(
             value: Locale('en'),
-            child: _buildLanguageItem('English', 'en'),
+            child: _buildLanguageItem(l10n.languageEnglish, 'en'),
           ),
           PopupMenuItem<Locale>(
             value: Locale('es'),
-            child: _buildLanguageItem('Español', 'es'),
+            child: _buildLanguageItem(l10n.languageSpanish, 'es'),
           ),
           PopupMenuItem<Locale>(
             value: Locale('de'),
-            child: _buildLanguageItem('Deutsch', 'de'),
+            child: _buildLanguageItem(l10n.languageGerman, 'de'),
           ),
           PopupMenuItem<Locale>(
             value: Locale('fr'),
-            child: _buildLanguageItem('Français', 'fr'),
+            child: _buildLanguageItem(l10n.languageFrench, 'fr'),
           ),
         ],
       ),

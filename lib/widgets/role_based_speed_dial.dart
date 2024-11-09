@@ -13,6 +13,7 @@ import 'package:trace_foodchain_app/widgets/items_list_widget.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
 import 'package:trace_foodchain_app/widgets/stepper_buy_coffee.dart';
 import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
+import 'package:url_launcher/url_launcher.dart'; // Neuer Import
 
 class RoleBasedSpeedDial extends StatefulWidget {
   final String displayContext;
@@ -28,6 +29,28 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
   @override
   void initState() {
     super.initState();
+  }
+
+  String _getHelpUrl(String languageCode) {
+    switch (languageCode) {
+      case 'de':
+        return 'https://docs.google.com/document/d/1wURF_uGIW3eKHh1qEn380_JE5tOdOyZRfFRQuL46Hn0';
+      case 'es':
+        return 'https://docs.google.com/document/d/1IVqaR_mJkQKbVobJfYM_EUxYCpd5B5qel0mY2U_KPVg';
+      case 'fr':
+        return 'https://docs.google.com/document/d/19Z0dMR6CqHqaT2nU9qM4uzHftNFlIeZpd2AlyuHngP4';
+      default:
+        return "https://docs.google.com/document/d/1JcNxTNEs6nkTDotVzFw-AFU0arB6T8aI1BfzKAuDF0A";
+    }
+  }
+
+  Future<void> _launchHelp() async {
+    final locale = Localizations.localeOf(context);
+    final Uri url = Uri.parse(_getHelpUrl(locale.languageCode));
+    if (!await launchUrl(url)) {
+      await fshowInfoDialog(
+          context, AppLocalizations.of(context)!.errorOpeningUrl);
+    }
   }
 
   @override
@@ -50,8 +73,16 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
             renderOverlay: false,
             overlayColor: Colors.black,
             overlayOpacity: 0.5,
-            children: _getSpeedDialChildren(appState.userRole,
-                appState.isConnected, this.widget.displayContext, l10n),
+            children: [
+              SpeedDialChild(
+                child: const Icon(Icons.menu_book),
+                label: AppLocalizations.of(context)!.helpButtonTooltip,
+                labelStyle: TextStyle(color: Colors.black54),
+                onTap: _launchHelp,
+              ),
+              ...(_getSpeedDialChildren(appState.userRole, appState.isConnected,
+                  this.widget.displayContext, l10n)),
+            ],
           );
         });
   }
@@ -132,26 +163,16 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
     return [
       SpeedDialChild(
         child: const Icon(Icons.shopping_basket),
-        label: "Buy Coffee",
+        label: l10n.buyCoffee,
         labelStyle: TextStyle(color: Colors.black54),
         onTap: () async {
           showBuyCoffeeOptions(context);
         },
       ),
-      //ToDo: Make conditional only if there are selected containers
-      // if (batchSalePossible)
-      //   SpeedDialChild(
-      //     child: const Icon(Icons.devices),
-      //     label: "Bulk Sell Coffee online",
-      //     labelStyle: TextStyle(color: Colors.black54),
-      //     onTap: () async {
-      //       _showSellCoffeeOptions(context);
-      //     },
-      //   ),
       if (batchSalePossible)
         SpeedDialChild(
           child: const Icon(Icons.merge_outlined),
-          label: "Aggregate items",
+          label: l10n.aggregateItems,
           labelStyle: TextStyle(color: Colors.black54),
           onTap: () async {
             await showAggregateItemsDialog(context, selectedItems);
@@ -160,7 +181,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         ),
       SpeedDialChild(
         child: const Icon(Icons.add_box),
-        label: "Add new empty item",
+        label: l10n.addNewEmptyItem,
         labelStyle: TextStyle(color: Colors.black54),
         onTap: () async {
           await _showAddEmptyItemDialog(context);
@@ -177,26 +198,16 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
     return [
       SpeedDialChild(
         child: const Icon(Icons.shopping_basket),
-        label: "Buy Coffee",
+        label: l10n.buyCoffee,
         labelStyle: TextStyle(color: Colors.black54),
         onTap: () async {
           showBuyCoffeeOptions(context);
         },
       ),
-      //ToDo: Make conditional only if there are selected containers
-      // if (batchSalePossible)
-      //   SpeedDialChild(
-      //     child: const Icon(Icons.devices),
-      //     label: "Bulk-Sell Coffee online",
-      //     labelStyle: TextStyle(color: Colors.black54),
-      //     onTap: () async {
-      //       await fshowInfoDialog(context, "Not implemented.");
-      //     },
-      //   ),
       if (batchSalePossible)
         SpeedDialChild(
           child: const Icon(Icons.merge_outlined),
-          label: "Aggregate items",
+          label: l10n.aggregateItems,
           labelStyle: TextStyle(color: Colors.black54),
           onTap: () async {
             await _showAddEmptyItemDialog(context);
@@ -205,20 +216,12 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         ),
       SpeedDialChild(
         child: const Icon(Icons.add_box),
-        label: "Add new empty item",
+        label: l10n.addNewEmptyItem,
         labelStyle: TextStyle(color: Colors.black54),
         onTap: () async {
-          await fshowInfoDialog(context, "Not yet implemented.");
+          await fshowInfoDialog(context, l10n.notImplementedYet);
         },
       ),
-      // SpeedDialChild(
-      //   child: const Icon(Icons.add_box),
-      //   label: "ToDo: Import/Export Data",
-      //   labelStyle: TextStyle(color: Colors.black54),
-      //   onTap: () {
-      //     //ToDo
-      //   },
-      // ),
     ];
   }
 
@@ -230,20 +233,12 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       return [
         SpeedDialChild(
           child: const Icon(Icons.shopping_basket),
-          label: "Buy Coffee",
+          label: l10n.buyCoffee,
           labelStyle: TextStyle(color: Colors.black54),
           onTap: () async {
             showBuyCoffeeOptions(context);
           },
         ),
-        // SpeedDialChild(
-        //   child: const Icon(Icons.add_box),
-        //   label: l10n.addContainer,
-        //   labelStyle: TextStyle(color: Colors.black54),
-        //   onTap: () {
-        //     // TODO: Implement add container action
-        //   },
-        // ),
       ];
     } else {
       return [];
@@ -334,12 +329,13 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
   // }
 
   void _showSellCoffeeOptions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(
-            'Select Sell Coffee Option',
+            l10n.selectSellCoffeeOption,
             style: TextStyle(color: Colors.black),
             textAlign: TextAlign.center,
           ),
@@ -358,44 +354,29 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
                         child: _buildOptionButton(
                           context,
                           icon: Icons.cloud_upload,
-                          label: 'Device-to-cloud',
+                          label: l10n.deviceToCloud,
                           onTap: () async {
                             Navigator.of(context).pop();
-                            // TODO: Implement device-to-cloud process
                             await fshowInfoDialog(
-                                context, "Not implemented yet.");
-                            print('Device-to-cloud selected');
+                                context, l10n.notImplementedYet);
                           },
                         ),
                       ),
-                      SizedBox(width: 16), // Add spacing between buttons
+                      SizedBox(width: 16),
                       Expanded(
                         child: _buildOptionButton(
                           context,
                           icon: Icons.devices,
-                          label: 'Device-to-device',
+                          label: l10n.deviceToDevice,
                           onTap: () async {
                             Navigator.of(context).pop();
-                            // TODO: Implement device-to-device process
                             await fshowInfoDialog(
-                                context, "Not implemented yet.");
-                            print('Device-to-device selected');
+                                context, l10n.notImplementedYet);
                           },
                         ),
                       ),
                     ],
                   ),
-                  // SizedBox(height: 16), // Add vertical spacing
-                  // _buildOptionButton(
-                  //   context,
-                  //   icon: Icons.cloud_upload,
-                  //   label: 'Device-to-cloud',
-                  //   onTap: () {
-                  //     Navigator.of(context).pop();
-                  //     // TODO: Implement device-to-cloud process
-                  //     print('Device-to-cloud selected');
-                  //   },
-                  // ),
                 ],
               ),
             ),

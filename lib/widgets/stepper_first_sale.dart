@@ -8,6 +8,7 @@ import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
 import '../services/service_functions.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Map<String, dynamic> receivingContainer = {};
 Map<String, dynamic> field = {};
@@ -47,14 +48,15 @@ class FirstSaleProcess {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: Text('Buy Coffee (CIAT First Sale)',
+          title: Text(l10n.buyCoffeeCiatFirstSale,
               style: TextStyle(color: Colors.black)),
           content:
               CoffeeSaleStepper(receivingContainerUID: receivingContainerUID),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: Text(l10n.cancel, style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -90,28 +92,27 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   }
 
   List<Step> get _steps {
+    final l10n = AppLocalizations.of(context)!;
     return [
       Step(
-        title: Text('Scan tag provided by seller',
+        title: Text(l10n.scanSellerTag,
             style: TextStyle(color: Colors.black)),
-        content: Text(
-            'Use QR-Code or NFC from seller to specify the coffee that you are about to buy.',
+        content: Text(l10n.scanSellerTagInstructions,
             style: TextStyle(color: Colors.black)),
         isActive: _currentStep >= 0,
       ),
       Step(
-        title: Text('Enter coffee information',
+        title: Text(l10n.enterCoffeeInfo,
             style: TextStyle(color: Colors.black)),
-        content: Text('Provide details about the coffee being purchased.',
+        content: Text(l10n.enterCoffeeInfoInstructions,
             style: TextStyle(color: Colors.black)),
         isActive: _currentStep >= 1,
       ),
       if (widget.receivingContainerUID == null)
         Step(
-          title: Text(
-              'Scan tag of the receiving container (sack, storage, building, truck...)',
+          title: Text(l10n.scanReceivingContainer,
               style: TextStyle(color: Colors.black)),
-          content: Text('Specify where the coffee is transferred to.',
+          content: Text(l10n.scanReceivingContainerInstructions,
               style: TextStyle(color: Colors.black)),
           isActive: _currentStep >= 2,
         ),
@@ -239,6 +240,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   }
 
   Future<CoffeeInfo?> _showCoffeeInfoDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final countries = ['Honduras', 'Colombia', 'Brazil', 'Ethiopia', 'Vietnam'];
     final coffeeSpecies = loadCoffeeSpecies();
     String? selectedCountry = 'Honduras';
@@ -285,7 +287,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                               BorderRadius.vertical(top: Radius.circular(16)),
                         ),
                         child: Text(
-                          'Coffee Information',
+                          l10n.coffeeInformation,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -301,10 +303,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildDropdownField(
-                                  label: "Country of Origin",
+                                  label: l10n.countryOfOrigin,
                                   value: selectedCountry,
                                   items: countries,
-                                  hintText: "Select Country",
+                                  hintText: l10n.selectCountry,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedCountry = newValue;
@@ -316,10 +318,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 SizedBox(height: 16),
                                 _buildDropdownField(
-                                  label: "Species",
+                                  label: l10n.species,
                                   value: selectedSpecies,
                                   items: coffeeSpecies,
-                                  hintText: "Select Species",
+                                  hintText: l10n.selectSpecies,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedSpecies = newValue;
@@ -345,13 +347,13 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 SizedBox(height: 16),
                                 _buildDropdownField(
-                                  label: "Processing State",
+                                  label: l10n.processingState,
                                   value: selectedProcessingState,
                                   items: processingStates
                                       .map((state) =>
                                           getLanguageSpecificState(state))
                                       .toList(),
-                                  hintText: "Select Processing State",
+                                  hintText: l10n.selectProcessingState,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedProcessingState = newValue;
@@ -360,7 +362,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 SizedBox(height: 16),
                                 Text(
-                                  "Quality Reduction Criteria",
+                                  l10n.qualityReductionCriteria,
                                   style: TextStyle(
                                     color: Colors.black87,
                                     fontSize: 16,

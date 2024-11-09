@@ -310,7 +310,7 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                   const Text(
-                    'version 0.8 alpha (2024-10-13)',
+                    'version 0.9 alpha (2024-11-09)',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black54,

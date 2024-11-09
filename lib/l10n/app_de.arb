@@ -36,7 +36,7 @@
   "completed": "abgeschlossen",
   "statusUpdatedSuccessfully": "erfolgreich aktualisiert",
   "noRole": "-keine Rolle-",
-    "roleFarmer": "Landwirt",
+  "roleFarmer": "Landwirt",
   "roleFarmManager": "Hofmanager",
   "roleTrader": "Händler",
   "roleTransporter": "Transporteur",
@@ -48,13 +48,12 @@
   "noActiveImports": "Keine aktuellen Importe",
   "noActiveItems": "Keine Lagerbestände gefunden",
   "noImportHistory": "Keine Importe im Verlauf",
-  "importHistory":"Import Verlauf",
+  "importHistory": "Import Verlauf",
   "roleSystemAdministrator": "Systemadministrator",
   "roleDiascaAdmin": "Diasca-Administrator",
   "roleVerificationAuthority": "Verifizierungsbehörde",
-    "enterNewFarmerID":"Geben Sie Ihre Landwirt-ID ein",
-  "enterNewFarmID":"Geben Sie eine neue Betriebs-ID ein",
-
+  "enterNewFarmerID": "Geben Sie Ihre Landwirt-ID ein",
+  "enterNewFarmID": "Geben Sie eine neue Betriebs-ID ein",
   "scannedCode": "Gescannter Code: {code}",
   "@scannedCode": {
     "description": "Zeigt den gescannten QR-Code oder NFC-Tag an",
@@ -126,15 +125,15 @@
   "startSync": "Synchronisation starten",
   "syncSuccess": "Daten erfolgreich synchronisiert",
   "syncError": "Fehler bei der Datensynchronisation",
-  "nfcNotAvailable" : "NFC nicht verfügbar",
-  "scanningForNfcTags" : "Suche nach NFC Tags",
-  "nfcScanStopped" : "NFC Scan unterbrochen",
+  "nfcNotAvailable": "NFC nicht verfügbar",
+  "scanningForNfcTags": "Suche nach NFC Tags",
+  "nfcScanStopped": "NFC Scan unterbrochen",
   "qrCode": "QR-Code",
-  "nfcTag" : "NFC-Tag",
-  "nfcScanError" : "Fehler beim NFC-Scan",
+  "nfcTag": "NFC-Tag",
+  "nfcScanError": "Fehler beim NFC-Scan",
   "multiTagFoundIOS": "Mehrere Tags gefunden!",
   "scanInfoMessageIOS": "Scanne dein Tag",
-    "addEmptyItem": "Leeren Gegenstand hinzufügen",
+  "addEmptyItem": "Leeren Gegenstand hinzufügen",
   "maxCapacity": "Maximale Kapazität",
   "uid": "UID",
   "bag": "Sack",
@@ -142,21 +141,188 @@
   "building": "Gebäude",
   "transportVehicle": "Transportfahrzeug",
   "pleaseCompleteAllFields": "Bitte füllen Sie alle Felder aus",
-    "fieldRequired": "Dieses Feld ist erforderlich",
+  "fieldRequired": "Dieses Feld ist erforderlich",
   "invalidNumber": "Bitte geben Sie eine gültige Zahl ein",
-    "geolocation": "Geolokalisierung",
+  "geolocation": "Geolokalisierung",
   "latitude": "Breitengrad",
   "longitude": "Längengrad",
   "useCurrentLocation": "Aktuellen Standort verwenden",
   "locationError": "Fehler beim Abrufen des Standorts",
   "invalidLatitude": "Ungültiger Breitengrad",
   "invalidLongitude": "Ungültiger Längengrad",
-    "sellOnline": "Online verkaufen",
+  "sellOnline": "Online verkaufen",
   "recipientEmail": "E-Mail des Empfängers",
   "invalidEmail": "Ungültige E-Mail-Adresse",
   "userNotFound": "Benutzer nicht gefunden",
   "saleCompleted": "Verkauf erfolgreich abgeschlossen",
   "saleError": "Während des Verkaufs ist ein Fehler aufgetreten",
   "newTransferNotificationTitle": "Neue Übertragung",
-  "newTransferNotificationBody": "Sie haben eine neue Artikelübertragung erhalten"
+  "newTransferNotificationBody": "Sie haben eine neue Artikelübertragung erhalten",
+  "coffee": "Kaffee",
+  "speciesLabel": "Art: {species}",
+  "@speciesLabel": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      }
+    }
+  },
+  "amount": "{value} {unit}",
+  "@amount": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "processingStep": "Verarbeitungsschritt: {step}",
+  "@processingStep": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "boughtOn": "Gekauft am: {date}",
+  "@boughtOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "fromPlot": "Von Parzelle: {plotId}",
+  "@fromPlot": {
+    "placeholders": {
+      "plotId": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlotFound": "Keine Parzelle gefunden",
+  "errorWithParam": "Fehler: {error}",
+  "@errorWithParam": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingData": "Lade Daten...",
+  "pdfGenerationError": "Fehler bei der PDF-Generierung",
+  "containerIsEmpty": "{containerType} {id} ist leer",
+  "@containerIsEmpty": {
+    "placeholders": {
+      "containerType": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "idWithBrackets": "(ID: {id})",
+  "@idWithBrackets": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "buyCoffee": "Kaffee kaufen",
+  "sellOffline": "Offline verkaufen",
+  "changeProcessingState": "Verarbeitungszustand ändern",
+  "changeLocation": "Standort ändern",
+  "selectQualityCriteria": "Qualitätskriterien auswählen",
+  "selectProcessingState": "Verarbeitungszustand auswählen",
+  "pdfError": "PDF-Fehler: {error}",
+  "@pdfError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectItemToSell": "Bitte wählen Sie einen Artikel zum Verkaufen aus",
+  "debugDeleteContainer": "Container löschen (Debug)",
+  "languageEnglish": "Englisch",
+  "languageGerman": "Deutsch",
+  "languageSpanish": "Spanisch",
+  "languageFrench": "Französisch",
+  "selectAll": "Alle auswählen",
+  "generateDDS": "DDS generieren",
+  "ddsGenerationDemo": "DDS-Generierung ist nur im Demo-Modus verfügbar",
+  "sampleOperator": "Beispiel-Betreiber",
+  "sampleAddress": "Beispiel-Adresse",
+  "sampleEori": "Beispiel-EORI",
+  "sampleHsCode": "Beispiel-HS-Code",
+  "sampleDescription": "Beispiel-Beschreibung",
+  "sampleTradeName": "Beispiel-Handelsname",
+  "sampleScientificName": "Beispiel-Wissenschaftlicher Name",
+  "sampleQuantity": "Beispiel-Menge",
+  "sampleCountry": "Beispiel-Land",
+  "sampleName": "Beispiel-Name",
+  "sampleFunction": "Beispiel-Funktion",
+  "scanQRCode": "QR-Code scannen",
+  "errorLabel": "Fehler",
+  "welcomeToApp": "Willkommen bei TraceFoodChain",
+  "signInMessage": "Bitte melden Sie sich an oder registrieren Sie sich, um die Sicherheit und Integrität unseres Lebensmittelketten-Tracking-Systems zu gewährleisten.",
+  "email": "E-Mail",
+  "password": "Passwort",
+  "pleaseEnterEmail": "Bitte geben Sie Ihre E-Mail-Adresse ein",
+  "pleaseEnterPassword": "Bitte geben Sie Ihr Passwort ein",
+  "signInSignUp": "Anmelden / Registrieren",
+  "helpButtonTooltip": "Hilfe öffnen",
+  "errorOpeningUrl": "Hilfeseite konnte nicht geöffnet werden",
+  "weakPasswordError": "Das eingegebene Passwort ist zu schwach.",
+  "emailAlreadyInUseError": "Ein Konto mit dieser E-Mail existiert bereits.",
+  "invalidEmailError": "Die E-Mail-Adresse ist ungültig.",
+  "userDisabledError": "Dieser Benutzer wurde deaktiviert.",
+  "wrongPasswordError": "Falsches Passwort für diesen Benutzer.",
+  "undefinedError": "Ein unbekannter Fehler ist aufgetreten.",
+  "error": "Fehler",
+  "aggregateItems": "Artikel zusammenfassen",
+  "addNewEmptyItem": "Neuen leeren Artikel hinzufügen",
+  "selectBuyCoffeeOption": "Kaffee-Kaufoption wählen",
+  "selectSellCoffeeOption": "Kaffee-Verkaufsoption wählen",
+  "deviceToCloud": "Gerät-zu-Cloud",
+  "deviceToDevice": "Gerät-zu-Gerät",
+  "ciatFirstSale": "CIAT Erstverkauf",
+  "buyCoffeeDeviceToDevice": "Kaffee kaufen (Gerät-zu-Gerät)",
+  "scanSelectFutureContainer": "Container scannen/auswählen",
+  "scanContainerInstructions": "Verwenden Sie QR-Code/NFC oder wählen Sie manuell aus, wo der Kaffee gelagert werden soll.",
+  "presentInfoToSeller": "Informationen dem Verkäufer präsentieren",
+  "presentInfoToSellerInstructions": "Zeigen Sie dem Verkäufer den QR-Code oder NFC-Tag, um die Transaktion zu starten.",
+  "receiveDataFromSeller": "Daten vom Verkäufer empfangen",
+  "receiveDataFromSellerInstructions": "Scannen Sie den QR-Code oder NFC-Tag vom Gerät des Verkäufers, um die Transaktion abzuschließen.",
+  "present": "PRÄSENTIEREN",
+  "receive": "EMPFANGEN",
+  "scan": "SCANNEN",
+  "back": "ZURÜCK",
+  "next": "WEITER",
+  "buyCoffeeCiatFirstSale": "Kaffee kaufen (CIAT Erstverkauf)",
+  "scanSellerTag": "Verkäufer-Tag scannen",
+  "scanSellerTagInstructions": "Verwenden Sie QR-Code oder NFC vom Verkäufer, um den zu kaufenden Kaffee zu spezifizieren.",
+  "enterCoffeeInfo": "Kaffee-Informationen eingeben",
+  "enterCoffeeInfoInstructions": "Geben Sie Details zum gekauften Kaffee an.",
+  "scanReceivingContainer": "Tag des Empfangsbehälters scannen (Sack, Lager, Gebäude, LKW...)",
+  "scanReceivingContainerInstructions": "Geben Sie an, wohin der Kaffee transferiert wird.",
+  "coffeeInformation": "Kaffee-Informationen",
+  "countryOfOrigin": "Herkunftsland",
+  "selectCountry": "Land auswählen",
+  "selectSpecies": "Art auswählen",
+  "enterQuantity": "Menge eingeben",
+  "start": "START!",
+  "scan": "SCANNEN!",
+  "species": "Art",
+  "processingState": "Verarbeitungsstatus",
+  "qualityReductionCriteria": "Qualitätsminderungskriterien",
+  "sellCoffeeDeviceToDevice": "Kaffee verkaufen (Gerät-zu-Gerät)",
+  "scanBuyerInfo": "Vom Käufer bereitgestellte Informationen scannen",
+  "scanBuyerInfoInstructions": "Verwenden Sie Ihre Smartphone-Kamera oder NFC, um die Ausgangsinformationen vom Käufer zu lesen",
+  "presentInfoToBuyer": "Informationen dem Käufer präsentieren, um den Verkauf abzuschließen",
+  "presentInfoToBuyerInstructions": "Geben Sie an, wohin der Kaffee transferiert wird."
 }

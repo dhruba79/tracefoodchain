@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DataLoadingIndicator extends StatelessWidget {
   final String? text;
@@ -12,7 +13,8 @@ class DataLoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String ftext = "Lade Daten...";
+    final l10n = AppLocalizations.of(context)!;
+    String ftext = l10n.loadingData;
     Color tcolor = Colors.black;
     if (text != null) {
       ftext = text!;

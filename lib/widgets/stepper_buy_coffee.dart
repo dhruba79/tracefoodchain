@@ -7,6 +7,7 @@ import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Map<String, dynamic> receivingContainer = {};
 Map<String, dynamic> field = {};
@@ -91,14 +92,14 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   }
 
   List<Step> get _steps {
+    final l10n = AppLocalizations.of(context)!;
     List<Step> steps = [];
 
     if (widget.receivingContainerUID == null) {
       steps.add(Step(
-        title: Text('Scan/Select future container',
+        title: Text(l10n.scanSelectFutureContainer,
             style: TextStyle(color: Colors.black)),
-        content: Text(
-            'Use QR-Code/NFC or select manually to specify where the coffee will be stored.',
+        content: Text(l10n.scanContainerInstructions,
             style: TextStyle(color: Colors.black)),
         isActive: _currentStep >= 0,
       ));
@@ -106,19 +107,17 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
 
     steps.addAll([
       Step(
-        title: Text('Present information to seller',
+        title: Text(l10n.presentInfoToSeller,
             style: TextStyle(color: Colors.black)),
-        content: Text(
-            'Show the QR code or NFC tag to the seller to initiate the transaction.',
+        content: Text(l10n.presentInfoToSellerInstructions,
             style: TextStyle(color: Colors.black)),
         isActive:
             _currentStep >= (widget.receivingContainerUID == null ? 1 : 0),
       ),
       Step(
-        title: Text('Receive data from seller',
+        title: Text(l10n.receiveDataFromSeller,
             style: TextStyle(color: Colors.black)),
-        content: Text(
-            'Scan the QR code or NFC tag from the seller\'s device to complete the transaction.',
+        content: Text(l10n.receiveDataFromSellerInstructions,
             style: TextStyle(color: Colors.black)),
         isActive:
             _currentStep >= (widget.receivingContainerUID == null ? 2 : 1),
@@ -196,64 +195,76 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 500,
-      width: 300,
-      child: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: _nextStep,
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() {
-              _currentStep -= 1;
-            });
-          }
-        },
-        steps: _steps,
-        controlsBuilder: (BuildContext context, ControlsDetails details) {
-          String buttonText;
-          if (widget.receivingContainerUID != null) {
-            // When UID is provided
-            buttonText = _currentStep == 0 ? "PRESENT" : "RECEIVE";
-          } else {
-            // When no UID is provided
-            switch (_currentStep) {
-              case 0:
-                buttonText = "SCAN";
-                break;
-              case 1:
-                buttonText = "PRESENT";
-                break;
-              case 2:
-                buttonText = "RECEIVE";
-                break;
-              default:
-                buttonText = "NEXT";
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.buyCoffeeDeviceToDevice,
+          style: TextStyle(color: Colors.black)),
+      content: Container(
+        height: 500,
+        width: 300,
+        child: Stepper(
+          currentStep: _currentStep,
+          onStepContinue: _nextStep,
+          onStepCancel: () {
+            if (_currentStep > 0) {
+              setState(() {
+                _currentStep -= 1;
+              });
             }
-          }
+          },
+          steps: _steps,
+          controlsBuilder: (BuildContext context, ControlsDetails details) {
+            String buttonText;
+            if (widget.receivingContainerUID != null) {
+              buttonText = _currentStep == 0 ? l10n.present : l10n.receive;
+            } else {
+              switch (_currentStep) {
+                case 0:
+                  buttonText = l10n.scan;
+                  break;
+                case 1:
+                  buttonText = l10n.present;
+                  break;
+                case 2:
+                  buttonText = l10n.receive;
+                  break;
+                default:
+                  buttonText = l10n.next;
+              }
+            }
 
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  child:
-                      Text(buttonText, style: TextStyle(color: Colors.white)),
-                ),
-              ),
-              if (_currentStep != 0)
+            return Column(
+              children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
-                    onPressed: details.onStepCancel,
-                    child: Text('BACK', style: TextStyle(color: Colors.black)),
+                  child: ElevatedButton(
+                    onPressed: _nextStep,
+                    child: Text(buttonText, 
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
-            ],
-          );
-        },
+                if (_currentStep != 0)
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextButton(
+                      onPressed: details.onStepCancel,
+                      child: Text(l10n.back, 
+                          style: TextStyle(color: Colors.black)),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
+      actions: <Widget>[
+        TextButton(
+          child: Text(l10n.cancel, style: TextStyle(color: Colors.black)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
     );
   }
 }

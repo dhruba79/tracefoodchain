@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 bool _isProcessing = false;
 
@@ -61,7 +62,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
         Navigator.of(context).pop(receivedProcessList);
       } catch (e) {
         debugPrint(assembledData);
-        fshowInfoDialog(context, "Sorry, this QR code contained no valid data");
+        fshowInfoDialog(context, AppLocalizations.of(context)!.noDataAvailable);
       }
     });
   }
@@ -76,6 +77,8 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Column(
       children: [
         Expanded(
@@ -88,19 +91,19 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
                     }
                   },
                 )
-              : Center(child: Text('Reception complete')),
+              : Center(child: Text(l10n.dataReceived)),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
-              'Received ${_receivedChunks.length} out of $_totalChunks chunks',
+              '${l10n.dataReceived} ${_receivedChunks.length} ${l10n.next} $_totalChunks chunks',
               style: TextStyle(color: Colors.black)),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
             onPressed: _resetReceiver,
-            child: Text('Clear and Restart'),
+            child: Text(l10n.scan),
           ),
         ),
       ],

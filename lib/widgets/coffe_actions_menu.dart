@@ -3,6 +3,7 @@ import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/online_sale_dialog.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
 import 'package:trace_foodchain_app/widgets/stepper_sell_coffee.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CoffeeActionsMenu extends StatelessWidget {
   final Map<String, dynamic> coffee;
@@ -20,6 +21,7 @@ class CoffeeActionsMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
       child: PopupMenuButton(
@@ -34,8 +36,19 @@ class CoffeeActionsMenu extends StatelessWidget {
                 width: 24,
                 height: 24,
               ),
-              title: Text("Sell coffee offline",
-                  style: TextStyle(color: Colors.black)),
+              title:
+                  Text(l10n.buyCoffee, style: TextStyle(color: Colors.black)),
+            ),
+          ),
+          PopupMenuItem(
+            child: ListTile(
+              leading: Image.asset(
+                'assets/images/cappuccino.png',
+                width: 24,
+                height: 24,
+              ),
+              title:
+                  Text(l10n.sellOffline, style: TextStyle(color: Colors.black)),
               onTap: () async {
                 Navigator.pop(context, "close menu");
                 StepperSellCoffee sellCoffeeProcess = StepperSellCoffee();
@@ -52,7 +65,7 @@ class CoffeeActionsMenu extends StatelessWidget {
                   width: 24,
                   height: 24,
                 ),
-                title: Text("Sell coffee online",
+                title: Text(l10n.sellOnline,
                     style: TextStyle(color: Colors.black)),
                 onTap: () async {
                   Navigator.pop(context, "close menu");
@@ -64,8 +77,7 @@ class CoffeeActionsMenu extends StatelessWidget {
                           OnlineSaleDialog(itemsToSell: [itemToSell]),
                     );
                   } else {
-                    await fshowInfoDialog(
-                        context, "Please select an item to sell first.");
+                    await fshowInfoDialog(context, l10n.selectItemToSell);
                   }
                   onRepaint();
                 },
@@ -74,7 +86,7 @@ class CoffeeActionsMenu extends StatelessWidget {
           PopupMenuItem(
             child: ListTile(
               leading: Icon(Icons.change_circle, size: 20),
-              title: Text("Change processing state",
+              title: Text(l10n.changeProcessingState,
                   style: TextStyle(color: Colors.black)),
               onTap: () async {
                 Navigator.pop(context, "close menu");
@@ -86,7 +98,7 @@ class CoffeeActionsMenu extends StatelessWidget {
           PopupMenuItem(
             child: ListTile(
                 leading: Icon(Icons.swap_horiz, size: 20),
-                title: Text("Change location/container",
+                title: Text(l10n.changeLocation,
                     style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context, "close menu");

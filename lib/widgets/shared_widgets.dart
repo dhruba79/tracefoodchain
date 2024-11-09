@@ -12,15 +12,17 @@ import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/coffee_processing_state_selector.dart';
 import 'package:trace_foodchain_app/widgets/stepper_buy_coffee.dart';
 import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> showBuyCoffeeOptions(BuildContext context,
     {String? receivingContainerUID}) async {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
+      final l10n = AppLocalizations.of(context)!;
       return AlertDialog(
         title: Text(
-          'Select Buy Coffee Option',
+          l10n.selectBuyCoffeeOption,
           style: TextStyle(color: Colors.black),
           textAlign: TextAlign.center,
         ),
@@ -39,7 +41,7 @@ Future<void> showBuyCoffeeOptions(BuildContext context,
                       child: _buildOptionButton(
                         context,
                         icon: Icons.credit_card,
-                        label: 'CIAT first sale',
+                        label: l10n.ciatFirstSale,
                         onTap: () async {
                           Navigator.of(context).pop();
                           FirstSaleProcess buyCoffeeProcess =
@@ -58,7 +60,7 @@ Future<void> showBuyCoffeeOptions(BuildContext context,
                       child: _buildOptionButton(
                         context,
                         icon: Icons.devices,
-                        label: 'Device-to-device',
+                        label: l10n.deviceToDevice,
                         onTap: () async {
                           Navigator.of(context).pop();
                           // Implement device-to-device process
@@ -116,19 +118,20 @@ Future<void> showAggregateItemsDialog(
   return showDialog(
     context: context,
     builder: (BuildContext context) {
+      final l10n = AppLocalizations.of(context)!;
       return AlertDialog(
-        title: Text('Aggregate Items'),
+        title: Text(l10n.aggregateItems),
         content: Text(
-            'You are about to aggregate ${selectedItemUIDs.length} items. Please scan or select the receiving container.'),
+            '${l10n.selectItemToSell} ${selectedItemUIDs.length} items. ${l10n.scanSelectFutureContainer}'),
         actions: <Widget>[
           TextButton(
-            child: Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           ElevatedButton(
-            child: Text('Start Aggregation'),
+            child: Text(l10n.startScanning),
             onPressed: () {
               Navigator.of(context).pop();
               aggregateItems(context, selectedItemUIDs);
@@ -145,19 +148,19 @@ Future<void> showChangeContainerDialog(
   return showDialog(
     context: context,
     builder: (BuildContext context) {
+      final l10n = AppLocalizations.of(context)!;
       return AlertDialog(
-        title: Text('Change Location/Container'),
-        content: Text(
-            'You are about to change the location of this item. Please scan or select the receiving container.'),
+        title: Text(l10n.changeLocation),
+        content: Text(l10n.scanContainerInstructions),
         actions: <Widget>[
           TextButton(
-            child: Text('Cancel'),
+            child: Text(l10n.cancel),
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           ElevatedButton(
-            child: Text('Start Process'),
+            child: Text(l10n.start),
             onPressed: () async {
               Map<String, dynamic>? newContainer;
               String? receivingContainerUID =
@@ -168,14 +171,14 @@ Future<void> showChangeContainerDialog(
 
               if (receivingContainerUID == null) {
                 await fshowInfoDialog(context,
-                    "No receiving container selected. Process cancelled.");
+                    l10n.noDeliveryHistory);
               } else {
                 newContainer =
                     await getContainerByAlternateUID(receivingContainerUID);
 
                 if (newContainer.isEmpty) {
                   await fshowInfoDialog(context,
-                      "This container does not exist at your repository. Process cancelled.\n(Consider to add the container first to your repository!)");
+                      l10n.noDeliveryHistory); // Use appropriate translation
                 } else
 
                 //4. Change container
@@ -208,6 +211,7 @@ Future<void> showProcessingStateDialog(
   Map<String, dynamic>? result = await showDialog<Map<String, dynamic>>(
     context: context,
     builder: (BuildContext context) {
+      final l10n = AppLocalizations.of(context)!;
       return Dialog(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -249,7 +253,7 @@ Future<void> showProcessingStateDialog(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      child: Text('Cancel'),
+                      child: Text(l10n.cancel),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },

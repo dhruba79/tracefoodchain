@@ -84,6 +84,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                 ),
                 IconButton(
                   icon: Icon(Icons.qr_code_scanner),
+                  tooltip: l10n.scanQRCode,
                   onPressed: _scanUID,
                 ),
               ],

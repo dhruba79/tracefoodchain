@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:trace_foodchain_app/helpers/helpers.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CoffeeProcessingStateSelector extends StatefulWidget {
   final String currentState;
@@ -48,12 +49,13 @@ class _CoffeeProcessingStateSelectorState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Select Quality Reduction Criteria (if applicable)",
+          l10n.selectQualityCriteria,
           style: TextStyle(
             color: Colors.black87,
             fontSize: 16,
@@ -64,7 +66,7 @@ class _CoffeeProcessingStateSelectorState
         ..._buildQualityCriteriaCheckboxes(),
         SizedBox(height: 16),
         Text(
-          "Select Current Processing State",
+          l10n.selectProcessingState,
           style: TextStyle(
             color: Colors.black87,
             fontSize: 16,
@@ -97,6 +99,7 @@ class _CoffeeProcessingStateSelectorState
   }
 
   Widget _buildProcessingStateSelector() {
+    final l10n = AppLocalizations.of(context)!;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         double availableWidth = constraints.maxWidth;

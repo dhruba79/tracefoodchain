@@ -6,6 +6,7 @@ import 'package:trace_foodchain_app/widgets/online_sale_dialog.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
 import 'package:trace_foodchain_app/widgets/stepper_sell_coffee.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ContainerActionsMenu extends StatefulWidget {
   final Map<String, dynamic> container;
@@ -38,6 +39,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
       child: PopupMenuButton(
@@ -52,7 +54,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
                 width: 24,
                 height: 24,
               ),
-              title: Text("Buy coffee for this container",
+              title: Text(l10n.buyCoffee,
                   style: TextStyle(color: Colors.black)),
               onTap: () => _buyCoffeeForContainer(context),
             ),
@@ -60,7 +62,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
           PopupMenuItem(
             child: ListTile(
               leading: Icon(Icons.shopping_cart, size: 20),
-              title: Text("Sell container offline",
+              title: Text(l10n.sellOffline,
                   style: TextStyle(color: Colors.black)),
               onTap: () => _sellContainerOffline(context),
             ),
@@ -70,7 +72,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
             PopupMenuItem(
               child: ListTile(
                 leading: Icon(Icons.shopping_cart, size: 20),
-                title: Text("Sell container online",
+                title: Text(l10n.sellOnline,
                     style: TextStyle(color: Colors.black)),
                 onTap: () async {
                   Navigator.pop(context, "close menu");
@@ -86,9 +88,8 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
 
                   for (final item in outgoingItems) {
                     if (item["needsSync"] != null) {
-                      await fshowInfoDialog(context,
-                          "Not all items are synced, please wait until all items are synced!");
-                      return; //!reactivate
+                      await fshowInfoDialog(context, l10n.syncError);
+                      return;
                     }
                   }
 
@@ -100,7 +101,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
                     );
                   } else {
                     await fshowInfoDialog(
-                        context, "Please select an item to sell first.");
+                        context, l10n.selectItemToSell);
                   }
 
                   widget.onRepaint();
@@ -110,7 +111,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
           PopupMenuItem(
             child: ListTile(
                 leading: Icon(Icons.swap_horiz, size: 20),
-                title: Text("Change location/container",
+                title: Text(l10n.changeLocation,
                     style: TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context, "close menu");
@@ -134,7 +135,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
                                 color: Color(0xFF35DB00),
                               ),
                             )
-                          : Text("Generate DDS",
+                          : Text(l10n.generateDDS,
                               style: TextStyle(color: Colors.black));
                     },
                   ),
@@ -147,7 +148,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
             PopupMenuItem(
               child: ListTile(
                 leading: Icon(Icons.delete_forever, size: 20),
-                title: Text("DEBUG: Delete Container",
+                title: Text(l10n.debugDeleteContainer,
                     style: TextStyle(color: Colors.black)),
                 onTap: () => _deleteContainer(context),
               ),
@@ -158,6 +159,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
   }
 
   Future<void> _generateDDS(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() {
       _isBuilding = true;
       rebuildDDS.value = true;
@@ -172,8 +174,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
       debugPrint(field["identity"]["alternateIDs"][0]["UID"]);
     }
 
-    await fshowInfoDialog(context,
-        "The generated DDS is only for demonstration purposes. It contains the real deforestation risks of plots but only mock data for operator and product.");
+    await fshowInfoDialog(context, l10n.ddsGenerationDemo);
 
     final results = await widget.onPerformAnalysis(plotList);
     await widget.onGenerateAndSharePdf(results);

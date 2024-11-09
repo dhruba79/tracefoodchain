@@ -134,7 +134,7 @@
   "nfcScanError" : "Error during NFC scan",
   "multiTagFoundIOS" : "Multiple tags found!",
   "scanInfoMessageIOS" : "Scan your tag",
-    "addEmptyItem": "Add Empty Item",
+  "addEmptyItem": "Add Empty Item",
   "maxCapacity": "Maximum Capacity",
   "uid": "UID",
   "bag": "Bag",
@@ -142,21 +142,188 @@
   "building": "Building",
   "transportVehicle": "Transport Vehicle",
   "pleaseCompleteAllFields": "Please complete all fields",
-    "fieldRequired": "This field is required",
+  "fieldRequired": "This field is required",
   "invalidNumber": "Please enter a valid number",
-    "geolocation": "Geolocation",
+  "geolocation": "Geolocation",
   "latitude": "Latitude",
   "longitude": "Longitude",
   "useCurrentLocation": "Use Current Location",
   "locationError": "Error getting location",
   "invalidLatitude": "Invalid latitude",
   "invalidLongitude": "Invalid longitude",
-    "sellOnline": "Sell Online",
+  "sellOnline": "Sell Online",
   "recipientEmail": "Email of recipient",
   "invalidEmail": "Invalid email address",
   "userNotFound": "User not found",
   "saleCompleted": "Sale completed successfully",
   "saleError": "An error occurred during the sale",
   "newTransferNotificationTitle": "New Transfer",
-  "newTransferNotificationBody": "You have received a new item transfer"
+  "newTransferNotificationBody": "You have received a new item transfer",
+  "coffee": "Coffee",
+  "speciesLabel": "Species: {species}",
+  "@speciesLabel": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      }
+    }
+  },
+  "amount": "{value} {unit}",
+  "@amount": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "processingStep": "Processing step: {step}",
+  "@processingStep": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "boughtOn": "Bought on: {date}",
+  "@boughtOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "fromPlot": "From plot: {plotId}",
+  "@fromPlot": {
+    "placeholders": {
+      "plotId": {
+        "type": "String"
+      }
+    }
+  },
+  "noPlotFound": "No plot found",
+  "errorWithParam": "Error: {error}",
+  "@errorWithParam": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingData": "Loading data...",
+  "pdfGenerationError": "Error generating PDF",
+  "containerIsEmpty": "{containerType} {id} is empty",
+  "@containerIsEmpty": {
+    "placeholders": {
+      "containerType": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "idWithBrackets": "(ID: {id})",
+  "@idWithBrackets": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "buyCoffee": "Buy coffee",
+  "sellOffline": "Sell offline",
+  "changeProcessingState": "Change processing state",
+  "changeLocation": "Change location",
+  "selectQualityCriteria": "Select quality criteria",
+  "selectProcessingState": "Select processing state",
+  "pdfError": "PDF error: {error}",
+  "@pdfError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "selectItemToSell": "Please select an item to sell",
+  "debugDeleteContainer": "Delete container (Debug)",
+  "languageEnglish": "English",
+  "languageGerman": "German",
+  "languageSpanish": "Spanish",
+  "languageFrench": "French",
+  "selectAll": "Select All",
+  "generateDDS": "Generate DDS",
+  "ddsGenerationDemo": "DDS generation is only available in demo mode",
+  "sampleOperator": "Sample Operator",
+  "sampleAddress": "Sample Address",
+  "sampleEori": "Sample EORI",
+  "sampleHsCode": "Sample HS Code",
+  "sampleDescription": "Sample Description",
+  "sampleTradeName": "Sample Trade Name",
+  "sampleScientificName": "Sample Scientific Name",
+  "sampleQuantity": "Sample Quantity",
+  "sampleCountry": "Sample Country",
+  "sampleName": "Sample Name",
+  "sampleFunction": "Sample Function",
+  "scanQRCode": "Scan QR Code",
+  "errorLabel": "Error",
+  "welcomeToApp": "Welcome to TraceFoodChain",
+  "signInMessage": "Please sign in or sign up to ensure the security and integrity of our food chain tracking system.",
+  "email": "Email",
+  "password": "Password",
+  "pleaseEnterEmail": "Please enter your email",
+  "pleaseEnterPassword": "Please enter your password",
+  "signInSignUp": "Sign In / Sign Up",
+  "helpButtonTooltip": "Open Help",
+  "errorOpeningUrl": "Could not open help page",
+  "weakPasswordError": "The password provided is too weak.",
+  "emailAlreadyInUseError": "An account already exists for that email.",
+  "invalidEmailError": "The email address is not valid.",
+  "userDisabledError": "This user has been disabled.",
+  "wrongPasswordError": "Wrong password provided for that user.",
+  "undefinedError": "An undefined error happened.",
+  "error": "Error",
+  "aggregateItems": "Aggregate items",
+  "addNewEmptyItem": "Add new empty item",
+  "selectBuyCoffeeOption": "Select Buy Coffee Option",
+  "selectSellCoffeeOption": "Select Sell Coffee Option",
+  "deviceToCloud": "Device-to-cloud",
+  "deviceToDevice": "Device-to-device",
+  "ciatFirstSale": "CIAT first sale",
+  "buyCoffeeDeviceToDevice": "Buy Coffee (device-to-device)",
+  "scanSelectFutureContainer": "Scan/Select future container",
+  "scanContainerInstructions": "Use QR-Code/NFC or select manually to specify where the coffee will be stored.",
+  "presentInfoToSeller": "Present information to seller",
+  "presentInfoToSellerInstructions": "Show the QR code or NFC tag to the seller to initiate the transaction.",
+  "receiveDataFromSeller": "Receive data from seller", 
+  "receiveDataFromSellerInstructions": "Scan the QR code or NFC tag from the seller's device to complete the transaction.",
+  "present": "PRESENT",
+  "receive": "RECEIVE",
+  "scan": "SCAN",
+  "back": "BACK",
+  "next": "NEXT",
+  "buyCoffeeCiatFirstSale": "Buy Coffee (CIAT First Sale)",
+  "scanSellerTag": "Scan tag provided by seller",
+  "scanSellerTagInstructions": "Use QR-Code or NFC from seller to specify the coffee that you are about to buy.",
+  "enterCoffeeInfo": "Enter coffee information",
+  "enterCoffeeInfoInstructions": "Provide details about the coffee being purchased.",
+  "scanReceivingContainer": "Scan tag of the receiving container (sack, storage, building, truck...)",
+  "scanReceivingContainerInstructions": "Specify where the coffee is transferred to.",
+  "coffeeInformation": "Coffee Information",
+  "countryOfOrigin": "Country of Origin",
+  "selectCountry": "Select Country",
+  "selectSpecies": "Select Species",
+  "enterQuantity": "Enter quantity",
+  "start": "START!",
+  "scan": "SCAN!",
+  "species": "Species",
+  "processingState": "Processing State",
+  "qualityReductionCriteria": "Quality Reduction Criteria",
+  "sellCoffeeDeviceToDevice": "Sell Coffee (device-to-device)",
+  "scanBuyerInfo": "Scan information provided by buyer",
+  "scanBuyerInfoInstructions": "Use your smartphone camera or NFC to read initial information from buyer",
+  "presentInfoToBuyer": "Present information to the buyer to finish sale",
+  "presentInfoToBuyerInstructions": "Specify where the coffee is transferred to."
 }

@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
+import 'package:trace_foodchain_app/widgets/language_selector.dart'; // Neue Import
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -58,32 +61,62 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _handleAuthError(FirebaseAuthException e) async {
+    final l10n = AppLocalizations.of(context)!;
     String errorMessage;
     switch (e.code) {
       case 'weak-password':
-        errorMessage = 'The password provided is too weak.';
+        errorMessage = l10n.weakPasswordError;
         break;
       case 'email-already-in-use':
-        errorMessage = 'An account already exists for that email.';
+        errorMessage = l10n.emailAlreadyInUseError;
         break;
       case 'invalid-email':
-        errorMessage = 'The email address is not valid.';
+        errorMessage = l10n.invalidEmailError;
         break;
       case 'user-disabled':
-        errorMessage = 'This user has been disabled.';
+        errorMessage = l10n.userDisabledError;
         break;
       case 'wrong-password':
-        errorMessage = 'Wrong password provided for that user.';
+        errorMessage = l10n.wrongPasswordError;
         break;
       default:
-        errorMessage = 'An undefined error happened.';
+        errorMessage = l10n.undefinedError;
     }
-    await fshowInfoDialog(context, "Error: $errorMessage");
+    await fshowInfoDialog(context, "${l10n.error}: $errorMessage");
+  }
+
+  String _getHelpUrl(String languageCode) {
+    switch (languageCode) {
+      case 'de':
+        return 'https://docs.google.com/document/d/1wURF_uGIW3eKHh1qEn380_JE5tOdOyZRfFRQuL46Hn0';
+      case 'es':
+        return 'https://docs.google.com/document/d/1IVqaR_mJkQKbVobJfYM_EUxYCpd5B5qel0mY2U_KPVg';
+      case 'fr':
+        return 'https://docs.google.com/document/d/19Z0dMR6CqHqaT2nU9qM4uzHftNFlIeZpd2AlyuHngP4';
+      default:
+        return "https://docs.google.com/document/d/1JcNxTNEs6nkTDotVzFw-AFU0arB6T8aI1BfzKAuDF0A";
+    }
+  }
+
+  Future<void> _launchHelp() async {
+    final locale = Localizations.localeOf(context);
+    final Uri url = Uri.parse(_getHelpUrl(locale.languageCode));
+    if (!await launchUrl(url)) {
+      await fshowInfoDialog(
+          context, AppLocalizations.of(context)!.errorOpeningUrl);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF35DB00),
+        onPressed: _launchHelp,
+        child: const Icon(Icons.menu_book),
+        tooltip: l10n.helpButtonTooltip,
+      ),
       body: Stack(
         children: [
           Container(
@@ -98,118 +131,130 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
             child: SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: 600),
-                      child: Card(
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Welcome to TraceFoodChain',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineSmall
-                                    ?.copyWith(
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(height: 20),
-                              Text(
-                                'Please sign in or sign up to ensure the security and integrity of our food chain tracking system.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.black87,
-                                    ),
-                                textAlign: TextAlign.center,
-                              ),
-                              SizedBox(height: 30),
-                              Form(
-                                key: _formKey,
-                                child: Column(
-                                  children: <Widget>[
-                                    TextFormField(
-                                      style: TextStyle(color: Colors.black),
-                                      controller: _emailController,
-                                      decoration: InputDecoration(
-                                        labelText: 'Email',
-                                        prefixIcon: Icon(Icons.email),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: LanguageSelector(),
+                  ),
+                  Center(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 600),
+                          child: Card(
+                            elevation: 8,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    l10n.welcomeToApp,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          color: Colors.black87,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter your email';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                    SizedBox(height: 20),
-                                    TextFormField(
-                                      onFieldSubmitted: (value) {
-                                        // Simuliere das Drücken des Signup-Buttons, wenn Enter gedrückt wird
-                                        _authenticate();
-                                      },
-                                      style: TextStyle(color: Colors.black),
-                                      controller: _passwordController,
-                                      decoration: InputDecoration(
-                                        labelText: 'Password',
-                                        prefixIcon: Icon(Icons.lock),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    l10n.signInMessage,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Colors.black87,
                                         ),
-                                      ),
-                                      obscureText: true,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter your password';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                    SizedBox(height: 30),
-                                    ElevatedButton(
-                                      onPressed: _authenticate,
-                                      child: Text('Sign In / Sign Up'),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            Theme.of(context).primaryColor,
-                                        foregroundColor: Colors.white,
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 50, vertical: 15),
-                                        textStyle: TextStyle(fontSize: 18),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(30),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: 30),
+                                  Form(
+                                    key: _formKey,
+                                    child: Column(
+                                      children: <Widget>[
+                                        TextFormField(
+                                          style: TextStyle(color: Colors.black),
+                                          controller: _emailController,
+                                          decoration: InputDecoration(
+                                            labelText: l10n.email,
+                                            prefixIcon: Icon(Icons.email),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return l10n.pleaseEnterEmail;
+                                            }
+                                            return null;
+                                          },
                                         ),
-                                      ),
+                                        SizedBox(height: 20),
+                                        TextFormField(
+                                          onFieldSubmitted: (value) {
+                                            // Simuliere das Drücken des Signup-Buttons, wenn Enter gedrückt wird
+                                            _authenticate();
+                                          },
+                                          style: TextStyle(color: Colors.black),
+                                          controller: _passwordController,
+                                          decoration: InputDecoration(
+                                            labelText: l10n.password,
+                                            prefixIcon: Icon(Icons.lock),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          obscureText: true,
+                                          validator: (value) {
+                                            if (value == null ||
+                                                value.isEmpty) {
+                                              return l10n
+                                                  .pleaseEnterPassword;
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        SizedBox(height: 30),
+                                        ElevatedButton(
+                                          onPressed: _authenticate,
+                                          child: Text(l10n.signInSignUp),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(context)
+                                                .primaryColor,
+                                            foregroundColor: Colors.white,
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 50, vertical: 15),
+                                            textStyle: TextStyle(fontSize: 18),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(30),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),

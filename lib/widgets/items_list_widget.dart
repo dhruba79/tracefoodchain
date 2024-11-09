@@ -63,6 +63,7 @@ class _ItemsListState extends State<ItemsList> {
 
   Future<List<Map<String, dynamic>>> _performAnalysis(
       List<String> plotList) async {
+    final l10n = AppLocalizations.of(context)!;
     _errorMessage = null;
     _isLoading = true;
     rebuildDDS.value = true;
@@ -81,7 +82,7 @@ class _ItemsListState extends State<ItemsList> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Cannot generate DDS!\nInvalid GeoIDs detected!')),
+            content: Text(l10n.pdfGenerationError)),
       );
     } finally {
       _isLoading = false;
@@ -91,6 +92,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Future<void> _generateAndSharePdf(List<Map<String, dynamic>> plots) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_result == null) {
       // ScaffoldMessenger.of(context).showSnackBar(
       //   SnackBar(content: Text('Please perform analysis first')),
@@ -105,18 +107,18 @@ class _ItemsListState extends State<ItemsList> {
     try {
       final pdfGenerator = PdfGenerator();
       final pdfBytes = await pdfGenerator.generatePdf(
-        operatorName: 'Sample Operator',
-        operatorAddress: '123 Sample St, Sample City, 12345',
-        eoriNumber: 'SAMPLE123456',
-        hsCode: '1234.56.78',
-        description: 'Sample product description',
-        tradeName: 'Sample Trade Name',
-        scientificName: 'Sampleus productus',
-        quantity: '1000 kg',
-        country: 'Sample Country',
+        operatorName: l10n.sampleOperator,
+        operatorAddress: l10n.sampleAddress,
+        eoriNumber: l10n.sampleEori,
+        hsCode: l10n.sampleHsCode,
+        description: l10n.sampleDescription,
+        tradeName: l10n.sampleTradeName,
+        scientificName: l10n.sampleScientificName,
+        quantity: l10n.sampleQuantity,
+        country: l10n.sampleCountry,
         plots: plots,
-        signatoryName: 'John Doe',
-        signatoryFunction: 'CEO',
+        signatoryName: l10n.sampleName,
+        signatoryFunction: l10n.sampleFunction,
         date: DateTime.now().toString(),
       );
 
@@ -128,7 +130,9 @@ class _ItemsListState extends State<ItemsList> {
       print('Error generating or sharing PDF: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to generate or share PDF: ${e.toString()}'),
+          content: Text((AppLocalizations.of(context)!
+              .pdfError as String)
+              .replaceAll('{error}', e.toString())),
         ),
       );
     } finally {
@@ -245,6 +249,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildContentItem(Map<String, dynamic> item) {
+    final l10n = AppLocalizations.of(context)!;
     final itemType = item['template']['RALType'];
     if (itemType != 'coffee') {
       return _buildNestedContainer(item);
@@ -254,6 +259,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildNestedContainer(Map<String, dynamic> container) {
+    final l10n = AppLocalizations.of(context)!;
     return FutureBuilder<List<Map<String, dynamic>>>(
         future: _databaseHelper.getContainedItems(container["identity"]["UID"]),
         builder: (context, snapshot) {
@@ -261,7 +267,8 @@ class _ItemsListState extends State<ItemsList> {
             return _buildLoadingIndicator();
           }
           if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
+            return Text((l10n.errorWithParam as String)
+                .replaceAll('{error}', snapshot.error.toString()));
           }
           final nestedContents = snapshot.data ?? [];
           return ExpansionTile(
@@ -280,6 +287,7 @@ class _ItemsListState extends State<ItemsList> {
 
   Widget _buildCoffeeItem(Map<String, dynamic> coffee) {
     final appState = Provider.of<AppState>(context);
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Row(
@@ -308,7 +316,7 @@ class _ItemsListState extends State<ItemsList> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          'Coffee',
+                          l10n.coffee,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -316,7 +324,8 @@ class _ItemsListState extends State<ItemsList> {
                           ),
                         ),
                         Text(
-                          '[${getSpecificPropertyfromJSON(coffee, "species")}]',
+                          (l10n.speciesLabel as String).replaceAll('{species}',
+                              getSpecificPropertyfromJSON(coffee, "species")),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w100,
@@ -351,7 +360,11 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  'Amount: ${getSpecificPropertyfromJSON(coffee, "amount")} ${getSpecificPropertyUnitfromJSON(coffee, "amount")}',
+                  (l10n.amount as String)
+                      .replaceAll('{value}',
+                          getSpecificPropertyfromJSON(coffee, "amount"))
+                      .replaceAll('{unit}',
+                          getSpecificPropertyUnitfromJSON(coffee, "amount")),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -359,7 +372,8 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  "Processing step: ${getSpecificPropertyfromJSON(coffee, "processingState")}",
+                  (l10n.processingStep as String).replaceAll('{step}',
+                      getSpecificPropertyfromJSON(coffee, "processingState")),
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -385,7 +399,7 @@ class _ItemsListState extends State<ItemsList> {
                     }
                     final content = snapshot.data ?? {};
                     if (content.isEmpty) {
-                      return Text("No plot found",
+                      return Text(l10n.noPlotFound,
                           style:
                               TextStyle(color: Colors.black54, fontSize: 12));
                     }
@@ -395,11 +409,17 @@ class _ItemsListState extends State<ItemsList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            "bought on ${formatTimestamp(content["existenceStarts"]) ?? "unknown"}",
+                            (l10n.boughtOn as String).replaceAll(
+                                '{date}',
+                                formatTimestamp(content["existenceStarts"]) ??
+                                    "unknown"),
                             style:
                                 TextStyle(fontSize: 12, color: Colors.black54)),
                         Text(
-                          'from plot: ${truncateUID(field["identity"]["alternateIDs"][0]["UID"])}',
+                          (l10n.fromPlot as String).replaceAll(
+                              '{plotId}',
+                              truncateUID(
+                                  field["identity"]["alternateIDs"][0]["UID"])),
                           style: TextStyle(fontSize: 12, color: Colors.black54),
                         ),
                       ],
@@ -434,11 +454,12 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildErrorCard(String error) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
         leading: Icon(Icons.error, color: Colors.red),
-        title: Text('Error'),
+        title: Text(l10n.errorLabel),
         subtitle: Text(error),
       ),
     );
@@ -473,7 +494,15 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 SizedBox(width: 12),
                 Text(
-                    '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"][0]["UID"]}\nis empty'),
+                (AppLocalizations.of(context)!
+                        .containerIsEmpty as String)
+                        .replaceAll(
+                            '{containerType}',
+                            getContainerTypeName(
+                                container["template"]["RALType"], context))
+                        .replaceAll('{id}',
+                            container["identity"]["alternateIDs"][0]["UID"]),
+                    style: TextStyle(color: Colors.black)),
                 ContainerActionsMenu(
                   container: container,
                   contents: [],
@@ -538,7 +567,10 @@ class _ItemsListState extends State<ItemsList> {
                     ],
                   ),
                   Text(
-                    '[ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}]',
+                    (AppLocalizations.of(context)!.idWithBrackets as String).replaceAll(
+                        '{id}',
+                        truncateUID(
+                            container["identity"]["alternateIDs"][0]["UID"])),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w100,
@@ -599,11 +631,12 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildSelectAllCheckbox(int itemCount) {
+    final l10n = AppLocalizations.of(context)!;
     if (itemCount <= 1) return SizedBox.shrink();
 
     bool allSelected = selectedItems.length == itemCount;
     return CheckboxListTile(
-      title: Text('Select All', style: TextStyle(color: Colors.black)),
+      title: Text(l10n.selectAll, style: TextStyle(color: Colors.black)),
       value: allSelected,
       onChanged: (bool? value) {
         if (value == true) {

@@ -10,6 +10,7 @@ import 'package:trace_foodchain_app/services/open_ral_service.dart';
 class CloudApiClient {
   final String domain;
   CloudApiClient({required this.domain});
+  
   Future<Map<String, dynamic>> executeRalMethod(
       String domain, Map<String, dynamic> method) async {
     final urlString = getCloudConnectionProperty(

@@ -8,6 +8,7 @@ import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import '../services/service_functions.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Add this import
 
 Map<String, dynamic> receivingContainer = {};
 Map<String, dynamic> field = {};
@@ -42,17 +43,18 @@ class SaleInfo {
 
 class StepperSellCoffee {
   Future<void> startProcess(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Sell Coffee (device-to-device)',
+          title: Text(l10n.sellCoffeeDeviceToDevice,
               style: TextStyle(color: Colors.black)),
           content: CoffeeSaleStepper(),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.black)),
+              child: Text(l10n.cancel, style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -63,7 +65,6 @@ class StepperSellCoffee {
     );
   }
 }
-
 
 class CoffeeSaleStepper extends StatefulWidget {
   // final SaleInfo saleInfo;
@@ -76,23 +77,25 @@ class CoffeeSaleStepper extends StatefulWidget {
 class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   int _currentStep = 0;
   SaleInfo saleInfo = SaleInfo();
-  List<Step> get _steps => [
-        Step(
-          title: Text('Scan information provided by buyer',
-              style: TextStyle(color: Colors.black)),
-          content: Text(
-              'Use your smartphone camera or NFC to read initial information from buyer',
-              style: TextStyle(color: Colors.black)),
-          isActive: _currentStep >= 0,
-        ),
-        Step(
-          title: Text('Present information to the buyer to finish sale',
-              style: TextStyle(color: Colors.black)),
-          content: Text('Specify where the coffee is transferred to.',
-              style: TextStyle(color: Colors.black)),
-          isActive: _currentStep >= 1,
-        ),
-      ];
+  List<Step> get _steps {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      Step(
+        title: Text(l10n.scanBuyerInfo,
+            style: TextStyle(color: Colors.black)),
+        content: Text(l10n.scanBuyerInfoInstructions,
+            style: TextStyle(color: Colors.black)),
+        isActive: _currentStep >= 0,
+      ),
+      Step(
+        title: Text(l10n.presentInfoToBuyer,
+            style: TextStyle(color: Colors.black)),
+        content: Text(l10n.presentInfoToBuyerInstructions,
+            style: TextStyle(color: Colors.black)),
+        isActive: _currentStep >= 1,
+      ),
+    ];
+  }
 
   void _nextStep() async {
     switch (_currentStep) {
@@ -131,6 +134,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       height: 500,
       width: 300,
@@ -146,16 +150,16 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
         },
         steps: _steps,
         controlsBuilder: (BuildContext context, ControlsDetails details) {
-          String firstButtonText = "???";
+          String firstButtonText;
           switch (_currentStep) {
             case 0:
-              firstButtonText = "SCAN!";
+              firstButtonText = l10n.scan;
               break;
             case 1:
-              firstButtonText = "PRESENT!";
+              firstButtonText = l10n.present;
               break;
-
             default:
+              firstButtonText = l10n.next;
           }
           return Column(
             children: <Widget>[

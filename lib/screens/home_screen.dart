@@ -3,13 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/repositories/roles.dart';
-import 'package:trace_foodchain_app/screens/farmer_actions_screen.dart';
-import 'package:trace_foodchain_app/screens/farm_manager_screen.dart';
-import 'package:trace_foodchain_app/screens/importer_screen.dart';
 import 'package:trace_foodchain_app/screens/inbox_screen.dart';
 import 'package:trace_foodchain_app/screens/trader_screen.dart';
-import 'package:trace_foodchain_app/screens/transporter_screen.dart';
-import 'package:trace_foodchain_app/screens/storage_screen.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:trace_foodchain_app/widgets/language_selector.dart';
 import 'package:trace_foodchain_app/widgets/role_based_speed_dial.dart';
@@ -27,7 +22,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
-    final l10n = AppLocalizations.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Theme(
       data: customTheme,
@@ -36,9 +31,6 @@ class HomeScreen extends StatelessWidget {
           centerTitle: true,
           leading: LanguageSelector(),
           title: Text("TraceFoodChain"),
-          //  Text(l10n!.welcomeMessage(roles.firstWhere(
-          //         (element) => element.key == appState.userRole).getLocalizedName(l10n)
-          //     as String)),
           actions: [
             
             ValueListenableBuilder(
@@ -106,31 +98,30 @@ class HomeScreen extends StatelessWidget {
                                 rebuildList.value = false;
                                 Widget? screen;
                                 switch (appState.userRole) {
-                                  case 'Farmer':
-                                    screen = const FarmerActionsScreen();
-                                    break;
-                                  case 'Farm Manager':
-                                    screen = const FarmManagerScreen();
-                                    break;
+                                  // case 'Farmer':
+                                  //   screen = const FarmerActionsScreen();
+                                  //   break;
+                                  // case 'Farm Manager':
+                                  //   screen = const FarmManagerScreen();
+                                    // break;
                                   case 'Trader':
                                     screen = const TraderScreen();
                                     break;
                                   case 'Processor':
                                     screen = const TraderScreen();
                                     break;
-                                  case 'Transporter':
-                                    screen = const TransporterScreen();
-                                    break;
-                                  case 'Importer':
-                                    screen = const ImporterScreen();
-                                    break;
+                                  // case 'Transporter':
+                                  //   screen = const TransporterScreen();
+                                  //   break;
+                                  // case 'Importer':
+                                  //   screen = const ImporterScreen();
+                                  //   break;
                                   default:
-                                    screen = Text("NOT IMPLEMENTED");
+                                   screen = const TraderScreen();
                                 }
                                 return Expanded(
-                                    child: displayContext == "action"
-                                        ? screen
-                                        : StorageScreen());
+                                    child:  screen
+                                       );
                               }),
                         ],
                       ),
@@ -153,6 +144,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildSideMenu(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: 200,
       color: Colors.grey[200],
@@ -203,7 +195,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.play_arrow),
-            title: Text('Actions', style: const TextStyle(fontSize: 16)),
+            title: Text(l10n.actions, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "action",
             selectedTileColor: Color(0xFF35DB00),
             tileColor:
@@ -217,7 +209,7 @@ class HomeScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.storage),
-            title: Text('Storage', style: const TextStyle(fontSize: 16)),
+            title: Text(l10n.storage, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "storage",
             selectedTileColor: Color(0xFF35DB00),
             tileColor:
@@ -231,7 +223,7 @@ class HomeScreen extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.settings),
-            title: Text('Settings', style: const TextStyle(fontSize: 16)),
+            title: Text(l10n.settings, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "settings",
             selectedTileColor: Color(0xFF35DB00),
             tileColor: selectedContext == "settings"
@@ -276,7 +268,7 @@ class HomeScreen extends StatelessWidget {
       await launch(emailLaunchUri.toString());
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n!.unableToLaunchEmail)),
+        SnackBar(content: Text(l10n.unableToLaunchEmail)),
       );
     }
   }

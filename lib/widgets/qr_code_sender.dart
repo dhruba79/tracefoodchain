@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 int moveSpeed = 200; //time in ms between 2 "frames"
 int chunkSize = 1000;
@@ -55,6 +56,8 @@ class _QRCodeSenderState extends State<QRCodeSender> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -69,12 +72,11 @@ class _QRCodeSenderState extends State<QRCodeSender> {
             ),
           )
         else
-          Text('Press Start to begin transmission'),
+          Text(l10n.waitingForData),
         SizedBox(height: 20),
         ElevatedButton(
           onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
-          child:
-              Text(_timer == null ? 'Start Transmission' : 'Stop Transmission'),
+          child: Text(_timer == null ? l10n.startScanning : l10n.stopScanning),
         ),
       ],
     );
