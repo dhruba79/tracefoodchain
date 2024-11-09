@@ -16,6 +16,7 @@ import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/data_loading_indicator.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
+import 'package:trace_foodchain_app/constants.dart';
 
 bool canResendEmail = true;
 
@@ -309,8 +310,8 @@ class _SplashScreenState extends State<SplashScreen>
                       color: Colors.black54,
                     ),
                   ),
-                  const Text(
-                    'version 0.9 alpha (2024-11-09)',
+                  Text(
+                    APP_VERSION,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black54,
