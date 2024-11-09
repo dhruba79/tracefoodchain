@@ -26,18 +26,27 @@ class AppState extends ChangeNotifier {
   bool get hasNFC => _hasNFC;
   bool get hasGPS => _hasGPS;
 
-  Locale _locale = Locale('en');
+  // Initialize locale as null to use system default
+  Locale? _locale = window.locale; // Initialize with system locale
+  Locale? get locale => _locale;
 
-  Locale get locale => _locale;
-
-  void setLocale(Locale newLocale) {
-    if (_locale != newLocale) {
-      _locale = newLocale;
-      notifyListeners();
-    }
+  void setLocale(Locale? newLocale) {
+    _locale = newLocale;
+    notifyListeners();
   }
 
   Future<void> initializeApp() async {
+    // Initialize with system locale, but ensure it's supported
+    final systemLocale = window.locale;
+    final languageCode = systemLocale.languageCode;
+    
+    // Check if the system language is supported, otherwise default to English
+    if (['en', 'es', 'de', 'fr'].contains(languageCode)) {
+      _locale = Locale(languageCode);
+    } else {
+      _locale = const Locale('en');
+    }
+    
     notifyListeners();
   }
 

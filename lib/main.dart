@@ -264,6 +264,7 @@ void main() async {
       getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
 
   final appState = AppState();
+  await appState.initializeApp(); // Initialize locale
   await _initializeAppState(appState);
 
   runApp(
@@ -345,13 +346,13 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: [
-            Locale('en', ''),
-            Locale('es', ''),
-            Locale('de', ''),
-            Locale('fr', ''),
+          supportedLocales: const [
+            Locale('en', ''), // English
+            Locale('es', ''), // Spanish
+            Locale('de', ''), // German
+            Locale('fr', ''), // French
           ],
-          locale: appState.locale,
+          locale: appState.locale, // Re-enable this line
           title: 'TraceFoodChain App',
           theme: customTheme,
           home: const SplashScreen());

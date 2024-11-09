@@ -10,7 +10,7 @@ class LanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final currentLocale = appState.locale;
+    final currentLocale = appState.locale ?? const Locale('en'); // Provide default locale
     final l10n = AppLocalizations.of(context)!;
 
     return Theme(
