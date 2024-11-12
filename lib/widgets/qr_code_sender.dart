@@ -9,7 +9,7 @@ int chunkSize = 1000;
 class QRCodeSender extends StatefulWidget {
   final String data;
 
-  const QRCodeSender({Key? key, required this.data}) : super(key: key);
+  const QRCodeSender({super.key, required this.data});
 
   @override
   _QRCodeSenderState createState() => _QRCodeSenderState();
@@ -57,12 +57,12 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (_timer != null)
-          Container(
+          SizedBox(
             height: 300,
             width: 300,
             child: QrImageView(
@@ -73,7 +73,7 @@ class _QRCodeSenderState extends State<QRCodeSender> {
           )
         else
           Text(l10n.waitingForData),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         ElevatedButton(
           onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
           child: Text(_timer == null ? l10n.startScanning : l10n.stopScanning),

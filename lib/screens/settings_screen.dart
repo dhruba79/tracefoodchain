@@ -29,9 +29,9 @@ class SettingsScreen extends StatelessWidget {
           //         )),
 
           ListTile(
-              contentPadding: EdgeInsets.all(12),
-              leading: Icon(Icons.arrow_circle_right),
-              title: Text("Log out"),
+              contentPadding: const EdgeInsets.all(12),
+              leading: const Icon(Icons.arrow_circle_right),
+              title: const Text("Log out"),
               onTap: () async {
                 await FirebaseAuth.instance.signOut();
 
@@ -43,7 +43,7 @@ class SettingsScreen extends StatelessWidget {
                 appState.setEmailVerified(false);
 
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => AuthScreen()),
+                  MaterialPageRoute(builder: (context) => const AuthScreen()),
                   (Route<dynamic> route) => false,
                 );
               })
@@ -72,8 +72,8 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-            Text(l10n.changeFarmerId, style: TextStyle(color: Colors.black54)),
+        title: Text(l10n.changeFarmerId,
+            style: const TextStyle(color: Colors.black54)),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(hintText: l10n.enterNewFarmerID),
@@ -103,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n!.associateWithDifferentFarm,
-            style: TextStyle(color: Colors.black54)),
+            style: const TextStyle(color: Colors.black54)),
         content: TextField(
           controller: controller,
           decoration: InputDecoration(hintText: l10n.enterNewFarmID),

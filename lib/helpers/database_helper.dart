@@ -94,12 +94,12 @@ class DatabaseHelper {
     for (var key2 in localStorage.keys) {
       if (key2 == key) {
         await box.delete(key);
-        debugPrint("Deleted ${key}");
+        debugPrint("Deleted $key");
         deleted = true;
         break;
       }
     }
-    if (!deleted) debugPrint("Could not delete ${key}");
+    if (!deleted) debugPrint("Could not delete $key");
   }
 
 //This function looks for all containers (of all kinds) that are owned by the user and are not nested within other containers

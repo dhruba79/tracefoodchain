@@ -50,11 +50,12 @@ class StepperSellCoffee {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(l10n.sellCoffeeDeviceToDevice,
-              style: TextStyle(color: Colors.black)),
+              style: const TextStyle(color: Colors.black)),
           content: CoffeeSaleStepper(),
           actions: <Widget>[
             TextButton(
-              child: Text(l10n.cancel, style: TextStyle(color: Colors.black)),
+              child: Text(l10n.cancel,
+                  style: const TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -67,6 +68,8 @@ class StepperSellCoffee {
 }
 
 class CoffeeSaleStepper extends StatefulWidget {
+  const CoffeeSaleStepper({super.key});
+
   // final SaleInfo saleInfo;
   // CoffeeSaleStepper({required this.saleInfo});
 
@@ -82,16 +85,16 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     return [
       Step(
         title: Text(l10n.scanBuyerInfo,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         content: Text(l10n.scanBuyerInfoInstructions,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         isActive: _currentStep >= 0,
       ),
       Step(
         title: Text(l10n.presentInfoToBuyer,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         content: Text(l10n.presentInfoToBuyerInstructions,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         isActive: _currentStep >= 1,
       ),
     ];
@@ -104,7 +107,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
         break;
       case 1:
         debugPrint("Send finished sales process back to buyer");
-       
+
         break;
       // case 2:
       //   debugPrint("if bidirectional - display tag for scanning by seller");
@@ -135,7 +138,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    return Container(
+    return SizedBox(
       height: 500,
       width: 300,
       child: Stepper(
@@ -173,7 +176,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => PeerTransferScreen(
+                              builder: (_) => const PeerTransferScreen(
                                   transferMode: "receive",
                                   transferredDataOutgoing: [])),
                         ).then((receivedJobs) async {
@@ -209,7 +212,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         transfer_ownership["executor"] = seller;
                         transfer_ownership["methodState"] = "finished";
                         transfer_ownership =
-                            await setObjectMethod(transfer_ownership,true);
+                            await setObjectMethod(transfer_ownership, true);
 
                         //"execute method changeOwner"
                         coffee["currentOwners"] = [
@@ -218,14 +221,14 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             "role": "owner"
                           }
                         ];
-                        coffee = await setObjectMethod(coffee,true);
+                        coffee = await setObjectMethod(coffee, true);
 
                         await updateMethodHistories(transfer_ownership);
                         //Make sure the outputobject is present in the post-transfer form.
                         transfer_ownership = addOutputobject(
                             transfer_ownership, coffee, "boughtItem");
                         transfer_ownership =
-                            await setObjectMethod(transfer_ownership,true);
+                            await setObjectMethod(transfer_ownership, true);
 
                         change_container =
                             addInputobject(change_container, coffee, "item");
@@ -240,9 +243,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                         change_container["methodState"] = "finished";
                         change_container =
-                            await setObjectMethod(change_container,true);
+                            await setObjectMethod(change_container, true);
 
-                        coffee = await setObjectMethod(coffee,true);
+                        coffee = await setObjectMethod(coffee, true);
 
                         //an method histories  von field (Ernte), receiving container, coffee anhängen
                         await updateMethodHistories(change_container);
@@ -250,7 +253,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         change_container =
                             addOutputobject(change_container, coffee, "item");
                         change_container =
-                            await setObjectMethod(change_container,true);
+                            await setObjectMethod(change_container, true);
 
                         List<Map<String, dynamic>> transmittedList = [];
                         transmittedList.add(transfer_ownership);
@@ -259,8 +262,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         //! If container changes owner, who is owner of the contained items
                         final containedItemsList =
                             await getContainedItems(coffee);
-                        for (final item in containedItemsList)
+                        for (final item in containedItemsList) {
                           transmittedList.add(item);
+                        }
 
                         //Present Movie and/or NFC to buyer
 
@@ -282,7 +286,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             //Jobs als cancelled markieren
                             transfer_ownership["methodState"] = "cancelled";
                             transfer_ownership =
-                                await setObjectMethod(transfer_ownership,true);
+                                await setObjectMethod(transfer_ownership, true);
                           }
                         });
                         break;
@@ -290,7 +294,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                     }
                   },
                   child: Text(firstButtonText,
-                      style: TextStyle(color: Colors.white)),
+                      style: const TextStyle(color: Colors.white)),
                 ),
               ),
               // const SizedBox(height: 8),
@@ -366,13 +370,13 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                       Container(
                         height: 55,
                         width: MediaQuery.of(context).size.width * 0.9,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
+                        padding: const EdgeInsets.all(16),
+                        decoration: const BoxDecoration(
                           color: Color(0xFF35DB00),
                           borderRadius:
                               BorderRadius.vertical(top: Radius.circular(16)),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Coffee Information',
                           style: TextStyle(
                             color: Colors.white,
@@ -384,7 +388,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                       Flexible(
                         child: SingleChildScrollView(
                           child: Padding(
-                            padding: EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(16),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -402,7 +406,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     });
                                   },
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 _buildDropdownField(
                                   label: "Species",
                                   value: selectedSpecies,
@@ -414,7 +418,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     });
                                   },
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 _buildQuantityField(
                                   quantity: quantity,
                                   selectedUnit: selectedUnit,
@@ -431,7 +435,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     });
                                   },
                                 ),
-                                SizedBox(height: 16),
+                                const SizedBox(height: 16),
                                 _buildDropdownField(
                                   label: "Processing State",
                                   value: selectedProcessingState,
@@ -446,8 +450,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     });
                                   },
                                 ),
-                                SizedBox(height: 16),
-                                Text(
+                                const SizedBox(height: 16),
+                                const Text(
                                   "Quality Reduction Criteria",
                                   style: TextStyle(
                                     color: Colors.black87,
@@ -458,8 +462,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ...qualityCriteria.map((criteria) {
                                   return CheckboxListTile(
                                     title: Text(criteria,
-                                        style:
-                                            TextStyle(color: Colors.black87)),
+                                        style: const TextStyle(
+                                            color: Colors.black87)),
                                     value: selectedQualityCriteria
                                         .contains(criteria),
                                     onChanged: (bool? value) {
@@ -472,27 +476,26 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                         }
                                       });
                                     },
-                                    activeColor: Color(0xFF35DB00),
+                                    activeColor: const Color(0xFF35DB00),
                                   );
-                                }).toList(),
+                                }),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      Divider(height: 1),
-                      ButtonBar(
-                        buttonPadding: EdgeInsets.symmetric(horizontal: 16),
+                      const Divider(height: 1),
+                      OverflowBar(
+                        overflowAlignment: OverflowBarAlignment.center,
                         children: [
                           TextButton(
-                            child: Text('Cancel',
+                            child: const Text('Cancel',
                                 style: TextStyle(color: Colors.black87)),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                           ElevatedButton(
-                            child: Text('Confirm'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF35DB00),
+                              backgroundColor: const Color(0xFF35DB00),
                               foregroundColor: Colors.white,
                             ),
                             onPressed: () async {
@@ -515,6 +518,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ));
                               }
                             },
+                            child: Text('Confirm'),
                           ),
                         ],
                       ),
@@ -540,31 +544,33 @@ Widget _buildDropdownField({
     children: [
       Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.black87,
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
       ),
-      SizedBox(height: 8),
-      (items.length == 0)
-          ? Text("Please select country first!",
+      const SizedBox(height: 8),
+      (items.isEmpty)
+          ? const Text("Please select country first!",
               style: TextStyle(color: Colors.red))
           : Container(
-              padding: EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: DropdownButton<String>(
                 value: value,
-                hint: Text(hintText, style: TextStyle(color: Colors.black87)),
+                hint: Text(hintText,
+                    style: const TextStyle(color: Colors.black87)),
                 isExpanded: true,
-                underline: SizedBox(),
+                underline: const SizedBox(),
                 items: items.map((String item) {
                   return DropdownMenuItem<String>(
                     value: item,
-                    child: Text(item, style: TextStyle(color: Colors.black87)),
+                    child: Text(item,
+                        style: const TextStyle(color: Colors.black87)),
                   );
                 }).toList(),
                 onChanged: onChanged,
@@ -585,7 +591,7 @@ Widget _buildQuantityField({
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(
+      const Text(
         "Quantity",
         style: TextStyle(
           color: Colors.black87,
@@ -593,28 +599,28 @@ Widget _buildQuantityField({
           fontWeight: FontWeight.bold,
         ),
       ),
-      SizedBox(height: 8),
-      (weightUnits.length == 0)
-          ? Text("Please select country first!",
+      const SizedBox(height: 8),
+      (weightUnits.isEmpty)
+          ? const Text("Please select country first!",
               style: TextStyle(color: Colors.red))
           : Row(
               children: [
                 Expanded(
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: TextField(
-                      style: TextStyle(color: Colors.black87),
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: Colors.black87),
+                      decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Enter quantity',
                         hintStyle: TextStyle(color: Colors.grey),
                       ),
                       keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
+                          const TextInputType.numberWithOptions(decimal: true),
                       inputFormatters: [
                         DecimalTextInputFormatter(),
                         LengthLimitingTextInputFormatter(10),
@@ -623,22 +629,23 @@ Widget _buildQuantityField({
                     ),
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: DropdownButton<String>(
                     value: selectedUnit,
-                    hint: Text("Unit", style: TextStyle(color: Colors.black87)),
-                    underline: SizedBox(),
+                    hint: const Text("Unit",
+                        style: TextStyle(color: Colors.black87)),
+                    underline: const SizedBox(),
                     items: weightUnits.map((unit) {
                       return DropdownMenuItem<String>(
                         value: unit['name'],
                         child: Text(unit['name'],
-                            style: TextStyle(color: Colors.black87)),
+                            style: const TextStyle(color: Colors.black87)),
                       );
                     }).toList(),
                     onChanged: onUnitChanged,
@@ -678,7 +685,7 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
     Map<String, dynamic> rDoc2 = await getOpenRALTemplate(type);
     rDoc = rDoc2;
     rDoc["identity"]["UID"] = "";
-    debugPrint("generated new template for ${type}");
+    debugPrint("generated new template for $type");
   }
   return rDoc;
 }
@@ -687,6 +694,6 @@ String getLanguageSpecificState(Map<String, dynamic> state) {
   dynamic rState;
   rState = state['name']['spanish']; //ToDo specify
 
-  if (rState == null) rState = state['name']['english'];
+  rState ??= state['name']['english'];
   return rState as String;
 }

@@ -16,8 +16,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class AddEmptyItemDialog extends StatefulWidget {
   final Function(Map<String, dynamic>) onItemAdded;
 
-  const AddEmptyItemDialog({Key? key, required this.onItemAdded})
-      : super(key: key);
+  const AddEmptyItemDialog({super.key, required this.onItemAdded});
 
   @override
   _AddEmptyItemDialogState createState() => _AddEmptyItemDialogState();
@@ -59,11 +58,12 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildTypeSelector(),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             CustomTextField(
               controller: _capacityController,
               hintText: l10n.maxCapacity,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
                 DecimalTextInputFormatter(),
                 LengthLimitingTextInputFormatter(10),
@@ -71,9 +71,9 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
               validator: _validateCapacity,
               errorText: _capacityError,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             _buildUnitDropdown(),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -83,16 +83,16 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.qr_code_scanner),
+                  icon: const Icon(Icons.qr_code_scanner),
                   tooltip: l10n.scanQRCode,
                   onPressed: _scanUID,
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(l10n.geolocation,
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -100,25 +100,25 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                     controller: _latitudeController,
                     hintText: l10n.latitude,
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [DecimalTextInputFormatter()],
                     errorText: _latitudeError,
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: CustomTextField(
                     controller: _longitudeController,
                     hintText: l10n.longitude,
                     keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
+                        const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [DecimalTextInputFormatter()],
                     errorText: _longitudeError,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             if (appState.hasGPS)
               ElevatedButton(
                 onPressed: _getCurrentLocation,
@@ -205,7 +205,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
       onTap: () => setState(() => _selectedType = type),
       child: Container(
         width: 80,
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).primaryColor.withOpacity(0.1)
@@ -222,9 +222,10 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                 size: 32,
                 color:
                     isSelected ? Theme.of(context).primaryColor : Colors.grey),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(label,
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 12)),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -238,7 +239,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
         value: _selectedUnit,
         decoration: InputDecoration(
           labelText: AppLocalizations.of(context)!.unit,
-          border: OutlineInputBorder(),
+          border: const OutlineInputBorder(),
         ),
         items: _weightUnits.map((unit) {
           return DropdownMenuItem<String>(

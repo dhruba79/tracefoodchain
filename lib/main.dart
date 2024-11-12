@@ -1,17 +1,13 @@
 //! Generate new localisation: flutter gen-l10n
 
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/firebase_options.dart';
-import 'package:trace_foodchain_app/helpers/web_utils.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -243,7 +239,8 @@ void main() async {
   await Hive.initFlutter();
 
   //*Start accessing local data storage
-  localStorage = await Hive.openBox<Map<dynamic, dynamic>>('localStorage');//ToDo: 1 Hive DB per logged-in user
+  localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
+      'localStorage'); //ToDo: 1 Hive DB per logged-in user
   // await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
 
   //*Start accessing local template storage

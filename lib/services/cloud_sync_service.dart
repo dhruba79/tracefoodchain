@@ -10,7 +10,7 @@ import 'package:trace_foodchain_app/services/open_ral_service.dart';
 class CloudApiClient {
   final String domain;
   CloudApiClient({required this.domain});
-  
+
   Future<Map<String, dynamic>> executeRalMethod(
       String domain, Map<String, dynamic> method) async {
     final urlString = getCloudConnectionProperty(
@@ -55,8 +55,9 @@ class CloudApiClient {
       } else {
         throw Exception('Failed to get RalObject: ${response.statusCode}');
       }
-    } else
+    } else {
       throw Exception("no valid cloud connection properties found!");
+    }
   }
 
   Future<Map<String, dynamic>> syncMethodToCloud(
@@ -85,8 +86,9 @@ class CloudApiClient {
         throw Exception(
             'Failed to sync method to cloud: ${response.statusCode}');
       }
-    } else
+    } else {
       throw Exception("no valid cloud connection properties found!");
+    }
   }
 
   Future<Map<String, dynamic>> syncObjectToCloud(String domain,
@@ -120,8 +122,9 @@ class CloudApiClient {
         throw Exception(
             'Failed to sync object to cloud: ${response.statusCode}');
       }
-    } else
+    } else {
       throw Exception("no valid cloud connection properties found!");
+    }
   }
 }
 

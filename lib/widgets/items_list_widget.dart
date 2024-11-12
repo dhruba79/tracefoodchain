@@ -24,10 +24,10 @@ class ItemsList extends StatefulWidget {
   final Function(Set<String>) onSelectionChanged;
 
   const ItemsList({
-    Key? key,
+    super.key,
     required this.context,
     required this.onSelectionChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<ItemsList> createState() => _ItemsListState();
@@ -130,8 +130,7 @@ class _ItemsListState extends State<ItemsList> {
       print('Error generating or sharing PDF: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((AppLocalizations.of(context)!
-              .pdfError as String)
+          content: Text((AppLocalizations.of(context)!.pdfError as String)
               .replaceAll('{error}', e.toString())),
         ),
       );
@@ -165,7 +164,7 @@ class _ItemsListState extends State<ItemsList> {
                     if (snapshot.hasError) {
                       return Center(
                           child: Text('Error: ${snapshot.error}',
-                              style: TextStyle(color: Colors.black)));
+                              style: const TextStyle(color: Colors.black)));
                     }
                     // final deliveries = snapshot.data ?? [];
                     dynamic deliveries = [];
@@ -182,13 +181,14 @@ class _ItemsListState extends State<ItemsList> {
                       return Center(
                           child: Text(
                               AppLocalizations.of(context)!.noActiveItems,
-                              style: TextStyle(color: Colors.black)));
+                              style: const TextStyle(color: Colors.black)));
                     }
 
-                    if (deliveries.length > 1)
+                    if (deliveries.length > 1) {
                       multiselectPossible = true;
-                    else
+                    } else {
                       multiselectPossible = false;
+                    }
 
                     _allContainerUids.clear();
                     for (var container in deliveries) {
@@ -235,12 +235,12 @@ class _ItemsListState extends State<ItemsList> {
         }
 
         return Card(
-          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCardHeader(container, contents),
-              ...contents.map((item) => _buildContentItem(item)).toList(),
+              ...contents.map((item) => _buildContentItem(item)),
             ],
           ),
         );
@@ -317,7 +317,7 @@ class _ItemsListState extends State<ItemsList> {
                       children: [
                         Text(
                           l10n.coffee,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.black54,
@@ -326,7 +326,7 @@ class _ItemsListState extends State<ItemsList> {
                         Text(
                           (l10n.speciesLabel as String).replaceAll('{species}',
                               getSpecificPropertyfromJSON(coffee, "species")),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w100,
                             color: Colors.black54,
@@ -334,7 +334,7 @@ class _ItemsListState extends State<ItemsList> {
                         ),
                       ],
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Icon(
                         coffee["needsSync"] != null
                             ? Icons.cloud_off
@@ -358,33 +358,33 @@ class _ItemsListState extends State<ItemsList> {
                     ),
                   ],
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   (l10n.amount as String)
                       .replaceAll('{value}',
                           getSpecificPropertyfromJSON(coffee, "amount"))
                       .replaceAll('{unit}',
                           getSpecificPropertyUnitfromJSON(coffee, "amount")),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   (l10n.processingStep as String).replaceAll('{step}',
                       getSpecificPropertyfromJSON(coffee, "processingState")),
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 FutureBuilder<Map<String, dynamic>>(
                   future: _databaseHelper.getFirstSale(coffee),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SizedBox(
+                      return const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
@@ -395,13 +395,14 @@ class _ItemsListState extends State<ItemsList> {
                     }
                     if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}',
-                          style: TextStyle(color: Colors.red, fontSize: 12));
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12));
                     }
                     final content = snapshot.data ?? {};
                     if (content.isEmpty) {
                       return Text(l10n.noPlotFound,
-                          style:
-                              TextStyle(color: Colors.black54, fontSize: 12));
+                          style: const TextStyle(
+                              color: Colors.black54, fontSize: 12));
                     }
                     final field = content["inputObjects"][1];
                     return Column(
@@ -413,14 +414,15 @@ class _ItemsListState extends State<ItemsList> {
                                 '{date}',
                                 formatTimestamp(content["existenceStarts"]) ??
                                     "unknown"),
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.black54)),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54)),
                         Text(
                           (l10n.fromPlot as String).replaceAll(
                               '{plotId}',
                               truncateUID(
                                   field["identity"]["alternateIDs"][0]["UID"])),
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     );
@@ -436,10 +438,10 @@ class _ItemsListState extends State<ItemsList> {
 
   Widget _buildLoadingCard() {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: SizedBox(
         height: 100,
-        child: Center(
+        child: const Center(
           child: SizedBox(
             width: 30,
             height: 30,
@@ -456,9 +458,9 @@ class _ItemsListState extends State<ItemsList> {
   Widget _buildErrorCard(String error) {
     final l10n = AppLocalizations.of(context)!;
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
-        leading: Icon(Icons.error, color: Colors.red),
+        leading: const Icon(Icons.error, color: Colors.red),
         title: Text(l10n.errorLabel),
         subtitle: Text(error),
       ),
@@ -470,7 +472,7 @@ class _ItemsListState extends State<ItemsList> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
-        margin: EdgeInsets.symmetric(horizontal: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
           // leading:
           title: Padding(
@@ -487,25 +489,24 @@ class _ItemsListState extends State<ItemsList> {
                     },
                   ),
                 //Icon(Icons.inbox, color: Colors.grey),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
                   child: getContainerIcon(container["template"]["RALType"]),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
-                (AppLocalizations.of(context)!
-                        .containerIsEmpty as String)
+                    (AppLocalizations.of(context)!.containerIsEmpty as String)
                         .replaceAll(
                             '{containerType}',
                             getContainerTypeName(
                                 container["template"]["RALType"], context))
                         .replaceAll('{id}',
                             container["identity"]["alternateIDs"][0]["UID"]),
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 ContainerActionsMenu(
                   container: container,
-                  contents: [],
+                  contents: const [],
                   onPerformAnalysis: _performAnalysis,
                   onGenerateAndSharePdf: _generateAndSharePdf,
                   onRepaint: () {
@@ -544,7 +545,7 @@ class _ItemsListState extends State<ItemsList> {
                     _toggleItemSelection(container["identity"]["UID"]);
                   },
                 ),
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -556,10 +557,11 @@ class _ItemsListState extends State<ItemsList> {
                         child:
                             getContainerIcon(container["template"]["RALType"]),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Text(
-                        '${getContainerTypeName(container["template"]["RALType"], context)}',
-                        style: TextStyle(
+                        getContainerTypeName(
+                            container["template"]["RALType"], context),
+                        style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87),
@@ -567,11 +569,12 @@ class _ItemsListState extends State<ItemsList> {
                     ],
                   ),
                   Text(
-                    (AppLocalizations.of(context)!.idWithBrackets as String).replaceAll(
-                        '{id}',
-                        truncateUID(
-                            container["identity"]["alternateIDs"][0]["UID"])),
-                    style: TextStyle(
+                    (AppLocalizations.of(context)!.idWithBrackets as String)
+                        .replaceAll(
+                            '{id}',
+                            truncateUID(container["identity"]["alternateIDs"][0]
+                                ["UID"])),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w100,
                       color: Colors.black54,
@@ -592,7 +595,7 @@ class _ItemsListState extends State<ItemsList> {
                     : Icons.cloud_done,
                 color: Colors.black54), //cloud_done
 
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             // Popupmenu
 
             ContainerActionsMenu(
@@ -618,7 +621,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(
+    return const Center(
       child: SizedBox(
         width: 30,
         height: 30,
@@ -632,11 +635,11 @@ class _ItemsListState extends State<ItemsList> {
 
   Widget _buildSelectAllCheckbox(int itemCount) {
     final l10n = AppLocalizations.of(context)!;
-    if (itemCount <= 1) return SizedBox.shrink();
+    if (itemCount <= 1) return const SizedBox.shrink();
 
     bool allSelected = selectedItems.length == itemCount;
     return CheckboxListTile(
-      title: Text(l10n.selectAll, style: TextStyle(color: Colors.black)),
+      title: Text(l10n.selectAll, style: const TextStyle(color: Colors.black)),
       value: allSelected,
       onChanged: (bool? value) {
         if (value == true) {
@@ -654,16 +657,16 @@ class _ItemsListState extends State<ItemsList> {
   Widget getContainerIcon(String containerType) {
     switch (containerType) {
       case "bag":
-        return Icon(Icons.shopping_bag);
+        return const Icon(Icons.shopping_bag);
       case "container":
-        return Icon(Icons.inventory_2);
+        return const Icon(Icons.inventory_2);
       case "building":
-        return Icon(Icons.business);
+        return const Icon(Icons.business);
       case "transportVehicle":
-        return Icon(Icons.local_shipping);
+        return const Icon(Icons.local_shipping);
 
       default:
-        return Icon(Icons.help);
+        return const Icon(Icons.help);
     }
   }
 

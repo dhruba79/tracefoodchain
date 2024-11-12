@@ -29,47 +29,45 @@ class HomeScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          leading: LanguageSelector(),
-          title: Text("TraceFoodChain"),
+          leading: const LanguageSelector(),
+          title: const Text("TraceFoodChain"),
           actions: [
-            
             ValueListenableBuilder(
-                              valueListenable: inboxCount,
-                              builder: (context, int value, child) {
-                return Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.inbox),
-                      onPressed: () => _navigateToInbox(context),
-                    ),
-                    if (inboxCount.value > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Text(
-                            '${inboxCount.value}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
+                valueListenable: inboxCount,
+                builder: (context, int value, child) {
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.inbox),
+                        onPressed: () => _navigateToInbox(context),
+                      ),
+                      if (inboxCount.value > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            textAlign: TextAlign.center,
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              '${inboxCount.value}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
-                      ),
-                  ],
-                );
-              }
-            ),
+                    ],
+                  );
+                }),
             IconButton(
               icon: const Icon(Icons.feedback),
               onPressed: () => _launchFeedbackEmail(context),
@@ -103,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                                   //   break;
                                   // case 'Farm Manager':
                                   //   screen = const FarmManagerScreen();
-                                    // break;
+                                  // break;
                                   case 'Trader':
                                     screen = const TraderScreen();
                                     break;
@@ -117,11 +115,9 @@ class HomeScreen extends StatelessWidget {
                                   //   screen = const ImporterScreen();
                                   //   break;
                                   default:
-                                   screen = const TraderScreen();
+                                    screen = const TraderScreen();
                                 }
-                                return Expanded(
-                                    child:  screen
-                                       );
+                                return Expanded(child: screen);
                               }),
                         ],
                       ),
@@ -197,9 +193,10 @@ class HomeScreen extends StatelessWidget {
             leading: const Icon(Icons.play_arrow),
             title: Text(l10n.actions, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "action",
-            selectedTileColor: Color(0xFF35DB00),
-            tileColor:
-                selectedContext == "action" ? Color(0xFF35DB00) : Colors.white,
+            selectedTileColor: const Color(0xFF35DB00),
+            tileColor: selectedContext == "action"
+                ? const Color(0xFF35DB00)
+                : Colors.white,
             onTap: () {
               displayContext = "action";
               selectedContext = "action";
@@ -211,9 +208,10 @@ class HomeScreen extends StatelessWidget {
             leading: const Icon(Icons.storage),
             title: Text(l10n.storage, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "storage",
-            selectedTileColor: Color(0xFF35DB00),
-            tileColor:
-                selectedContext == "storage" ? Color(0xFF35DB00) : Colors.white,
+            selectedTileColor: const Color(0xFF35DB00),
+            tileColor: selectedContext == "storage"
+                ? const Color(0xFF35DB00)
+                : Colors.white,
             onTap: () {
               displayContext = "storage";
               selectedContext = "storage";
@@ -225,9 +223,9 @@ class HomeScreen extends StatelessWidget {
             leading: const Icon(Icons.settings),
             title: Text(l10n.settings, style: const TextStyle(fontSize: 16)),
             selected: selectedContext == "settings",
-            selectedTileColor: Color(0xFF35DB00),
+            selectedTileColor: const Color(0xFF35DB00),
             tileColor: selectedContext == "settings"
-                ? Color(0xFF35DB00)
+                ? const Color(0xFF35DB00)
                 : Colors.white,
             onTap: () {
               selectedContext = "settings";

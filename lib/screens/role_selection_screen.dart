@@ -10,39 +10,38 @@ import 'package:trace_foodchain_app/widgets/language_selector.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({Key? key}) : super(key: key);
+  const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.selectRole),
         centerTitle: true,
-        actions: [
+        actions: const [
           LanguageSelector(),
         ],
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 600),
           child: ListView.builder(
             itemCount: roles.length,
             itemBuilder: (context, index) {
               final role = roles[index];
               return Card(
-                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
-                  leading: Icon(role.icon as IconData,
+                  leading: Icon(role.icon,
                       size: 30, color: Theme.of(context).primaryColor),
                   title: Text(
                     role.getLocalizedName(l10n),
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ),
-                  onTap: () => _selectRole(context, role.key as String),
-                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () => _selectRole(context, role.key),
+                  trailing: const Icon(Icons.arrow_forward_ios),
                 ),
               );
             },
@@ -58,7 +57,7 @@ class RoleSelectionScreen extends StatelessWidget {
     appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
     appUserDoc =
         setSpecificPropertyJSON(appUserDoc!, "userRole", role, "String");
-    appUserDoc = await setObjectMethod(appUserDoc!,true);
+    appUserDoc = await setObjectMethod(appUserDoc!, true);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
     );

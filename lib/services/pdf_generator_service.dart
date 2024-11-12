@@ -5,7 +5,6 @@ import 'package:pdf/widgets.dart' as pw;
 class PdfGenerator {
   final pw.Document pdf = pw.Document();
 
- 
   Future<Uint8List> generatePdf({
     required String operatorName,
     required String operatorAddress,
@@ -100,11 +99,15 @@ class PdfGenerator {
       children: [
         pw.Header(level: 1, text: '3. Geolocation Information'),
         pw.Text('Country of Production: $country'),
-        pw.Text('Deforestation risk is determind by WHISP (https://whisp.openforis.org/)'),
+        pw.Text(
+            'Deforestation risk is determind by WHISP (https://whisp.openforis.org/)'),
         pw.SizedBox(height: 10),
         pw.Text('Plots and Deforestation Risk:'),
         pw.TableHelper.fromTextArray(
-          headers: ['Plot ID\ngeoID by AgStack https://agstack.github.io/agstack-website/)', 'Deforestation Risk'],
+          headers: [
+            'Plot ID\ngeoID by AgStack https://agstack.github.io/agstack-website/)',
+            'Deforestation Risk'
+          ],
           data: plots
               .map((plot) => [
                     plot['geoid'].toString(),
@@ -112,7 +115,7 @@ class PdfGenerator {
                   ])
               .toList(),
           headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-          headerDecoration: pw.BoxDecoration(color: PdfColors.grey300),
+          headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
           cellHeight: 30,
           cellAlignments: {
             0: pw.Alignment.centerLeft,
@@ -130,7 +133,7 @@ class PdfGenerator {
         pw.Header(level: 1, text: '4. Compliance Statement'),
         pw.Text(
           'By submitting this due diligence statement the operator confirms that due diligence in accordance with Regulation (EU) 2023/1115 was carried out and that no or only a negligible risk was found that the relevant products do not comply with Article 3, point (a) or (b), of that Regulation.',
-          style: pw.TextStyle(fontSize: 10),
+          style: const pw.TextStyle(fontSize: 10),
         ),
       ],
     );

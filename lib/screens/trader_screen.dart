@@ -13,7 +13,6 @@ class TraderScreen extends StatefulWidget {
 }
 
 class _TraderScreenState extends State<TraderScreen> {
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -34,7 +33,7 @@ class _TraderScreenState extends State<TraderScreen> {
                 }
               },
             ),
-            Positioned(
+            const Positioned(
               left: 16,
               bottom: 16,
               child: Text(

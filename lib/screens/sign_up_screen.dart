@@ -8,7 +8,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({Key? key}) : super(key: key);
+  const AuthScreen({super.key});
 
   @override
   _AuthScreenState createState() => _AuthScreenState();
@@ -112,17 +112,17 @@ class _AuthScreenState extends State<AuthScreen> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF35DB00),
+        backgroundColor: const Color(0xFF35DB00),
         onPressed: _launchHelp,
-        child: const Icon(Icons.menu_book),
         tooltip: l10n.helpButtonTooltip,
+        child: const Icon(Icons.menu_book),
       ),
       body: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.png'),
+                image: const AssetImage('assets/images/background.png'),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.white.withOpacity(0.7),
@@ -133,7 +133,7 @@ class _AuthScreenState extends State<AuthScreen> {
             child: SafeArea(
               child: Stack(
                 children: [
-                  Positioned(
+                  const Positioned(
                     top: 16,
                     left: 16,
                     child: LanguageSelector(),
@@ -143,7 +143,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 600),
+                          constraints: const BoxConstraints(maxWidth: 600),
                           child: Card(
                             elevation: 8,
                             shape: RoundedRectangleBorder(
@@ -165,7 +165,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                         ),
                                     textAlign: TextAlign.center,
                                   ),
-                                  SizedBox(height: 20),
+                                  const SizedBox(height: 20),
                                   Text(
                                     l10n.signInMessage,
                                     style: Theme.of(context)
@@ -176,17 +176,18 @@ class _AuthScreenState extends State<AuthScreen> {
                                         ),
                                     textAlign: TextAlign.center,
                                   ),
-                                  SizedBox(height: 30),
+                                  const SizedBox(height: 30),
                                   Form(
                                     key: _formKey,
                                     child: Column(
                                       children: <Widget>[
                                         TextFormField(
-                                          style: TextStyle(color: Colors.black),
+                                          style: const TextStyle(
+                                              color: Colors.black),
                                           controller: _emailController,
                                           decoration: InputDecoration(
                                             labelText: l10n.email,
-                                            prefixIcon: Icon(Icons.email),
+                                            prefixIcon: const Icon(Icons.email),
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10),
@@ -200,17 +201,18 @@ class _AuthScreenState extends State<AuthScreen> {
                                             return null;
                                           },
                                         ),
-                                        SizedBox(height: 20),
+                                        const SizedBox(height: 20),
                                         TextFormField(
                                           onFieldSubmitted: (value) {
                                             // Simuliere das Drücken des Signup-Buttons, wenn Enter gedrückt wird
                                             _authenticate();
                                           },
-                                          style: TextStyle(color: Colors.black),
+                                          style: const TextStyle(
+                                              color: Colors.black),
                                           controller: _passwordController,
                                           decoration: InputDecoration(
                                             labelText: l10n.password,
-                                            prefixIcon: Icon(Icons.lock),
+                                            prefixIcon: const Icon(Icons.lock),
                                             border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(10),
@@ -220,28 +222,28 @@ class _AuthScreenState extends State<AuthScreen> {
                                           validator: (value) {
                                             if (value == null ||
                                                 value.isEmpty) {
-                                              return l10n
-                                                  .pleaseEnterPassword;
+                                              return l10n.pleaseEnterPassword;
                                             }
                                             return null;
                                           },
                                         ),
-                                        SizedBox(height: 30),
+                                        const SizedBox(height: 30),
                                         ElevatedButton(
                                           onPressed: _authenticate,
-                                          child: Text(l10n.signInSignUp),
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: Theme.of(context)
-                                                .primaryColor,
+                                            backgroundColor:
+                                                Theme.of(context).primaryColor,
                                             foregroundColor: Colors.white,
-                                            padding: EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                                 horizontal: 50, vertical: 15),
-                                            textStyle: TextStyle(fontSize: 18),
+                                            textStyle:
+                                                const TextStyle(fontSize: 18),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(30),
                                             ),
                                           ),
+                                          child: Text(l10n.signInSignUp),
                                         ),
                                       ],
                                     ),
@@ -258,7 +260,7 @@ class _AuthScreenState extends State<AuthScreen> {
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             bottom: 16,
             left: 16,
             child: StatusBar(isSmallScreen: false),

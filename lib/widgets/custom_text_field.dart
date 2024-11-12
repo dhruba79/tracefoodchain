@@ -24,7 +24,7 @@ class CustomTextField extends StatelessWidget {
   final String? errorText;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.controller,
     this.title,
     this.textColor,
@@ -42,7 +42,7 @@ class CustomTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.done,
     this.inputFormatters,
     this.errorText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class CustomTextField extends StatelessWidget {
             if (title != null) ...[
               Text(
                 title!,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 5),
             ],

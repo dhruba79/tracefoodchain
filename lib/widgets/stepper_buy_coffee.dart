@@ -49,13 +49,14 @@ class StepperBuyCoffee {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Buy Coffee (device-to-device)',
+          title: const Text('Buy Coffee (device-to-device)',
               style: TextStyle(color: Colors.black)),
           content:
               BuyCoffeeStepper(receivingContainerUID: receivingContainerUID),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel', style: TextStyle(color: Colors.black)),
+              child:
+                  const Text('Cancel', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -67,13 +68,11 @@ class StepperBuyCoffee {
   }
 }
 
-
-
 class BuyCoffeeStepper extends StatefulWidget {
   // final SaleInfo saleInfo;
   // CoffeeSaleStepper({required this.saleInfo});
   final String? receivingContainerUID;
-  BuyCoffeeStepper({this.receivingContainerUID});
+  const BuyCoffeeStepper({super.key, this.receivingContainerUID});
 
   @override
   _BuyCoffeeStepperState createState() => _BuyCoffeeStepperState();
@@ -98,9 +97,9 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
     if (widget.receivingContainerUID == null) {
       steps.add(Step(
         title: Text(l10n.scanSelectFutureContainer,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         content: Text(l10n.scanContainerInstructions,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         isActive: _currentStep >= 0,
       ));
     }
@@ -108,17 +107,17 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
     steps.addAll([
       Step(
         title: Text(l10n.presentInfoToSeller,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         content: Text(l10n.presentInfoToSellerInstructions,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         isActive:
             _currentStep >= (widget.receivingContainerUID == null ? 1 : 0),
       ),
       Step(
         title: Text(l10n.receiveDataFromSeller,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         content: Text(l10n.receiveDataFromSellerInstructions,
-            style: TextStyle(color: Colors.black)),
+            style: const TextStyle(color: Colors.black)),
         isActive:
             _currentStep >= (widget.receivingContainerUID == null ? 2 : 1),
       ),
@@ -198,8 +197,8 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
       title: Text(l10n.buyCoffeeDeviceToDevice,
-          style: TextStyle(color: Colors.black)),
-      content: Container(
+          style: const TextStyle(color: Colors.black)),
+      content: SizedBox(
         height: 500,
         width: 300,
         child: Stepper(
@@ -239,8 +238,8 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
                   padding: const EdgeInsets.all(8.0),
                   child: ElevatedButton(
                     onPressed: _nextStep,
-                    child: Text(buttonText, 
-                        style: TextStyle(color: Colors.white)),
+                    child: Text(buttonText,
+                        style: const TextStyle(color: Colors.white)),
                   ),
                 ),
                 if (_currentStep != 0)
@@ -248,8 +247,8 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
                     padding: const EdgeInsets.all(8.0),
                     child: TextButton(
                       onPressed: details.onStepCancel,
-                      child: Text(l10n.back, 
-                          style: TextStyle(color: Colors.black)),
+                      child: Text(l10n.back,
+                          style: const TextStyle(color: Colors.black)),
                     ),
                   ),
               ],
@@ -259,7 +258,7 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
       ),
       actions: <Widget>[
         TextButton(
-          child: Text(l10n.cancel, style: TextStyle(color: Colors.black)),
+          child: Text(l10n.cancel, style: const TextStyle(color: Colors.black)),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -273,7 +272,7 @@ String getLanguageSpecificState(Map<String, dynamic> state) {
   dynamic rState;
   rState = state['name']['spanish']; //ToDo specify
 
-  if (rState == null) rState = state['name']['english'];
+  rState ??= state['name']['english'];
   return rState as String;
 }
 
@@ -289,7 +288,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer,true);
+    receivingContainer = await setObjectMethod(receivingContainer, true);
   }
   debugPrint(
       "generated/loaded container ${getObjectMethodUID(receivingContainer)}");
@@ -315,7 +314,7 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
   //The jobs are received in finished form from the seller
 
   for (final jobOrObject in receivedData) {
-    await setObjectMethod(jobOrObject,true);
+    await setObjectMethod(jobOrObject, true);
     //ToDo: Wenn es ein job ist, dann outputobjects persistieren
 
     //!CAVE all nested objects of the container must be transmitted too

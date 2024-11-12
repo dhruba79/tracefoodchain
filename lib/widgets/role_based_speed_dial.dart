@@ -18,8 +18,7 @@ import 'package:url_launcher/url_launcher.dart'; // Neuer Import
 class RoleBasedSpeedDial extends StatefulWidget {
   final String displayContext;
 
-  const RoleBasedSpeedDial({Key? key, required this.displayContext})
-      : super(key: key);
+  const RoleBasedSpeedDial({super.key, required this.displayContext});
 
   @override
   State<RoleBasedSpeedDial> createState() => _RoleBasedSpeedDialState();
@@ -63,7 +62,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         builder: (context, bool value, child) {
           rebuildSpeedDial.value = false;
           return SpeedDial(
-            backgroundColor: Color(0xFF35DB00),
+            backgroundColor: const Color(0xFF35DB00),
             foregroundColor: Colors.white,
             icon: Icons.menu,
             activeIcon: Icons.close,
@@ -77,11 +76,11 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
               SpeedDialChild(
                 child: const Icon(Icons.menu_book),
                 label: AppLocalizations.of(context)!.helpButtonTooltip,
-                labelStyle: TextStyle(color: Colors.black54),
+                labelStyle: const TextStyle(color: Colors.black54),
                 onTap: _launchHelp,
               ),
               ...(_getSpeedDialChildren(appState.userRole, appState.isConnected,
-                  this.widget.displayContext, l10n)),
+                  widget.displayContext, l10n)),
             ],
           );
         });
@@ -118,7 +117,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.agriculture),
         label: l10n.startHarvestOffline,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () {
           // TODO: Implement start harvest action
         },
@@ -126,7 +125,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.transfer_within_a_station),
         label: l10n.handOverHarvestToTrader,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () {
           // TODO: Implement hand over harvest action
         },
@@ -141,7 +140,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.person_add),
         label: l10n.addEmployee,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () {
           // TODO: Implement add employee action
         },
@@ -149,7 +148,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.add_box),
         label: l10n.addContainer,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () {
           // TODO: Implement add container action
         },
@@ -164,7 +163,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.shopping_basket),
         label: l10n.buyCoffee,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () async {
           showBuyCoffeeOptions(context);
         },
@@ -173,7 +172,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         SpeedDialChild(
           child: const Icon(Icons.merge_outlined),
           label: l10n.aggregateItems,
-          labelStyle: TextStyle(color: Colors.black54),
+          labelStyle: const TextStyle(color: Colors.black54),
           onTap: () async {
             await showAggregateItemsDialog(context, selectedItems);
             setState(() {});
@@ -182,7 +181,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.add_box),
         label: l10n.addNewEmptyItem,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () async {
           await _showAddEmptyItemDialog(context);
           setState(() {});
@@ -199,7 +198,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.shopping_basket),
         label: l10n.buyCoffee,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () async {
           showBuyCoffeeOptions(context);
         },
@@ -208,7 +207,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         SpeedDialChild(
           child: const Icon(Icons.merge_outlined),
           label: l10n.aggregateItems,
-          labelStyle: TextStyle(color: Colors.black54),
+          labelStyle: const TextStyle(color: Colors.black54),
           onTap: () async {
             await _showAddEmptyItemDialog(context);
             setState(() {});
@@ -217,7 +216,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
       SpeedDialChild(
         child: const Icon(Icons.add_box),
         label: l10n.addNewEmptyItem,
-        labelStyle: TextStyle(color: Colors.black54),
+        labelStyle: const TextStyle(color: Colors.black54),
         onTap: () async {
           await fshowInfoDialog(context, l10n.notImplementedYet);
         },
@@ -234,7 +233,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         SpeedDialChild(
           child: const Icon(Icons.shopping_basket),
           label: l10n.buyCoffee,
-          labelStyle: TextStyle(color: Colors.black54),
+          labelStyle: const TextStyle(color: Colors.black54),
           onTap: () async {
             showBuyCoffeeOptions(context);
           },
@@ -336,12 +335,12 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
         return AlertDialog(
           title: Text(
             l10n.selectSellCoffeeOption,
-            style: TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black),
             textAlign: TextAlign.center,
           ),
           content: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 300),
-            child: Container(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: SizedBox(
               width: double.maxFinite,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -362,7 +361,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
                           },
                         ),
                       ),
-                      SizedBox(width: 16),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: _buildOptionButton(
                           context,
@@ -399,10 +398,10 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
           icon: Icon(icon, size: 40, color: Theme.of(context).primaryColor),
           onPressed: onTap,
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textAlign: TextAlign.center,
           maxLines: 2, // Allow text to wrap to two lines if needed
           overflow: TextOverflow.ellipsis, // Add ellipsis if text is too long

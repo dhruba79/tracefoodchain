@@ -5,12 +5,13 @@ import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 
 class LanguageSelector extends StatelessWidget {
-  const LanguageSelector({Key? key}) : super(key: key);
+  const LanguageSelector({super.key});
 
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    final currentLocale = appState.locale ?? const Locale('en'); // Provide default locale
+    final currentLocale =
+        appState.locale ?? const Locale('en'); // Provide default locale
     final l10n = AppLocalizations.of(context)!;
 
     return Theme(
@@ -29,19 +30,19 @@ class LanguageSelector extends StatelessWidget {
         },
         itemBuilder: (BuildContext context) => <PopupMenuEntry<Locale>>[
           PopupMenuItem<Locale>(
-            value: Locale('en'),
+            value: const Locale('en'),
             child: _buildLanguageItem(l10n.languageEnglish, 'en'),
           ),
           PopupMenuItem<Locale>(
-            value: Locale('es'),
+            value: const Locale('es'),
             child: _buildLanguageItem(l10n.languageSpanish, 'es'),
           ),
           PopupMenuItem<Locale>(
-            value: Locale('de'),
+            value: const Locale('de'),
             child: _buildLanguageItem(l10n.languageGerman, 'de'),
           ),
           PopupMenuItem<Locale>(
-            value: Locale('fr'),
+            value: const Locale('fr'),
             child: _buildLanguageItem(l10n.languageFrench, 'fr'),
           ),
         ],
@@ -57,7 +58,7 @@ class LanguageSelector extends StatelessWidget {
           width: 24,
           height: 24,
         ),
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Text(languageName),
       ],
     );

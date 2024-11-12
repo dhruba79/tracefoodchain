@@ -18,7 +18,7 @@ class ContainerActionsMenu extends StatefulWidget {
   final Function(String) onDeleteContainer;
 
   const ContainerActionsMenu({
-    Key? key,
+    super.key,
     required this.container,
     required this.contents,
     required this.onPerformAnalysis,
@@ -26,7 +26,7 @@ class ContainerActionsMenu extends StatefulWidget {
     required this.onRepaint,
     required this.isConnected,
     required this.onDeleteContainer,
-  }) : super(key: key);
+  });
 
   @override
   _ContainerActionsMenuState createState() => _ContainerActionsMenuState();
@@ -43,7 +43,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
       child: PopupMenuButton(
-        icon: Icon(Icons.more_vert, color: Colors.black54),
+        icon: const Icon(Icons.more_vert, color: Colors.black54),
         surfaceTintColor: Colors.white,
         tooltip: "",
         itemBuilder: (context) => [
@@ -55,15 +55,15 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
                 height: 24,
               ),
               title: Text(l10n.buyCoffee,
-                  style: TextStyle(color: Colors.black)),
+                  style: const TextStyle(color: Colors.black)),
               onTap: () => _buyCoffeeForContainer(context),
             ),
           ),
           PopupMenuItem(
             child: ListTile(
-              leading: Icon(Icons.shopping_cart, size: 20),
+              leading: const Icon(Icons.shopping_cart, size: 20),
               title: Text(l10n.sellOffline,
-                  style: TextStyle(color: Colors.black)),
+                  style: const TextStyle(color: Colors.black)),
               onTap: () => _sellContainerOffline(context),
             ),
           ),
@@ -71,9 +71,9 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
           if (widget.isConnected) //! DEBUG ONLY
             PopupMenuItem(
               child: ListTile(
-                leading: Icon(Icons.shopping_cart, size: 20),
+                leading: const Icon(Icons.shopping_cart, size: 20),
                 title: Text(l10n.sellOnline,
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 onTap: () async {
                   Navigator.pop(context, "close menu");
                   //1. Add selected item to the outgoing items list
@@ -100,8 +100,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
                           OnlineSaleDialog(itemsToSell: outgoingItems),
                     );
                   } else {
-                    await fshowInfoDialog(
-                        context, l10n.selectItemToSell);
+                    await fshowInfoDialog(context, l10n.selectItemToSell);
                   }
 
                   widget.onRepaint();
@@ -110,9 +109,9 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
             ),
           PopupMenuItem(
             child: ListTile(
-                leading: Icon(Icons.swap_horiz, size: 20),
+                leading: const Icon(Icons.swap_horiz, size: 20),
                 title: Text(l10n.changeLocation,
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context, "close menu");
                   showChangeContainerDialog(context, widget.container);
@@ -123,20 +122,20 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
             child: Builder(
               builder: (context) {
                 return ListTile(
-                  leading: Icon(Icons.picture_as_pdf, size: 20),
+                  leading: const Icon(Icons.picture_as_pdf, size: 20),
                   title: ValueListenableBuilder(
                     valueListenable: rebuildDDS,
                     builder: (context, bool value, child) {
                       rebuildDDS.value = false;
                       return _isBuilding
-                          ? SizedBox(
+                          ? const SizedBox(
                               width: 10,
                               child: CircularProgressIndicator(
                                 color: Color(0xFF35DB00),
                               ),
                             )
                           : Text(l10n.generateDDS,
-                              style: TextStyle(color: Colors.black));
+                              style: const TextStyle(color: Colors.black));
                     },
                   ),
                   onTap: () => _generateDDS(context),
@@ -147,9 +146,9 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
           if (kDebugMode)
             PopupMenuItem(
               child: ListTile(
-                leading: Icon(Icons.delete_forever, size: 20),
+                leading: const Icon(Icons.delete_forever, size: 20),
                 title: Text(l10n.debugDeleteContainer,
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 onTap: () => _deleteContainer(context),
               ),
             ),
@@ -199,7 +198,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
 
   void _sellContainerOffline(BuildContext context) async {
     Navigator.pop(context, "close menu");
-    StepperSellCoffee sellCoffeeProcess = new StepperSellCoffee();
+    StepperSellCoffee sellCoffeeProcess = StepperSellCoffee();
     await sellCoffeeProcess.startProcess(context);
     widget.onRepaint();
   }

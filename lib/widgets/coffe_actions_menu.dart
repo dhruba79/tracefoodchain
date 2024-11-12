@@ -12,12 +12,12 @@ class CoffeeActionsMenu extends StatelessWidget {
   final bool isConnected;
 
   const CoffeeActionsMenu({
-    Key? key,
+    super.key,
     required this.coffee,
     required this.onProcessingStateChange,
     required this.onRepaint,
     required this.isConnected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class CoffeeActionsMenu extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
       child: PopupMenuButton(
-        icon: Icon(Icons.more_vert, color: Colors.black54),
+        icon: const Icon(Icons.more_vert, color: Colors.black54),
         surfaceTintColor: Colors.white,
         tooltip: "",
         itemBuilder: (context) => [
@@ -36,8 +36,8 @@ class CoffeeActionsMenu extends StatelessWidget {
                 width: 24,
                 height: 24,
               ),
-              title:
-                  Text(l10n.buyCoffee, style: TextStyle(color: Colors.black)),
+              title: Text(l10n.buyCoffee,
+                  style: const TextStyle(color: Colors.black)),
             ),
           ),
           PopupMenuItem(
@@ -47,8 +47,8 @@ class CoffeeActionsMenu extends StatelessWidget {
                 width: 24,
                 height: 24,
               ),
-              title:
-                  Text(l10n.sellOffline, style: TextStyle(color: Colors.black)),
+              title: Text(l10n.sellOffline,
+                  style: const TextStyle(color: Colors.black)),
               onTap: () async {
                 Navigator.pop(context, "close menu");
                 StepperSellCoffee sellCoffeeProcess = StepperSellCoffee();
@@ -66,7 +66,7 @@ class CoffeeActionsMenu extends StatelessWidget {
                   height: 24,
                 ),
                 title: Text(l10n.sellOnline,
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 onTap: () async {
                   Navigator.pop(context, "close menu");
                   Map<String, dynamic> itemToSell = coffee;
@@ -85,9 +85,9 @@ class CoffeeActionsMenu extends StatelessWidget {
             ),
           PopupMenuItem(
             child: ListTile(
-              leading: Icon(Icons.change_circle, size: 20),
+              leading: const Icon(Icons.change_circle, size: 20),
               title: Text(l10n.changeProcessingState,
-                  style: TextStyle(color: Colors.black)),
+                  style: const TextStyle(color: Colors.black)),
               onTap: () async {
                 Navigator.pop(context, "close menu");
                 await showProcessingStateDialog(coffee, context);
@@ -97,9 +97,9 @@ class CoffeeActionsMenu extends StatelessWidget {
           ),
           PopupMenuItem(
             child: ListTile(
-                leading: Icon(Icons.swap_horiz, size: 20),
+                leading: const Icon(Icons.swap_horiz, size: 20),
                 title: Text(l10n.changeLocation,
-                    style: TextStyle(color: Colors.black)),
+                    style: const TextStyle(color: Colors.black)),
                 onTap: () {
                   Navigator.pop(context, "close menu");
                   showChangeContainerDialog(context, coffee);

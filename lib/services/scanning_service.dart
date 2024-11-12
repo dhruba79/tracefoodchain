@@ -43,7 +43,7 @@ class ScanningService {
               );
             }
 
-            tabs.add(Tab(text: "Manual"));
+            tabs.add(const Tab(text: "Manual"));
             tabViews.add(
               _buildManualInput((code) {
                 scannedCode = code;
@@ -53,9 +53,9 @@ class ScanningService {
             return AlertDialog(
               title: Text(
                 AppLocalizations.of(context)!.scanQrCodeOrNfcTag,
-                style: TextStyle(color: Colors.black54),
+                style: const TextStyle(color: Colors.black54),
               ),
-              content: Container(
+              content: SizedBox(
                 width: 300,
                 height: 400,
                 child: DefaultTabController(
@@ -80,7 +80,7 @@ class ScanningService {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(AppLocalizations.of(context)!.cancel,
-                      style: TextStyle(color: Colors.black)),
+                      style: const TextStyle(color: Colors.black)),
                 ),
                 // Confirm scanned code
                 ElevatedButton(
@@ -95,7 +95,7 @@ class ScanningService {
                       fshowInfoDialog(context, "Please provide code first!");
                   },
                   child: Text(AppLocalizations.of(context)!.confirm,
-                      style: TextStyle(color: Colors.white)),
+                      style: const TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -128,8 +128,9 @@ class ScanningService {
                 },
               ),
             ),
-            SizedBox(height: 20),
-            Text(localScannedCode, style: TextStyle(color: Colors.black54)),
+            const SizedBox(height: 20),
+            Text(localScannedCode,
+                style: const TextStyle(color: Colors.black54)),
           ],
         );
       },
@@ -172,19 +173,20 @@ class ScanningService {
             child: ValueListenableBuilder(
               valueListenable: nfcButtonText,
               builder: (context, String? value, child) {
-                return Text(value!, style: TextStyle(color: Colors.black));
+                return Text(value!,
+                    style: const TextStyle(color: Colors.black));
               },
             ),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Expanded(
           child: SingleChildScrollView(
             child: ValueListenableBuilder(
               valueListenable: scannedNFCCode,
               builder: (context, String? value, child) {
                 return Text(value ?? "",
-                    style: TextStyle(color: Colors.black54));
+                    style: const TextStyle(color: Colors.black54));
               },
             ),
           ),
@@ -203,7 +205,7 @@ class ScanningService {
 
       while (true) {
         NFCTag tag = await FlutterNfcKit.poll(
-          timeout: Duration(seconds: 10),
+          timeout: const Duration(seconds: 10),
           iosMultipleTagMessage: AppLocalizations.of(context)!.multiTagFoundIOS,
           iosAlertMessage: AppLocalizations.of(context)!.scanInfoMessageIOS,
         );
@@ -224,11 +226,11 @@ class ScanningService {
         children: [
           Expanded(
             child: TextField(
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintStyle: TextStyle(color: Colors.black54),
                 hintText: 'Enter UID here',
                 border: OutlineInputBorder(),
@@ -239,7 +241,7 @@ class ScanningService {
             ),
           ),
           //ToDo: Check if containers are availabe to show
-          Container(
+          SizedBox(
             height: 60,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -250,7 +252,7 @@ class ScanningService {
                 onPressed: () {
                   //ToDo: Display all available containers
                 },
-                child: Text("Select from database",
+                child: const Text("Select from database",
                     style: TextStyle(color: Colors.white)),
               ),
             ),

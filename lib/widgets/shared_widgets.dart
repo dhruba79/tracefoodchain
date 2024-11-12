@@ -23,12 +23,12 @@ Future<void> showBuyCoffeeOptions(BuildContext context,
       return AlertDialog(
         title: Text(
           l10n.selectBuyCoffeeOption,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
           textAlign: TextAlign.center,
         ),
         content: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 300),
-          child: Container(
+          constraints: const BoxConstraints(maxWidth: 300),
+          child: SizedBox(
             width: double.maxFinite,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -45,17 +45,18 @@ Future<void> showBuyCoffeeOptions(BuildContext context,
                         onTap: () async {
                           Navigator.of(context).pop();
                           FirstSaleProcess buyCoffeeProcess =
-                              new FirstSaleProcess();
-                          if (receivingContainerUID == null)
+                              FirstSaleProcess();
+                          if (receivingContainerUID == null) {
                             await buyCoffeeProcess.startProcess(context);
-                          else
+                          } else {
                             await buyCoffeeProcess.startProcess(context,
                                 receivingContainerUID: receivingContainerUID);
+                          }
                           repaintContainerList.value = true;
                         },
                       ),
                     ),
-                    SizedBox(width: 16),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: _buildOptionButton(
                         context,
@@ -66,12 +67,13 @@ Future<void> showBuyCoffeeOptions(BuildContext context,
                           // Implement device-to-device process
 
                           StepperBuyCoffee buyCoffeeProcess =
-                              new StepperBuyCoffee();
-                          if (receivingContainerUID == null)
+                              StepperBuyCoffee();
+                          if (receivingContainerUID == null) {
                             await buyCoffeeProcess.startProcess(context);
-                          else
+                          } else {
                             await buyCoffeeProcess.startProcess(context,
                                 receivingContainerUID: receivingContainerUID);
+                          }
 
                           repaintContainerList.value = true;
                         },
@@ -101,10 +103,10 @@ Widget _buildOptionButton(
         icon: Icon(icon, size: 40, color: Theme.of(context).primaryColor),
         onPressed: onTap,
       ),
-      SizedBox(height: 8),
+      const SizedBox(height: 8),
       Text(
         label,
-        style: TextStyle(color: Colors.black),
+        style: const TextStyle(color: Colors.black),
         textAlign: TextAlign.center,
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
@@ -170,8 +172,7 @@ Future<void> showChangeContainerDialog(
               );
 
               if (receivingContainerUID == null) {
-                await fshowInfoDialog(context,
-                    l10n.noDeliveryHistory);
+                await fshowInfoDialog(context, l10n.noDeliveryHistory);
               } else {
                 newContainer =
                     await getContainerByAlternateUID(receivingContainerUID);
@@ -248,7 +249,7 @@ Future<void> showProcessingStateDialog(
                     ),
                   ),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -273,20 +274,20 @@ Future<void> showProcessingStateDialog(
           result["criteria"] != currentQualityCriteria)) {
     // Changes are saved in case state or qc critera changed
     // Template changeProcessingState holen
-    Map<String, dynamic> change_processing_state = {};
-    change_processing_state = await getOpenRALTemplate("changeProcessingState");
-    addInputobject(change_processing_state, coffee, "item");
+    Map<String, dynamic> changeProcessingState = {};
+    changeProcessingState = await getOpenRALTemplate("changeProcessingState");
+    addInputobject(changeProcessingState, coffee, "item");
     coffee = setSpecificPropertyJSON(
         coffee, "processingState", result["state"], "String");
-    addOutputobject(change_processing_state, coffee, "item");
+    addOutputobject(changeProcessingState, coffee, "item");
     coffee = setSpecificPropertyJSON(
         coffee, "qualityState", result["criteria"], "stringlist"); //ToDo Check!
-    change_processing_state["executor"] = appUserDoc!;
-    change_processing_state["methodState"] = "finished";
+    changeProcessingState["executor"] = appUserDoc!;
+    changeProcessingState["methodState"] = "finished";
 
     await setObjectMethod(coffee, true);
-    await setObjectMethod(change_processing_state, true);
+    await setObjectMethod(changeProcessingState, true);
     //Methode persistieren
-    await updateMethodHistories(change_processing_state);
+    await updateMethodHistories(changeProcessingState);
   }
 }

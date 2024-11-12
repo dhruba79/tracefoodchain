@@ -9,12 +9,12 @@ class CoffeeProcessingStateSelector extends StatefulWidget {
   final String country;
 
   const CoffeeProcessingStateSelector({
-    Key? key,
+    super.key,
     required this.currentState,
     required this.currentQualityCriteria,
     required this.onSelectionChanged,
     required this.country,
-  }) : super(key: key);
+  });
 
   @override
   _CoffeeProcessingStateSelectorState createState() =>
@@ -56,24 +56,24 @@ class _CoffeeProcessingStateSelectorState
       children: [
         Text(
           l10n.selectQualityCriteria,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         ..._buildQualityCriteriaCheckboxes(),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Text(
           l10n.selectProcessingState,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black87,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _buildProcessingStateSelector(),
       ],
     );
@@ -82,7 +82,7 @@ class _CoffeeProcessingStateSelectorState
   List<Widget> _buildQualityCriteriaCheckboxes() {
     return _qualityCriteria.map((criteria) {
       return CheckboxListTile(
-        title: Text(criteria, style: TextStyle(color: Colors.black87)),
+        title: Text(criteria, style: const TextStyle(color: Colors.black87)),
         value: _selectedQualityCriteria.contains(criteria),
         onChanged: (bool? value) {
           setState(() {
@@ -93,7 +93,7 @@ class _CoffeeProcessingStateSelectorState
             }
           });
         },
-        activeColor: Color(0xFF35DB00),
+        activeColor: const Color(0xFF35DB00),
       );
     }).toList();
   }
@@ -121,17 +121,17 @@ class _CoffeeProcessingStateSelectorState
               },
               child: Container(
                 width: itemWidth,
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Color(0xFF35DB00).withAlpha(120)
+                      ? const Color(0xFF35DB00).withAlpha(120)
                       : Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
@@ -143,7 +143,7 @@ class _CoffeeProcessingStateSelectorState
                       size: 32,
                       color: isSelected ? Colors.white : Colors.black87,
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       state['name']['english'],
                       style: TextStyle(
@@ -153,7 +153,7 @@ class _CoffeeProcessingStateSelectorState
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       state['name']['spanish'],
                       style: TextStyle(

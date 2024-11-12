@@ -8,7 +8,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 bool _isProcessing = false;
 
 class QRCodeReceiver extends StatefulWidget {
-  const QRCodeReceiver({Key? key}) : super(key: key);
+  const QRCodeReceiver({super.key});
 
   @override
   _QRCodeReceiverState createState() => _QRCodeReceiverState();
@@ -29,7 +29,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       final headerAll = code.substring(0, colonIndex);
       String payload = code.substring(colonIndex + 1);
       // debugPrint("Payload: ${payload}");
-      debugPrint("Header: ${headerAll}");
+      debugPrint("Header: $headerAll");
       final header = headerAll.split('/');
       final chunkIndex = int.parse(header[0]);
       _totalChunks = int.parse(header[1]);
@@ -58,7 +58,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         final receivedProcessList = json.decode(assembledData);
-       
+
         Navigator.of(context).pop(receivedProcessList);
       } catch (e) {
         debugPrint(assembledData);
@@ -78,7 +78,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     return Column(
       children: [
         Expanded(
@@ -97,7 +97,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
           padding: const EdgeInsets.all(8.0),
           child: Text(
               '${l10n.dataReceived} ${_receivedChunks.length} ${l10n.next} $_totalChunks chunks',
-              style: TextStyle(color: Colors.black)),
+              style: const TextStyle(color: Colors.black)),
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),

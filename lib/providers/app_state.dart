@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:trace_foodchain_app/main.dart';
 
-
-
 class AppState extends ChangeNotifier {
   String? _userRole;
   String? _userId;
@@ -39,14 +37,14 @@ class AppState extends ChangeNotifier {
     // Initialize with system locale, but ensure it's supported
     final systemLocale = window.locale;
     final languageCode = systemLocale.languageCode;
-    
+
     // Check if the system language is supported, otherwise default to English
     if (['en', 'es', 'de', 'fr'].contains(languageCode)) {
       _locale = Locale(languageCode);
     } else {
       _locale = const Locale('en');
     }
-    
+
     notifyListeners();
   }
 
@@ -107,8 +105,8 @@ class AppState extends ChangeNotifier {
 
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
-            debugPrint("syncing ${cloudKey}");
-            cloudSyncService!.syncObjectsAndMethods(cloudKey);
+            debugPrint("syncing $cloudKey");
+            cloudSyncService.syncObjectsAndMethods(cloudKey);
           }
         }
       }
@@ -126,7 +124,7 @@ class AppState extends ChangeNotifier {
     if (userId != null) {
       _isAuthenticated = true;
       _isEmailVerified =
-          await FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+          FirebaseAuth.instance.currentUser?.emailVerified ?? false;
     }
     notifyListeners();
   }

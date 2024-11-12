@@ -13,6 +13,8 @@ import '../widgets/shared_widgets.dart';
 ValueNotifier<bool> rebuildInbox = ValueNotifier<bool>(false);
 
 class InboxScreen extends StatefulWidget {
+  const InboxScreen({super.key});
+
   @override
   State<InboxScreen> createState() => _InboxScreenState();
 }
@@ -27,7 +29,7 @@ class _InboxScreenState extends State<InboxScreen> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text("INBOX"),
+          title: const Text("INBOX"),
         ),
         body: ValueListenableBuilder(
             valueListenable: rebuildInbox,
@@ -68,12 +70,12 @@ class _InboxScreenState extends State<InboxScreen> {
         }
 
         return Card(
-          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCardHeader(container, contents),
-              ...contents.map((item) => _buildContentItem(item)).toList(),
+              ...contents.map((item) => _buildContentItem(item)),
             ],
           ),
         );
@@ -144,7 +146,7 @@ class _InboxScreenState extends State<InboxScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Coffee',
                           style: TextStyle(
                             fontSize: 16,
@@ -154,7 +156,7 @@ class _InboxScreenState extends State<InboxScreen> {
                         ),
                         Text(
                           '[${getSpecificPropertyfromJSON(coffee, "species")}]',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w100,
                             color: Colors.black54,
@@ -162,31 +164,31 @@ class _InboxScreenState extends State<InboxScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                   ],
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   'Amount: ${getSpecificPropertyfromJSON(coffee, "amount")} ${getSpecificPropertyUnitfromJSON(coffee, "amount")}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
                   "Processing step: ${getSpecificPropertyfromJSON(coffee, "processingState")}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 FutureBuilder<Map<String, dynamic>>(
                   future: _databaseHelper.getFirstSale(coffee),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SizedBox(
+                      return const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
@@ -197,11 +199,12 @@ class _InboxScreenState extends State<InboxScreen> {
                     }
                     if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}',
-                          style: TextStyle(color: Colors.red, fontSize: 12));
+                          style:
+                              const TextStyle(color: Colors.red, fontSize: 12));
                     }
                     final content = snapshot.data ?? {};
                     if (content.isEmpty) {
-                      return Text("No plot found",
+                      return const Text("No plot found",
                           style:
                               TextStyle(color: Colors.black54, fontSize: 12));
                     }
@@ -212,11 +215,12 @@ class _InboxScreenState extends State<InboxScreen> {
                       children: [
                         Text(
                             "bought on ${formatTimestamp(content["existenceStarts"]) ?? "unknown"}",
-                            style:
-                                TextStyle(fontSize: 12, color: Colors.black54)),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.black54)),
                         Text(
                           'from plot: ${truncateUID(field["identity"]["alternateIDs"][0]["UID"])}',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.black54),
                         ),
                       ],
                     );
@@ -232,10 +236,10 @@ class _InboxScreenState extends State<InboxScreen> {
 
   Widget _buildLoadingCard() {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: SizedBox(
         height: 100,
-        child: Center(
+        child: const Center(
           child: SizedBox(
             width: 30,
             height: 30,
@@ -251,10 +255,10 @@ class _InboxScreenState extends State<InboxScreen> {
 
   Widget _buildErrorCard(String error) {
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: ListTile(
-        leading: Icon(Icons.error, color: Colors.red),
-        title: Text('Error'),
+        leading: const Icon(Icons.error, color: Colors.red),
+        title: const Text('Error'),
         subtitle: Text(error),
       ),
     );
@@ -265,7 +269,7 @@ class _InboxScreenState extends State<InboxScreen> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Card(
-        margin: EdgeInsets.symmetric(horizontal: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
           // leading:
           title: Padding(
@@ -274,12 +278,12 @@ class _InboxScreenState extends State<InboxScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
                   child: getContainerIcon(container["template"]["RALType"]),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
                     '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"][0]["UID"]}\nis empty'),
               ],
@@ -301,7 +305,7 @@ class _InboxScreenState extends State<InboxScreen> {
           padding: const EdgeInsets.fromLTRB(12.0, 0, 0, 0),
           child: Row(
             children: [
-              SizedBox(width: 6),
+              const SizedBox(width: 6),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -313,10 +317,11 @@ class _InboxScreenState extends State<InboxScreen> {
                         child:
                             getContainerIcon(container["template"]["RALType"]),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Text(
-                        '${getContainerTypeName(container["template"]["RALType"], context)}',
-                        style: TextStyle(
+                        getContainerTypeName(
+                            container["template"]["RALType"], context),
+                        style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87),
@@ -325,7 +330,7 @@ class _InboxScreenState extends State<InboxScreen> {
                   ),
                   Text(
                     '[ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}]',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w100,
                       color: Colors.black54,
@@ -340,11 +345,11 @@ class _InboxScreenState extends State<InboxScreen> {
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFF35DB00),
+              backgroundColor: const Color(0xFF35DB00),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             onPressed: () async {
               showChangeContainerDialog(context, container);
@@ -354,7 +359,7 @@ class _InboxScreenState extends State<InboxScreen> {
               inboxCount.value = inbox.length;
               rebuildInbox.value = true;
             },
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.output, size: 24),
@@ -372,7 +377,7 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Widget _buildLoadingIndicator() {
-    return Center(
+    return const Center(
       child: SizedBox(
         width: 30,
         height: 30,
@@ -387,16 +392,16 @@ class _InboxScreenState extends State<InboxScreen> {
   Widget getContainerIcon(String containerType) {
     switch (containerType) {
       case "bag":
-        return Icon(Icons.shopping_bag);
+        return const Icon(Icons.shopping_bag);
       case "container":
-        return Icon(Icons.inventory_2);
+        return const Icon(Icons.inventory_2);
       case "building":
-        return Icon(Icons.business);
+        return const Icon(Icons.business);
       case "transportVehicle":
-        return Icon(Icons.local_shipping);
+        return const Icon(Icons.local_shipping);
 
       default:
-        return Icon(Icons.help);
+        return const Icon(Icons.help);
     }
   }
 

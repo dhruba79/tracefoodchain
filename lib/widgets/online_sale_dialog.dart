@@ -12,8 +12,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class OnlineSaleDialog extends StatefulWidget {
   final List<Map<String, dynamic>> itemsToSell;
 
-  const OnlineSaleDialog({Key? key, required this.itemsToSell})
-      : super(key: key);
+  const OnlineSaleDialog({super.key, required this.itemsToSell});
 
   @override
   _OnlineSaleDialogState createState() => _OnlineSaleDialogState();
@@ -156,6 +155,5 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
   Future<void> _sendPushNotification(Map<String, dynamic> receiver) async {
     //ToDo: This will be implemented in the next step
     //For the prototype, we will use the permarobotics notification pipeline
-
   }
 }

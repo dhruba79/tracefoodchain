@@ -11,10 +11,9 @@ class PeerTransferScreen extends StatefulWidget {
   final List<Map<String, dynamic>> transferredDataOutgoing;
 
   const PeerTransferScreen(
-      {Key? key,
+      {super.key,
       required this.transferMode,
-      required this.transferredDataOutgoing})
-      : super(key: key);
+      required this.transferredDataOutgoing});
 
   @override
   _PeerTransferScreenState createState() => _PeerTransferScreenState();
@@ -33,13 +32,11 @@ class _PeerTransferScreenState extends State<PeerTransferScreen> {
               child: widget.transferMode == "send"
                   ? QRCodeSender(
                       data: json.encode(widget.transferredDataOutgoing))
-                  : QRCodeReceiver(),
+                  : const QRCodeReceiver(),
             ),
           ],
         ),
       ),
     );
   }
-
- 
 }

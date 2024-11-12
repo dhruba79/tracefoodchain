@@ -9,7 +9,7 @@ import 'package:trace_foodchain_app/repositories/initial_data.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
 
-var uuid = Uuid();
+var uuid = const Uuid();
 
 //! 1. CloudConnectors
 
@@ -39,7 +39,7 @@ Map<String, Map<String, dynamic>> getCloudConnectors() {
 }
 
 dynamic getCloudConnectionProperty(String domain, connectorType, property) {
-  dynamic rObject = null;
+  dynamic rObject;
   try {
     // domain und subconnector suchen (connectorType)
     final subConnector = cloudConnectors[domain]!["linkedObjects"]
@@ -48,7 +48,7 @@ dynamic getCloudConnectionProperty(String domain, connectorType, property) {
     rObject = getSpecificPropertyfromJSON(subConnector, property);
   } catch (e) {
     debugPrint(
-        "The requested cloud function property ${property} does not exist!");
+        "The requested cloud function property $property does not exist!");
     rObject = null;
   }
 
@@ -62,7 +62,7 @@ Future<Map<String, dynamic>> getOpenRALTemplate(String templateName) async {
   try {
     Map<String, dynamic> res =
         json.decode(json.encode(openRALTemplates.get(templateName)));
-    if (res != null) rMap = Map<String, dynamic>.from(res);
+    rMap = Map<String, dynamic>.from(res);
   } catch (e) {
     debugPrint("Problem");
   }
@@ -71,7 +71,7 @@ Future<Map<String, dynamic>> getOpenRALTemplate(String templateName) async {
 
 Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
     String objectType) async {
-  Map<String, dynamic> _json = {};
+  Map<String, dynamic> json = {};
 
   try {
 // Get a JSON template via REST API from RAL mothership
@@ -83,7 +83,7 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
     if (response2.statusCode == 200) {
       //Valides Template kam zurück
       try {
-        _json = jsonDecode(response2.body);
+        json = jsonDecode(response2.body);
       } catch (e) {
         print("ERROR: Could not pars json from RAL!");
       }
@@ -96,7 +96,7 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
     //ToDo: Handle errors
   }
 
-  return _json;
+  return json;
 }
 
 //! 3.#######  getters for working with openRAL objects ############
@@ -104,25 +104,24 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
 Future<Map<String, dynamic>> getRALObjectFromDomain(
     String domain, String objectUID) async {
   Map<String, dynamic> returnObject = {};
-  if (cloudConnectors.isEmpty) await getCloudConnectors();
+  if (cloudConnectors.isEmpty) getCloudConnectors();
 
-  String? dsc_metadata_url;
-  String dsc_metadata_uuid_field =
+  String? dscMetadataUrl;
+  String dscMetadataUuidField =
       "databaseID"; //ToDo: this is permarobotics specific - read from object connector
-  String dsc_metadata_endpoint =
+  String dscMetadataEndpoint =
       "getSensorInfo"; //ToDo: this is permarobotics specific - read from object connector
 
   if (domain != "") {
-    dsc_metadata_url = getCloudConnectionProperty(
-        domain, "cloudFunctionsConnector", dsc_metadata_endpoint)["url"];
-    debugPrint("url is ${dsc_metadata_url}");
+    dscMetadataUrl = getCloudConnectionProperty(
+        domain, "cloudFunctionsConnector", dscMetadataEndpoint)["url"];
+    debugPrint("url is $dscMetadataUrl");
 
 //ToDo: ÄNDERN, API KEY IM HEADER ÜBERMITTELN!!!!!
 
     // var url2 =
     //     '$dsc_metadata_url?${dsc_metadata_uuid_field}=${objectUID}?apiKey=${getCloudConnectionProperty("permarobotics.com", "cloudFunctionsConnector", "apiKey")}'; //databaseID
-    var url2 =
-        '$dsc_metadata_url?${dsc_metadata_uuid_field}=${objectUID}'; //databaseID
+    var url2 = '$dscMetadataUrl?$dscMetadataUuidField=$objectUID'; //databaseID
     Uri uri2 = Uri.parse(url2);
 
     var response2 = await http.get(uri2);
@@ -199,7 +198,7 @@ dynamic getSpecificPropertyfromJSON(
         }
       }
     } catch (e) {}
-    if (rstring == null) rstring = '-no data found-';
+    rstring ??= '-no data found-';
     return rstring;
   }
 }
@@ -255,8 +254,9 @@ Future<Map<String, dynamic>> setObjectMethod(
   //if connected to the internet, immediately sync to cloud, otherwise it has just been synced and only needs local persistence
   if (objectMethod["needsSync"] != null) {
     if ((objectMethod["needsSync"] == true) &&
-        (!connectivityResult.contains(ConnectivityResult.none)))
-      await cloudSyncService!.syncObjectsAndMethods('permarobotics.com');
+        (!connectivityResult.contains(ConnectivityResult.none))) {
+      await cloudSyncService.syncObjectsAndMethods('permarobotics.com');
+    }
   }
   return objectMethod;
 }
@@ -372,20 +372,24 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
 //Für jedes Objekt: Objekt laden, MethodHistoryRef holen - schaun ob das Objekt schon dranhängt, ansonsten dranhängen
   final ouidList = [];
   if (jsonDoc["inputObjects"] != null)
-    for (final obj in jsonDoc["inputObjects"])
+    for (final obj in jsonDoc["inputObjects"]) {
       ouidList.add(obj["identity"]["UID"]);
+    }
 
   if (jsonDoc["inputObjectsRef"] != null)
-    for (final obj in jsonDoc["inputObjectsRef"])
+    for (final obj in jsonDoc["inputObjectsRef"]) {
       if (!ouidList.contains(obj["UID"])) ouidList.add(obj["UID"]);
+    }
 
   if (jsonDoc["outputObjects"] != null)
-    for (final obj in jsonDoc["outputObjects"])
+    for (final obj in jsonDoc["outputObjects"]) {
       if (!ouidList.contains(obj["UID"])) ouidList.add(obj["identity"]["UID"]);
+    }
 
   if (jsonDoc["outputObjectsRef"] != null)
-    for (final obj in jsonDoc["outputObjectsRef"])
+    for (final obj in jsonDoc["outputObjectsRef"]) {
       if (!ouidList.contains(obj["UID"])) ouidList.add(obj["UID"]);
+    }
 
   for (final uid in ouidList) {
     print("checking $uid");
@@ -397,13 +401,13 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
                 orElse: () => {})
             .isEmpty) {
           //Check if already in List
-          print("Eintrag ${methodUID} existiert noch nicht in Methodhistory!");
+          print("Eintrag $methodUID existiert noch nicht in Methodhistory!");
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
           await setObjectMethod(oDoc, true);
         } else {
-          print("Eintrag ${methodUID} existiert schon in Methodhistory");
+          print("Eintrag $methodUID existiert schon in Methodhistory");
         }
       } catch (e) {
         print("Knoten MethodHistory existiert noch nicht in $uid");
@@ -451,7 +455,7 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
     Map<String, dynamic> rDoc2 = await getOpenRALTemplate(type);
     rDoc = rDoc2;
     rDoc["identity"]["UID"] = "";
-    debugPrint("generated new template for ${type}");
+    debugPrint("generated new template for $type");
   }
   return rDoc;
 }

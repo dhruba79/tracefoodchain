@@ -21,7 +21,7 @@ import 'package:trace_foodchain_app/constants.dart';
 bool canResendEmail = true;
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -76,10 +76,11 @@ class _SplashScreenState extends State<SplashScreen>
           if (appState.isEmailVerified) {
             //* VERIFIED
             await _navigateToNextScreen();
-          } else
+          } else {
             //*NOT VERIFIED
             // Show email verification overlay
             _showEmailVerificationOverlay();
+          }
         } else {
           //* NOT AUTHENTICATED YET
           if (!appState.isConnected) {
@@ -101,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen>
   void _showEmailVerificationOverlay() {
     if (_disposed) return;
 
-    _verificationTimer = Timer.periodic(Duration(seconds: 5), (timer) {
+    _verificationTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _checkEmailVerification();
     });
 
@@ -110,10 +111,10 @@ class _SplashScreenState extends State<SplashScreen>
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Email Verification'),
-          content: Container(
+          title: const Text('Email Verification'),
+          content: SizedBox(
               height: 150,
-              child: DataLoadingIndicator(
+              child: const DataLoadingIndicator(
                   text:
                       'Waiting for email verification. Please check your inbox and confirm your email.',
                   textColor: Colors.black54,
@@ -121,13 +122,13 @@ class _SplashScreenState extends State<SplashScreen>
           actions: <Widget>[
             if (canResendEmail)
               TextButton(
-                child: Text('Send email again!'),
+                child: const Text('Send email again!'),
                 onPressed: () async {
                   await sendVerificationEmail();
                 },
               ),
             TextButton(
-              child: Text('Sign out'),
+              child: const Text('Sign out'),
               onPressed: () async {
                 _signOut();
               },
@@ -150,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen>
     appState.setEmailVerified(false);
 
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => AuthScreen()),
+      MaterialPageRoute(builder: (context) => const AuthScreen()),
       (Route<dynamic> route) => false,
     );
   }
@@ -173,14 +174,14 @@ class _SplashScreenState extends State<SplashScreen>
       setState(() {
         canResendEmail = false;
       });
-      await Future.delayed(Duration(seconds: 5));
+      await Future.delayed(const Duration(seconds: 5));
       setState(() {
         canResendEmail = true;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
-        "Error sending email " + e.toString(),
+        "Error sending email $e",
       )));
     }
   }
@@ -194,13 +195,13 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
-      await cloudSyncService!.syncOpenRALTemplates('permarobotics.com');
+      await cloudSyncService.syncOpenRALTemplates('permarobotics.com');
 
       // sync objects and methods (includes cloudconnectors)
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
-          debugPrint("syncing ${cloudKey}");
-          await cloudSyncService!.syncObjectsAndMethods(cloudKey);
+          debugPrint("syncing $cloudKey");
+          await cloudSyncService.syncObjectsAndMethods(cloudKey);
         }
       }
       cloudConnectors =
@@ -240,7 +241,7 @@ class _SplashScreenState extends State<SplashScreen>
     //! Role is set to trader for all users
     // final userRole = getSpecificPropertyfromJSON(appUserDoc!, "userRole");
     // if (userRole != "" && userRole != "-no data found-") {
-      appState.setUserRole("Trader");
+    appState.setUserRole("Trader");
     // }
 
     if (appState.userRole == null) {
@@ -273,7 +274,7 @@ class _SplashScreenState extends State<SplashScreen>
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/background.png'),
+                image: const AssetImage('assets/images/background.png'),
                 fit: BoxFit.cover,
                 colorFilter: ColorFilter.mode(
                   Colors.white.withOpacity(0.5), // Adjust the opacity as needed
@@ -310,7 +311,7 @@ class _SplashScreenState extends State<SplashScreen>
                       color: Colors.black54,
                     ),
                   ),
-                  Text(
+                  const Text(
                     APP_VERSION,
                     style: TextStyle(
                       fontSize: 14,
@@ -321,7 +322,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
-          Positioned(
+          const Positioned(
             bottom: 16,
             left: 16,
             child: StatusBar(isSmallScreen: false),
