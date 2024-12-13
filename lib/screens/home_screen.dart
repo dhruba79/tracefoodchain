@@ -1,3 +1,5 @@
+import 'package:email_launcher/email_launcher.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/main.dart';
@@ -23,6 +25,9 @@ class HomeScreen extends StatelessWidget {
     final appState = Provider.of<AppState>(context);
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
     final l10n = AppLocalizations.of(context)!;
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Theme(
       data: customTheme,
@@ -253,6 +258,8 @@ class HomeScreen extends StatelessWidget {
 
   void _launchFeedbackEmail(BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
+
+    // For web, open in a new tab
     final Uri emailLaunchUri = Uri(
       scheme: 'mailto',
       path: 'feedback@tracefoodchain.org',
@@ -269,5 +276,6 @@ class HomeScreen extends StatelessWidget {
         SnackBar(content: Text(l10n.unableToLaunchEmail)),
       );
     }
+    return;
   }
 }

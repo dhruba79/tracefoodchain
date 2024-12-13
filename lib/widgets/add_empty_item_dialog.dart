@@ -52,7 +52,10 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(l10n.addEmptyItem),
+      title: Text(
+        l10n.addEmptyItem,
+        style: const TextStyle(color: Colors.black),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -122,7 +125,12 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
             if (appState.hasGPS)
               ElevatedButton(
                 onPressed: _getCurrentLocation,
-                child: Text(l10n.useCurrentLocation),
+                child: Center(
+                  child: Text(
+                    l10n.useCurrentLocation,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
           ],
         ),
@@ -225,7 +233,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
             const SizedBox(height: 4),
             Text(label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 12)),
+                style: const TextStyle(fontSize: 12, color: Colors.black)),
           ],
         ),
       ),
@@ -244,7 +252,8 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
         items: _weightUnits.map((unit) {
           return DropdownMenuItem<String>(
             value: unit['name'],
-            child: Text(unit['name']),
+            child:
+                Text(unit['name'], style: const TextStyle(color: Colors.black)),
           );
         }).toList(),
         onChanged: (String? newValue) {

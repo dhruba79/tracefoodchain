@@ -14,16 +14,19 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n!.settings)),
+      appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
           // ListTile(
           //     contentPadding: EdgeInsets.all(12),
           //     leading: Icon(Icons.arrow_circle_right),
-          //     title: Text(l10n!.changeRole),
+          //     title: Text(l10n.changeRole),
           //     onTap: () => Navigator.of(context).pushReplacement(
           //           FadeRoute(builder: (_) => const RoleSelectionScreen()),
           //         )),
@@ -49,12 +52,12 @@ class SettingsScreen extends StatelessWidget {
               })
           // if (appState.userRole == 'Farmer') ...[
           //   ListTile(
-          //     title: Text(l10n!.changeFarmerId,
+          //     title: Text(l10n.changeFarmerId,
           //         style: TextStyle(color: Colors.black54)),
           //     onTap: () => _showChangefarmerIdDialog(context),
           //   ),
           //   ListTile(
-          //     title: Text(l10n!.associateWithDifferentFarm,
+          //     title: Text(l10n.associateWithDifferentFarm,
           //         style: TextStyle(color: Colors.black54)),
           //     onTap: () => _showAssociateFarmDialog(context),
           //   ),

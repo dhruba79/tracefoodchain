@@ -268,6 +268,9 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       body: Stack(
         children: [
@@ -311,11 +314,14 @@ class _SplashScreenState extends State<SplashScreen>
                       color: Colors.black54,
                     ),
                   ),
-                  const Text(
-                    APP_VERSION,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Text(
+                      APP_VERSION,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
                     ),
                   ),
                 ],

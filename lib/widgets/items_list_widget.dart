@@ -130,8 +130,8 @@ class _ItemsListState extends State<ItemsList> {
       print('Error generating or sharing PDF: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text((AppLocalizations.of(context)!.pdfError as String)
-              .replaceAll('{error}', e.toString())),
+          content: Text(
+              (AppLocalizations.of(context)!.pdfError(e.toString()) as String)),
         ),
       );
     } finally {
@@ -145,6 +145,9 @@ class _ItemsListState extends State<ItemsList> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
+    if (l10n == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return ValueListenableBuilder(
         valueListenable: repaintContainerList,
         builder: (context, bool value, child) {
@@ -267,8 +270,7 @@ class _ItemsListState extends State<ItemsList> {
             return _buildLoadingIndicator();
           }
           if (snapshot.hasError) {
-            return Text((l10n.errorWithParam as String)
-                .replaceAll('{error}', snapshot.error.toString()));
+            return Text(snapshot.error.toString());
           }
           final nestedContents = snapshot.data ?? [];
           return ExpansionTile(
@@ -324,8 +326,8 @@ class _ItemsListState extends State<ItemsList> {
                           ),
                         ),
                         Text(
-                          (l10n.speciesLabel as String).replaceAll('{species}',
-                              getSpecificPropertyfromJSON(coffee, "species")),
+                          (l10n.speciesLabel(getSpecificPropertyfromJSON(
+                              coffee, "species")) as String),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w100,
@@ -360,11 +362,8 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (l10n.amount as String)
-                      .replaceAll('{value}',
-                          getSpecificPropertyfromJSON(coffee, "amount"))
-                      .replaceAll('{unit}',
-                          getSpecificPropertyUnitfromJSON(coffee, "amount")),
+                  l10n.amount(getSpecificPropertyfromJSON(coffee, "amount"),
+                      getSpecificPropertyUnitfromJSON(coffee, "amount")),
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -372,8 +371,8 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  (l10n.processingStep as String).replaceAll('{step}',
-                      getSpecificPropertyfromJSON(coffee, "processingState")),
+                  (l10n.processingStep(getSpecificPropertyfromJSON(
+                      coffee, "processingState")) as String),
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -410,17 +409,15 @@ class _ItemsListState extends State<ItemsList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            (l10n.boughtOn as String).replaceAll(
-                                '{date}',
+                            (l10n.boughtOn(
                                 formatTimestamp(content["existenceStarts"]) ??
-                                    "unknown"),
+                                    "unknown") as String),
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black54)),
                         Text(
-                          (l10n.fromPlot as String).replaceAll(
-                              '{plotId}',
-                              truncateUID(
-                                  field["identity"]["alternateIDs"][0]["UID"])),
+                          (l10n.fromPlot(truncateUID(
+                                  field["identity"]["alternateIDs"][0]["UID"]))
+                              as String),
                           style: const TextStyle(
                               fontSize: 12, color: Colors.black54),
                         ),
@@ -474,54 +471,43 @@ class _ItemsListState extends State<ItemsList> {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
-          // leading:
-          title: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                if (multiselectPossible)
-                  Checkbox(
-                    value: selectedItems.contains(container["identity"]["UID"]),
-                    onChanged: (bool? value) {
-                      _toggleItemSelection(container["identity"]["UID"]);
-                    },
-                  ),
-                //Icon(Icons.inbox, color: Colors.grey),
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
-                  child: getContainerIcon(container["template"]["RALType"]),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                    (AppLocalizations.of(context)!.containerIsEmpty as String)
-                        .replaceAll(
-                            '{containerType}',
-                            getContainerTypeName(
-                                container["template"]["RALType"], context))
-                        .replaceAll('{id}',
-                            container["identity"]["alternateIDs"][0]["UID"]),
-                    style: const TextStyle(color: Colors.black)),
-                ContainerActionsMenu(
-                  container: container,
-                  contents: const [],
-                  onPerformAnalysis: _performAnalysis,
-                  onGenerateAndSharePdf: _generateAndSharePdf,
-                  onRepaint: () {
-                    setState(() {
-                      repaintContainerList.value = true;
-                    });
-                  },
-                  isConnected: appState.isConnected,
-                  onDeleteContainer: (String uid) async {
-                    await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
-                        'localStorage', uid);
+          leading: multiselectPossible
+              ? Checkbox(
+                  value: selectedItems.contains(container["identity"]["UID"]),
+                  onChanged: (bool? value) {
+                    _toggleItemSelection(container["identity"]["UID"]);
                   },
                 )
-              ],
-            ),
+              : null,
+          title: Row(
+            children: [
+              getContainerIcon(container["template"]["RALType"]),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                    (AppLocalizations.of(context)!.containerIsEmpty(
+                            container["template"]["RALType"],
+                            container["identity"]["alternateIDs"][0]["UID"])
+                        as String),
+                    style: const TextStyle(color: Colors.black)),
+              ),
+              ContainerActionsMenu(
+                container: container,
+                contents: const [],
+                onPerformAnalysis: _performAnalysis,
+                onGenerateAndSharePdf: _generateAndSharePdf,
+                onRepaint: () {
+                  setState(() {
+                    repaintContainerList.value = true;
+                  });
+                },
+                isConnected: appState.isConnected,
+                onDeleteContainer: (String uid) async {
+                  await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
+                      'localStorage', uid);
+                },
+              )
+            ],
           ),
         ),
       ),
@@ -569,11 +555,9 @@ class _ItemsListState extends State<ItemsList> {
                     ],
                   ),
                   Text(
-                    (AppLocalizations.of(context)!.idWithBrackets as String)
-                        .replaceAll(
-                            '{id}',
-                            truncateUID(container["identity"]["alternateIDs"][0]
-                                ["UID"])),
+                    (AppLocalizations.of(context)!.idWithBrackets(truncateUID(
+                            container["identity"]["alternateIDs"][0]["UID"]))
+                        as String),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w100,

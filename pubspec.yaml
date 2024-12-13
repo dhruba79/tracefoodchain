@@ -3,7 +3,7 @@ description: Trace Foodchains App for the diasca project
 
 publish_to: 'none'
 
-version: 1.0.5+4
+version: 1.0.6+5
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -44,6 +44,7 @@ dependencies:
   cloud_firestore: ^5.4.5
   firebase_messaging: ^15.1.4
   flutter_local_notifications: ^17.2.3
+  email_launcher: ^1.1.1
 
   # flutter_test: any
   # path: any

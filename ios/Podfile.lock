@@ -1162,6 +1162,8 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - Flutter
+  - email_launcher (0.0.1):
+    - Flutter
   - Firebase/Auth (11.4.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 11.4.0)
@@ -1423,6 +1425,7 @@ DEPENDENCIES:
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - connectivity_plus (from `.symlinks/plugins/connectivity_plus/darwin`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - email_launcher (from `.symlinks/plugins/email_launcher/ios`)
   - firebase_auth (from `.symlinks/plugins/firebase_auth/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
@@ -1480,6 +1483,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/connectivity_plus/darwin"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
+  email_launcher:
+    :path: ".symlinks/plugins/email_launcher/ios"
   firebase_auth:
     :path: ".symlinks/plugins/firebase_auth/ios"
   firebase_core:
@@ -1518,6 +1523,7 @@ SPEC CHECKSUMS:
   cloud_firestore: 6bae2db322e02f737234a0ce847ddaf18d5012b6
   connectivity_plus: ddd7f30999e1faaef5967c23d5b6d503d10434db
   device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
+  email_launcher: 19e0f42a16a904ae74f399c4603c791a157bc6ec
   Firebase: cf1b19f21410b029b6786a54e9764a0cacad3c99
   firebase_auth: 288d292a73fc1bca624512126af444cf91b0eec2
   firebase_core: f8c5b220a8f9c436fdbd075ae321cef3d96ef181

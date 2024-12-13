@@ -113,11 +113,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // void setConnected(bool connected) {
-  //   _isConnected = connected;
-  //   notifyListeners();
-  // }
-
   Future<void> checkAuthStatus() async {
     final prefs = await SharedPreferences.getInstance();
     final String? userId = prefs.getString('userId');
