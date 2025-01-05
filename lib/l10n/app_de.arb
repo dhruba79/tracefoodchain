@@ -234,7 +234,7 @@
   },
   "buyCoffee": "Kaffee kaufen",
   "sellOffline": "Offline verkaufen",
-  "changeProcessingState": "Verarbeitungszustand ändern",
+  "changeProcessingState": "Verarbeitungs-/Qualitätszustand ändern",
   "changeLocation": "Standort ändern",
   "selectQualityCriteria": "Qualitätskriterien auswählen",
   "selectProcessingState": "Verarbeitungszustand auswählen",
@@ -300,7 +300,6 @@
   "receiveDataFromSellerInstructions": "Scannen Sie den QR-Code oder NFC-Tag vom Gerät des Verkäufers, um die Transaktion abzuschließen.",
   "present": "PRÄSENTIEREN",
   "receive": "EMPFANGEN",
-  "scan": "SCANNEN",
   "back": "ZURÜCK",
   "next": "WEITER",
   "buyCoffeeCiatFirstSale": "Kaffee kaufen (CIAT Erstverkauf)",
@@ -324,5 +323,12 @@
   "scanBuyerInfo": "Vom Käufer bereitgestellte Informationen scannen",
   "scanBuyerInfoInstructions": "Verwenden Sie Ihre Smartphone-Kamera oder NFC, um die Ausgangsinformationen vom Käufer zu lesen",
   "presentInfoToBuyer": "Informationen dem Käufer präsentieren, um den Verkauf abzuschließen",
-  "presentInfoToBuyerInstructions": "Geben Sie an, wohin der Kaffee transferiert wird."
+  "presentInfoToBuyerInstructions": "Geben Sie an, wohin der Kaffee transferiert wird.",
+  "selectFromDatabase": "Aus Datenbank auswählen",
+  "inbox": "Posteingang",
+  "sendFeedback": "Feedback senden",
+  "notSynced":"Nicht mit Cloud synchronisiert",
+  "synced":"Mit Cloud synchronisiert",
+  "fillInReminder":"Bitte füllen Sie alle Felder korrekt aus",
+  "manual":"Manuelle Eingabe"
 }

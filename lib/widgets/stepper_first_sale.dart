@@ -335,6 +335,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildQuantityField(
+                                  context: context,
                                   quantity: quantity,
                                   selectedUnit: selectedUnit,
                                   weightUnits: weightUnits,
@@ -355,8 +356,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                   label: l10n.processingState,
                                   value: selectedProcessingState,
                                   items: processingStates
-                                      .map((state) =>
-                                          getLanguageSpecificState(state))
+                                      .map((state) => getLanguageSpecificState(
+                                          state, context))
                                       .toList(),
                                   hintText: l10n.selectProcessingState,
                                   onChanged: (String? newValue) {
@@ -376,18 +377,22 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 ...qualityCriteria.map((criteria) {
                                   return CheckboxListTile(
-                                    title: Text(criteria,
+                                    title: Text( getLanguageSpecificState(
+                                          criteria, context),
                                         style: const TextStyle(
                                             color: Colors.black87)),
                                     value: selectedQualityCriteria
-                                        .contains(criteria),
+                                        .contains(getLanguageSpecificState(
+                                          criteria, context)),
                                     onChanged: (bool? value) {
                                       setState(() {
                                         if (value == true) {
-                                          selectedQualityCriteria.add(criteria);
+                                          selectedQualityCriteria.add(getLanguageSpecificState(
+                                          criteria, context));
                                         } else {
                                           selectedQualityCriteria
-                                              .remove(criteria);
+                                              .remove(getLanguageSpecificState(
+                                          criteria, context));
                                         }
                                       });
                                     },
@@ -400,42 +405,47 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         ),
                       ),
                       const Divider(height: 1),
-                      OverflowBar(
-                        overflowAlignment: OverflowBarAlignment.center,
-                        children: [
-                          TextButton(
-                            child: const Text('Cancel',
-                                style: TextStyle(color: Colors.black87)),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF35DB00),
-                              foregroundColor: Colors.white,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                        child: OverflowBar(
+                          overflowAlignment: OverflowBarAlignment.center,
+                          children: [
+                            TextButton(
+                              child: Text(l10n.cancel,
+                                  style:
+                                      const TextStyle(color: Colors.black87)),
+                              onPressed: () => Navigator.of(context).pop(),
                             ),
-                            onPressed: () async {
-                              if (selectedCountry == null ||
-                                  selectedSpecies == null ||
-                                  quantity <= 0 ||
-                                  selectedUnit == null ||
-                                  selectedProcessingState == null) {
-                                await fshowInfoDialog(context,
-                                    "Please fill all fields correctly");
-                              } else {
-                                Navigator.of(context).pop(CoffeeInfo(
-                                  country: selectedCountry!,
-                                  species: selectedSpecies!,
-                                  quantity: quantity,
-                                  weightUnit: selectedUnit!,
-                                  processingState: selectedProcessingState!,
-                                  qualityReductionCriteria:
-                                      selectedQualityCriteria,
-                                ));
-                              }
-                            },
-                            child: Text('Confirm'),
-                          ),
-                        ],
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF35DB00),
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () async {
+                                if (selectedCountry == null ||
+                                    selectedSpecies == null ||
+                                    quantity <= 0 ||
+                                    selectedUnit == null ||
+                                    selectedProcessingState == null) {
+                                  await fshowInfoDialog(
+                                      context, l10n.fillInReminder);
+                                } else {
+                                  Navigator.of(context).pop(CoffeeInfo(
+                                    country: selectedCountry!,
+                                    species: selectedSpecies!,
+                                    quantity: quantity,
+                                    weightUnit: selectedUnit!,
+                                    processingState: selectedProcessingState!,
+                                    qualityReductionCriteria:
+                                        selectedQualityCriteria,
+                                  ));
+                                }
+                              },
+                              child: Text(l10n.confirm,
+                                  style: const TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -497,17 +507,20 @@ Widget _buildDropdownField({
 
 // Anpassung des Mengenfeldes
 Widget _buildQuantityField({
+  required BuildContext context,
   required double quantity,
   required String? selectedUnit,
   required List<Map<String, dynamic>> weightUnits,
   required void Function(String) onQuantityChanged,
   required void Function(String?) onUnitChanged,
 }) {
+  final l10n = AppLocalizations.of(context)!;
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const Text(
-        "Quantity",
+      Text(
+        l10n.quantity,
+        //  "Quantity",
         style: TextStyle(
           color: Colors.black87,
           fontSize: 16,
@@ -529,9 +542,9 @@ Widget _buildQuantityField({
                     ),
                     child: TextField(
                       style: const TextStyle(color: Colors.black87),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: 'Enter quantity',
+                        hintText: l10n.enterQuantity, //'Enter quantity',
                         hintStyle: TextStyle(color: Colors.grey),
                       ),
                       keyboardType:
@@ -553,7 +566,7 @@ Widget _buildQuantityField({
                   ),
                   child: DropdownButton<String>(
                     value: selectedUnit,
-                    hint: const Text("Unit",
+                    hint: Text(l10n.unit, // "Unit",
                         style: TextStyle(color: Colors.black87)),
                     underline: const SizedBox(),
                     items: weightUnits.map((unit) {
@@ -572,9 +585,19 @@ Widget _buildQuantityField({
   );
 }
 
-String getLanguageSpecificState(Map<String, dynamic> state) {
+String getLanguageSpecificState(
+    Map<String, dynamic> state, BuildContext context) {
   dynamic rState;
-  rState = state['name']['spanish']; //ToDo specify
+  final currentLocale = Localizations.localeOf(context).toString();
+  if (currentLocale.startsWith('es')) {
+    rState = state['name']['spanish'];
+  } else if (currentLocale.startsWith('fr')) {
+    rState = state['name']['french'];
+  } else if (currentLocale.startsWith('de')) {
+    rState = state['name']['german'];
+  } else {
+    rState = state['name']['english'];
+  }
 
   rState ??= state['name']['english'];
   return rState as String;

@@ -172,7 +172,7 @@ class _InboxScreenState extends State<InboxScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Amount: ${getSpecificPropertyfromJSON(coffee, "amount")} ${getSpecificPropertyUnitfromJSON(coffee, "amount")}',
+                  'Amount: ${getSpecificPropertyfromJSON(coffee, "amount").toString()} ${getSpecificPropertyUnitfromJSON(coffee, "amount")}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,

@@ -5,9 +5,12 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 
+
+
 class ScanningService {
   static Future<String?> showScanDialog(
       BuildContext context, AppState appState) async {
+    
     String scannedCode = '';
     bool isScanning = false;
     ValueNotifier<String?> scannedNFCCode = ValueNotifier<String?>(null);
@@ -43,9 +46,9 @@ class ScanningService {
               );
             }
 
-            tabs.add(const Tab(text: "Manual"));
+            tabs.add(  Tab(text:AppLocalizations.of(context)!.manual));
             tabViews.add(
-              _buildManualInput((code) {
+              _buildManualInput(context,(code) {
                 scannedCode = code;
               }),
             );
@@ -219,7 +222,8 @@ class ScanningService {
     }
   }
 
-  static Widget _buildManualInput(Function(String) onCodeScanned) {
+  static Widget _buildManualInput(BuildContext context, Function(String) onCodeScanned) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -252,7 +256,7 @@ class ScanningService {
                 onPressed: () {
                   //ToDo: Display all available containers
                 },
-                child: const Text("Select from database",
+                child:   Text(l10n.selectFromDatabase,//"Select from database",
                     style: TextStyle(color: Colors.white)),
               ),
             ),

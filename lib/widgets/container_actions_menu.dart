@@ -67,8 +67,8 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
               onTap: () => _sellContainerOffline(context),
             ),
           ),
-          // if (widget.isConnected && widget.container["needsSync"] != null)
-          if (widget.isConnected) //! DEBUG ONLY
+          if (widget.isConnected && widget.container["needsSync"] == null)
+          // if (widget.isConnected ) //! DEBUG ONLY
             PopupMenuItem(
               child: ListTile(
                 leading: const Icon(Icons.shopping_cart, size: 20),

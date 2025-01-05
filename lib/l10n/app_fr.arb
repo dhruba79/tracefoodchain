@@ -234,7 +234,7 @@
   },
   "buyCoffee": "Acheter du café",
   "sellOffline": "Vendre hors ligne",
-  "changeProcessingState": "Changer l'état de traitement",
+  "changeProcessingState": "Modifier l'état de traitement/qualité",
   "changeLocation": "Changer l'emplacement",
   "selectQualityCriteria": "Sélectionner les critères de qualité",
   "selectProcessingState": "Sélectionner l'état de traitement",
@@ -318,5 +318,18 @@
   "start": "DÉMARRER!",
   "species": "Espèce",
   "processingState": "État de traitement",
-  "qualityReductionCriteria": "Critères de réduction de qualité"
+  "qualityReductionCriteria": "Critères de réduction de qualité",
+  "selectFromDb": "Sélect depuis la BDD",
+  "notSynced": "Non synchronisé avec le cloud",
+  "synced": "Synchronisé avec le cloud",
+  "inbox": "Boîte de réception",
+  "sendFeedback": "Envoyer un Retour",
+  "sellCoffeeDeviceToDevice": "Vendre du café (appareil à appareil)",
+  "scanBuyerInfo": "Scanner les informations de l'acheteur",
+  "scanBuyerInfoInstructions": "Scannez le code QR ou le tag NFC de l'acheteur pour initier la transaction.",
+  "presentInfoToBuyer": "Présenter les informations à l'acheteur",
+  "presentInfoToBuyerInstructions": "Montrez le code QR ou le tag NFC à l'acheteur pour finaliser la transaction.",
+  "selectFromDatabase": "Sélectionner depuis la base de données",
+  "fillInReminder":"Veuillez remplir correctement tous les champs",
+  "manual":"Saisie manuelle"
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:trace_foodchain_app/widgets/stepper_buy_coffee.dart';
+import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
 
 class CoffeeProcessingStateSelector extends StatefulWidget {
   final String currentState;
@@ -25,7 +27,7 @@ class _CoffeeProcessingStateSelectorState
     extends State<CoffeeProcessingStateSelector> {
   late String _selectedState;
   late List<Map<String, dynamic>> _processingStates;
-  late List<String> _qualityCriteria;
+  late List<Map<String, dynamic>> _qualityCriteria;
   late List<String> _selectedQualityCriteria;
 
   @override
@@ -82,14 +84,14 @@ class _CoffeeProcessingStateSelectorState
   List<Widget> _buildQualityCriteriaCheckboxes() {
     return _qualityCriteria.map((criteria) {
       return CheckboxListTile(
-        title: Text(criteria, style: const TextStyle(color: Colors.black87)),
-        value: _selectedQualityCriteria.contains(criteria),
+        title: Text(getLanguageSpecificState(criteria,context), style: const TextStyle(color: Colors.black87)),
+        value: _selectedQualityCriteria.contains(getLanguageSpecificState(criteria,context)),
         onChanged: (bool? value) {
           setState(() {
             if (value == true) {
-              _selectedQualityCriteria.add(criteria);
+              _selectedQualityCriteria.add(getLanguageSpecificState(criteria,context));
             } else {
-              _selectedQualityCriteria.remove(criteria);
+              _selectedQualityCriteria.remove(getLanguageSpecificState(criteria,context));
             }
           });
         },

@@ -29,17 +29,17 @@ class CoffeeActionsMenu extends StatelessWidget {
         surfaceTintColor: Colors.white,
         tooltip: "",
         itemBuilder: (context) => [
-          PopupMenuItem(
-            child: ListTile(
-              leading: Image.asset(
-                'assets/images/cappuccino.png',
-                width: 24,
-                height: 24,
-              ),
-              title: Text(l10n.buyCoffee,
-                  style: const TextStyle(color: Colors.black)),
-            ),
-          ),
+          // PopupMenuItem(
+          //   child: ListTile(
+          //     leading: Image.asset(
+          //       'assets/images/cappuccino.png',
+          //       width: 24,
+          //       height: 24,
+          //     ),
+          //     title: Text(l10n.buyCoffee,
+          //         style: const TextStyle(color: Colors.black)),
+          //   ),
+          // ),
           PopupMenuItem(
             child: ListTile(
               leading: Image.asset(

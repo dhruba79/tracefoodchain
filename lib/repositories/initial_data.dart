@@ -1,6 +1,8 @@
 //This repository contains all data objects and methods that are necessary on initial startup (without any local data)
 
 //! 1. openRAL templates
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 Map<String, dynamic> initialObjectTemplateFarm = {
   "identity": {
     "UID": "",
@@ -620,7 +622,7 @@ Map<String, dynamic> initialCloudConnectorOpenRAL = {
       },
       "specificProperties": [
         {"key": "appId", "unit": "String", "value": ""},
-        {"key": "apiKey", "value": "[API key goes here]", "unit": "String"},
+        {"key": "apiKey", "value": dotenv.env['FIREBASE_API_KEY'] ?? '', "unit": "String"},
         {"value": "", "unit": "String", "key": "projectId"},
         {"unit": "String", "value": "", "key": "messagingSenderId"},
         {"unit": "authDomain", "key": "messagingSenderId", "value": ""}
@@ -696,7 +698,7 @@ Map<String, dynamic> initialCloudConnectorOpenRAL = {
                 "https://europe-west3-ral1-80620.cloudfunctions.net/checkHealthWeb"
           }
         },
-        {"unit": "String", "key": "apiKey", "value": "[API key goes here]"}
+        {"unit": "String", "key": "apiKey", "value": dotenv.env['FIREBASE_API_KEY'] ?? ''}
       ],
       "objectState": "undefined",
       "template": {
@@ -749,7 +751,7 @@ Map<String, dynamic> initialCloudConnectorPermarobotics = {
       "specificProperties": [
         {"value": "", "key": "appId", "unit": "String"},
         {
-          "value": "[API key goes here]",
+          "value": dotenv.env['FIREBASE_API_KEY'] ?? '',
           "key": "apiKey",
           "unit": "String"
         },
@@ -845,7 +847,7 @@ Map<String, dynamic> initialCloudConnectorPermarobotics = {
         {
           "key": "apiKey",
           "unit": "String",
-          "value": "[API key goes here]"
+          "value": dotenv.env['FIREBASE_API_KEY'] ?? ''
         },
         {
           "key": "getSubscriberInfo",

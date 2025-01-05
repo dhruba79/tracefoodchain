@@ -337,11 +337,14 @@ class _ItemsListState extends State<ItemsList> {
                       ],
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                        coffee["needsSync"] != null
-                            ? Icons.cloud_off
-                            : Icons.cloud_done,
-                        color: Colors.black54),
+                    coffee["needsSync"] != null
+                        ? Tooltip(
+                            message: l10n.notSynced, //"Not synced to cloud",
+                            child: Icon(Icons.cloud_off, color: Colors.black54))
+                        : Tooltip(
+                            message: l10n.synced, //"Synced with cloud",
+                            child:
+                                Icon(Icons.cloud_done, color: Colors.black54)),
                     CoffeeActionsMenu(
                       isConnected: appState.isConnected,
                       coffee: coffee,
@@ -362,7 +365,8 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  l10n.amount(getSpecificPropertyfromJSON(coffee, "amount"),
+                  l10n.amount(
+                      getSpecificPropertyfromJSON(coffee, "amount").toString(),
                       getSpecificPropertyUnitfromJSON(coffee, "amount")),
                   style: const TextStyle(
                     fontSize: 14,
@@ -516,6 +520,7 @@ class _ItemsListState extends State<ItemsList> {
 
   Widget _buildCardHeader(
       Map<String, dynamic> container, List<Map<String, dynamic>> contents) {
+    final l10n = AppLocalizations.of(context)!;
     final appState = Provider.of<AppState>(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -573,11 +578,14 @@ class _ItemsListState extends State<ItemsList> {
           children: [
             //*Sync state with cloud
 
-            Icon(
-                container["needsSync"] != null
-                    ? Icons.cloud_off
-                    : Icons.cloud_done,
-                color: Colors.black54), //cloud_done
+            container["needsSync"] != null
+                ? Tooltip(
+                    message: l10n.notSynced, // "Not synced to cloud",
+                    child: Icon(Icons.cloud_off, color: Colors.black54))
+                : Tooltip(
+                    message: l10n.synced, //"Synced with cloud",
+                    child: Icon(Icons.cloud_done,
+                        color: Colors.black54)), //cloud_done
 
             const SizedBox(width: 12),
             // Popupmenu

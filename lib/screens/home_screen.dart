@@ -41,9 +41,11 @@ class HomeScreen extends StatelessWidget {
                 builder: (context, int value, child) {
                   return Stack(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.inbox),
-                        onPressed: () => _navigateToInbox(context),
+                      Tooltip(message:l10n.inbox,//"Inbox",
+                        child: IconButton(
+                          icon: const Icon(Icons.inbox),
+                          onPressed: () => _navigateToInbox(context),
+                        ),
                       ),
                       if (inboxCount.value > 0)
                         Positioned(
@@ -72,13 +74,17 @@ class HomeScreen extends StatelessWidget {
                     ],
                   );
                 }),
-            IconButton(
-              icon: const Icon(Icons.feedback),
-              onPressed: () => _launchFeedbackEmail(context),
+           Tooltip(message:l10n.sendFeedback,//"Send Feedback",
+              child: IconButton(
+                icon: const Icon(Icons.feedback),
+                onPressed: () => _launchFeedbackEmail(context),
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () => _navigateToSettings(context),
+            Tooltip(message:l10n.settings,//"Settings",
+              child: IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => _navigateToSettings(context),
+              ),
             ),
           ],
         ),

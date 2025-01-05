@@ -268,14 +268,6 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   }
 }
 
-String getLanguageSpecificState(Map<String, dynamic> state) {
-  dynamic rState;
-  rState = state['name']['spanish']; //ToDo specify
-
-  rState ??= state['name']['english'];
-  return rState as String;
-}
-
 Future<List<Map<String, dynamic>>> initBuyCoffee(
     String receivingContainerUID) async {
   List<Map<String, dynamic>> rList = [];

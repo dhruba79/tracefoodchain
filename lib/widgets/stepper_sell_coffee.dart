@@ -7,6 +7,7 @@ import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
 import '../services/service_functions.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Add this import
 
@@ -331,6 +332,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   }
 
   Future<CoffeeInfo?> _showCoffeeInfoDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     final countries = ['Honduras', 'Colombia', 'Brazil', 'Ethiopia', 'Vietnam'];
     final coffeeSpecies = loadCoffeeSpecies();
     String? selectedCountry = 'Honduras';
@@ -376,8 +378,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                           borderRadius:
                               BorderRadius.vertical(top: Radius.circular(16)),
                         ),
-                        child: const Text(
-                          'Coffee Information',
+                        child:  Text(
+                          l10n.coffeeInformation,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
@@ -393,10 +395,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildDropdownField(
-                                  label: "Country of Origin",
+                                  label: l10n.countryOfOrigin,
                                   value: selectedCountry,
                                   items: countries,
-                                  hintText: "Select Country",
+                                  hintText: l10n.selectCountry,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedCountry = newValue;
@@ -408,10 +410,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildDropdownField(
-                                  label: "Species",
+                                  label: l10n.species,
                                   value: selectedSpecies,
                                   items: coffeeSpecies,
-                                  hintText: "Select Species",
+                                  hintText: l10n.selectSpecies,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedSpecies = newValue;
@@ -437,13 +439,13 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildDropdownField(
-                                  label: "Processing State",
+                                  label: l10n.processingState,
                                   value: selectedProcessingState,
                                   items: processingStates
                                       .map((state) =>
-                                          getLanguageSpecificState(state))
+                                          getLanguageSpecificState(state,context))
                                       .toList(),
-                                  hintText: "Select Processing State",
+                                  hintText: l10n.selectProcessingState,
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedProcessingState = newValue;
@@ -451,9 +453,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                   },
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  "Quality Reduction Criteria",
-                                  style: TextStyle(
+                                Text(
+                                  l10n.qualityReductionCriteria,
+                                  style: const TextStyle(
                                     color: Colors.black87,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -485,42 +487,46 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         ),
                       ),
                       const Divider(height: 1),
-                      OverflowBar(
-                        overflowAlignment: OverflowBarAlignment.center,
-                        children: [
-                          TextButton(
-                            child: const Text('Cancel',
-                                style: TextStyle(color: Colors.black87)),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF35DB00),
-                              foregroundColor: Colors.white,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+                        child: OverflowBar(
+                          overflowAlignment: OverflowBarAlignment.center,
+                          children: [
+                            TextButton(
+                              child:  Text(l10n.cancel,
+                                  style: TextStyle(color: Colors.black87)),
+                              onPressed: () => Navigator.of(context).pop(),
                             ),
-                            onPressed: () async {
-                              if (selectedCountry == null ||
-                                  selectedSpecies == null ||
-                                  quantity <= 0 ||
-                                  selectedUnit == null ||
-                                  selectedProcessingState == null) {
-                                await fshowInfoDialog(context,
-                                    "Please fill all fields correctly");
-                              } else {
-                                Navigator.of(context).pop(CoffeeInfo(
-                                  country: selectedCountry!,
-                                  species: selectedSpecies!,
-                                  quantity: quantity,
-                                  weightUnit: selectedUnit!,
-                                  processingState: selectedProcessingState!,
-                                  qualityReductionCriteria:
-                                      selectedQualityCriteria,
-                                ));
-                              }
-                            },
-                            child: Text('Confirm'),
-                          ),
-                        ],
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF35DB00),
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () async {
+                                if (selectedCountry == null ||
+                                    selectedSpecies == null ||
+                                    quantity <= 0 ||
+                                    selectedUnit == null ||
+                                    selectedProcessingState == null) {
+                                  await fshowInfoDialog(context,
+                                      l10n.fillInReminder);
+                                } else {
+                                  Navigator.of(context).pop(CoffeeInfo(
+                                    country: selectedCountry!,
+                                    species: selectedSpecies!,
+                                    quantity: quantity,
+                                    weightUnit: selectedUnit!,
+                                    processingState: selectedProcessingState!,
+                                    qualityReductionCriteria:
+                                        selectedQualityCriteria,
+                                  ));
+                                }
+                              },
+                              child: Text(l10n.confirm,
+                                  style: const TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -690,10 +696,3 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
   return rDoc;
 }
 
-String getLanguageSpecificState(Map<String, dynamic> state) {
-  dynamic rState;
-  rState = state['name']['spanish']; //ToDo specify
-
-  rState ??= state['name']['english'];
-  return rState as String;
-}

@@ -235,7 +235,7 @@
   },
   "buyCoffee": "Buy coffee",
   "sellOffline": "Sell offline",
-  "changeProcessingState": "Change processing state",
+  "changeProcessingState": "Change processing/quality state",
   "changeLocation": "Change location",
   "selectQualityCriteria": "Select quality criteria",
   "selectProcessingState": "Select processing state",
@@ -301,7 +301,6 @@
   "receiveDataFromSellerInstructions": "Scan the QR code or NFC tag from the seller's device to complete the transaction.",
   "present": "PRESENT",
   "receive": "RECEIVE",
-  "scan": "SCAN",
   "back": "BACK",
   "next": "NEXT",
   "buyCoffeeCiatFirstSale": "Buy Coffee (CIAT First Sale)",
@@ -325,5 +324,12 @@
   "scanBuyerInfo": "Scan information provided by buyer",
   "scanBuyerInfoInstructions": "Use your smartphone camera or NFC to read initial information from buyer",
   "presentInfoToBuyer": "Present information to the buyer to finish sale",
-  "presentInfoToBuyerInstructions": "Specify where the coffee is transferred to."
+  "presentInfoToBuyerInstructions": "Specify where the coffee is transferred to.",
+  "selectFromDatabase": "Select from database",
+  "notSynced":"Not synced to cloud",
+  "synced":"Synced with cloud",
+  "inbox": "Inbox",
+  "sendFeedback": "Send Feedback",
+  "fillInReminder":"Please fill all fields correctly",
+  "manual":"Manual entry"
 }

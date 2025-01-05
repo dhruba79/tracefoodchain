@@ -234,7 +234,7 @@
   },
   "buyCoffee": "Comprar café",
   "sellOffline": "Vender sin conexión",
-  "changeProcessingState": "Cambiar estado de procesamiento",
+  "changeProcessingState": "Cambiar estado de procesamiento/calidad",
   "changeLocation": "Cambiar ubicación",
   "selectQualityCriteria": "Seleccionar criterios de calidad",
   "selectProcessingState": "Seleccionar estado de procesamiento",
@@ -300,7 +300,6 @@
   "receiveDataFromSellerInstructions": "Escanee el código QR o etiqueta NFC del dispositivo del vendedor para completar la transacción.",
   "present": "PRESENTAR",
   "receive": "RECIBIR",
-  "scan": "ESCANEAR",
   "back": "ATRÁS",
   "next": "SIGUIENTE",
   "buyCoffeeCiatFirstSale": "Comprar café (Primera venta CIAT)",
@@ -324,5 +323,12 @@
   "scanBuyerInfo": "Escanear información proporcionada por el comprador",
   "scanBuyerInfoInstructions": "Use la cámara del smartphone o NFC para leer la información inicial del comprador",
   "presentInfoToBuyer": "Presentar información al comprador para finalizar la venta",
-  "presentInfoToBuyerInstructions": "Especifique dónde se transfiere el café."
+  "presentInfoToBuyerInstructions": "Especifique dónde se transfiere el café.",
+  "selectFromDatabase": "Seleccionar de la base de datos",
+  "notSynced": "No sincronizado con la nube",
+  "synced": "Sincronizado con la nube",
+  "inbox": "Bandeja de entrada",
+  "sendFeedback": "Enviar comentarios",
+  "fillInReminder": "Por favor complete todos los campos correctamente",
+  "manual": "Entrada manual"
 }

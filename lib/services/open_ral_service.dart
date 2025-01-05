@@ -14,25 +14,15 @@ var uuid = const Uuid();
 //! 1. CloudConnectors
 
 Map<String, Map<String, dynamic>> getCloudConnectors() {
-  debugPrint("loading cloud connectors");
+  debugPrint("loading cloud connectors from initial repo");
   Map<String, Map<String, dynamic>> rList = {};
-  for (var doc in localStorage.values) {
-    if (doc['template'] != null &&
-        doc['template']["RALType"] == "cloudConnector") {
-      final doc2 = Map<String, dynamic>.from(doc);
-      final domain = getSpecificPropertyfromJSON(doc2, "cloudDomain");
-      rList.addAll({domain: doc2});
-    }
-  }
 
-  //Inital App startup: populate with cloudConnectors from init repo
+  //Always populate with cloudConnectors from initial repo
   for (final cc in initialCloudConnectors) {
-    if (!localStorage.containsKey(getObjectMethodUID(cc))) {
-      final domain = getSpecificPropertyfromJSON(cc, "cloudDomain");
-      rList.addAll({domain: cc});
-      //add to hive
-      localStorage.put(getObjectMethodUID(cc), cc);
-    }
+    final domain = getSpecificPropertyfromJSON(cc, "cloudDomain");
+    rList.addAll({domain: cc});
+    //update local storage
+    localStorage.put(getObjectMethodUID(cc), cc);
   }
 
   return rList;
@@ -42,8 +32,8 @@ dynamic getCloudConnectionProperty(String domain, connectorType, property) {
   dynamic rObject;
   try {
     // domain und subconnector suchen (connectorType)
-    final subConnector = cloudConnectors[domain]!["linkedObjects"]
-        .firstWhere((subConnector) => subConnector["role"] == connectorType);
+    Map<String,dynamic> subConnector = Map<String,dynamic>.from(cloudConnectors[domain]!["linkedObjects"]
+        .firstWhere((subConnector) => subConnector["role"] == connectorType));
     //gewünschte Eigenschaft lesen
     rObject = getSpecificPropertyfromJSON(subConnector, property);
   } catch (e) {

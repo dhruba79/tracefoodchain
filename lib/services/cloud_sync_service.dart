@@ -65,7 +65,7 @@ class CloudApiClient {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(
-          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];
+          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];//! ??????
     } catch (e) {}
     final apiKey =
         getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
@@ -96,7 +96,7 @@ class CloudApiClient {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(
-          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];
+          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];//! ?????? 
     } catch (e) {}
     final apiKey =
         getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
