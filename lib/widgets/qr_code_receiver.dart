@@ -33,7 +33,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       final header = headerAll.split('/');
       final chunkIndex = int.parse(header[0]);
       _totalChunks = int.parse(header[1]);
-      final data = payload.trimRight(); // Entfernt Leerzeichen am Ende
+      final data = payload;
       _isProcessing = false;
       setState(() {
         _receivedChunks[chunkIndex] = data;
@@ -49,7 +49,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
     final assembledData =
         List.generate(_totalChunks, (index) => _receivedChunks[index + 1] ?? '')
             .join();
-
+    // debugPrint(assembledData.toString());
     setState(() {
       _isReceiving = false;
     });
@@ -83,13 +83,22 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       children: [
         Expanded(
           child: _isReceiving
-              ? MobileScanner(
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    for (final barcode in barcodes) {
-                      _processScannedCode(barcode.rawValue);
-                    }
-                  },
+              ? Stack(
+                  children: [
+                    MobileScanner(
+                      onDetect: (capture) {
+                        final List<Barcode> barcodes = capture.barcodes;
+                        for (final barcode in barcodes) {
+                          _processScannedCode(barcode.rawValue);
+                        }
+                      },
+                    ),
+                    CustomPaint(
+                      painter: QRFramePainter(),
+                      child: Container(),
+                      size: Size.infinite,
+                    ),
+                  ],
                 )
               : Center(child: Text(l10n.dataReceived)),
         ),
@@ -109,4 +118,77 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       ],
     );
   }
+}
+
+class QRFramePainter extends CustomPainter {
+  final double cornerLength;
+  final double strokeWidth;
+
+  QRFramePainter({
+    this.cornerLength = 30.0,
+    this.strokeWidth = 5.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.green
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final double frameSize = size.shortestSide * 0.8;
+    final double left = (size.width - frameSize) / 2;
+    final double top = (size.height - frameSize) / 2;
+
+    // Oben links
+    canvas.drawLine(
+      Offset(left, top + cornerLength),
+      Offset(left, top),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(left, top),
+      Offset(left + cornerLength, top),
+      paint,
+    );
+
+    // Oben rechts
+    canvas.drawLine(
+      Offset(left + frameSize - cornerLength, top),
+      Offset(left + frameSize, top),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(left + frameSize, top),
+      Offset(left + frameSize, top + cornerLength),
+      paint,
+    );
+
+    // Unten links
+    canvas.drawLine(
+      Offset(left, top + frameSize - cornerLength),
+      Offset(left, top + frameSize),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(left, top + frameSize),
+      Offset(left + cornerLength, top + frameSize),
+      paint,
+    );
+
+    // Unten rechts
+    canvas.drawLine(
+      Offset(left + frameSize - cornerLength, top + frameSize),
+      Offset(left + frameSize, top + frameSize),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(left + frameSize, top + frameSize - cornerLength),
+      Offset(left + frameSize, top + frameSize),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
