@@ -1,1 +1,1 @@
-const String APP_VERSION = 'version 0.92 alpha (2025-01-05)';
+const String APP_VERSION = 'version 1.0.8+7 (2025-01-21)';
