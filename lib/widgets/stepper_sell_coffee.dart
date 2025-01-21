@@ -210,7 +210,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         break;
                       case 1:
                         //ToDo Jobs vervollständigen
-
+                        Map<String, dynamic> buyer =
+                            transfer_ownership["inputObjects"]
+                                .firstWhere((io) => io["role"] == "buyer");
                         transfer_ownership = addInputobject(
                             transfer_ownership, coffee, "soldItem");
                         transfer_ownership = addInputobject(
@@ -226,8 +228,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                         //"execute method changeOwner"
                         coffee["currentOwners"] = [
-                          {//ToDO: use the buyer's UID from the transfer ownership job!
-                            "UID": getObjectMethodUID(appUserDoc!),
+                          {
+                            //use the buyer's UID from the transfer ownership job!
+                            "UID": getObjectMethodUID(buyer),
                             "role": "owner"
                           }
                         ];
@@ -303,7 +306,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                               }
                             ];
                             coffee["currentGeolocation"]["container"]["UID"] =
-                            getObjectMethodUID(field);
+                                getObjectMethodUID(field);
                             await setObjectMethod(coffee, true);
                             //Jobs als cancelled markieren
                             transfer_ownership["methodState"] = "cancelled";

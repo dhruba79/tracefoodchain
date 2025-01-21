@@ -27,10 +27,21 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   }
 
   List<String> _splitData(String data) {
+    final totalChunks = (data.length / chunkSize).ceil();
     return List.generate(
-      (data.length / chunkSize).ceil(),
-      (index) =>
-          '${index + 1}/${(data.length / chunkSize).ceil()}:${data.substring(index * chunkSize, (index + 1) * chunkSize > data.length ? data.length : (index + 1) * chunkSize)}',
+      totalChunks,
+      (index) {
+        final start = index * chunkSize;
+        var chunk = data.substring(
+          start,
+          (start + chunkSize) > data.length ? data.length : (start + chunkSize)
+        );
+        // Auffüllen des letzten Chunks mit Leerzeichen
+        if (chunk.length < chunkSize) {
+          chunk = chunk.padRight(chunkSize);
+        }
+        return '$index/$totalChunks:$chunk';
+      },
     );
   }
 

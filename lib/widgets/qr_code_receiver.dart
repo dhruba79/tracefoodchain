@@ -33,7 +33,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       final header = headerAll.split('/');
       final chunkIndex = int.parse(header[0]);
       _totalChunks = int.parse(header[1]);
-      final data = payload;
+      final data = payload.trimRight(); // Entfernt Leerzeichen am Ende
       _isProcessing = false;
       setState(() {
         _receivedChunks[chunkIndex] = data;
