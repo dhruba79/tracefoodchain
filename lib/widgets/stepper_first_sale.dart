@@ -610,7 +610,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   // 1. Check if receiving container exists. If not generate new one.
   receivingContainer = {};
   receivingContainer = await getObjectOrGenerateNew(
-      saleInfo.receivingContainerUID!, containerType, "alternateUid");
+      saleInfo.receivingContainerUID!, [containerType], "alternateUid");
   if (getObjectMethodUID(receivingContainer) == "") {
     receivingContainer["identity"]["alternateIDs"]
         .add({"UID": saleInfo.receivingContainerUID, "issuedBy": "owner"});
@@ -625,7 +625,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   //look for a field that have geoId as alternateIDs
   field = {};
   field =
-      await getObjectOrGenerateNew(saleInfo.geoId!, "field", "alternateUid");
+      await getObjectOrGenerateNew(saleInfo.geoId!, ["field"], "alternateUid");
 
   if (getObjectMethodUID(field) == "") {
     field["identity"]["alternateIDs"]
@@ -637,7 +637,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   //! due to project specifications, field and company are the same for Honduras atm
   seller = {};
   seller =
-      await getObjectOrGenerateNew(saleInfo.geoId!, "company", "alternateUid");
+      await getObjectOrGenerateNew(saleInfo.geoId!, ["company"], "alternateUid");
   //ToDo: Would be better to have company information
   if (getObjectMethodUID(seller) == "") {
     seller["identity"]["alternateIDs"]

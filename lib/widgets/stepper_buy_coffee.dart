@@ -259,7 +259,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
   List<Map<String, dynamic>> rList = [];
 
   receivingContainer = await getObjectOrGenerateNew(
-      receivingContainerUID, "container", "alternateUid");
+      receivingContainerUID, ["container","bag","building","transportVehicle"], "alternateUid");
   if (getObjectMethodUID(receivingContainer) == "") {
     receivingContainer["identity"]["alternateIDs"]
         .add({"UID": receivingContainerUID, "issuedBy": "owner"});

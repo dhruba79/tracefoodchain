@@ -469,6 +469,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildEmptyCard(Map<String, dynamic> container) {
+    final l10n = AppLocalizations.of(context)!;
     final appState = Provider.of<AppState>(context);
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -490,26 +491,43 @@ class _ItemsListState extends State<ItemsList> {
               Expanded(
                 child: Text(
                     (AppLocalizations.of(context)!.containerIsEmpty(
-                            container["template"]["RALType"],
+                            getContainerTypeName(container["template"]["RALType"], context) ,
                             container["identity"]["alternateIDs"][0]["UID"])
                         as String),
                     style: const TextStyle(color: Colors.black)),
               ),
-              ContainerActionsMenu(
-                container: container,
-                contents: const [],
-                onPerformAnalysis: _performAnalysis,
-                onGenerateAndSharePdf: _generateAndSharePdf,
-                onRepaint: () {
-                  setState(() {
-                    repaintContainerList.value = true;
-                  });
-                },
-                isConnected: appState.isConnected,
-                onDeleteContainer: (String uid) async {
-                  await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
-                      'localStorage', uid);
-                },
+              Row(
+                children: [
+                  //*Sync state with cloud
+
+                  container["needsSync"] != null
+                      ? Tooltip(
+                          message: l10n.notSynced, // "Not synced to cloud",
+                          child: Icon(Icons.cloud_off, color: Colors.black54))
+                      : Tooltip(
+                          message: l10n.synced, //"Synced with cloud",
+                          child: Icon(Icons.cloud_done,
+                              color: Colors.black54)), //cloud_done
+
+                  const SizedBox(width: 12),
+                  ContainerActionsMenu(
+                    container: container,
+                    contents: const [],
+                    onPerformAnalysis: _performAnalysis,
+                    onGenerateAndSharePdf: _generateAndSharePdf,
+                    onRepaint: () {
+                      setState(() {
+                        repaintContainerList.value = true;
+                      });
+                    },
+                    isConnected: appState.isConnected,
+                    onDeleteContainer: (String uid) async {
+                      await _databaseHelper
+                          .deleteFromBox<Map<dynamic, dynamic>>(
+                              'localStorage', uid);
+                    },
+                  ),
+                ],
               )
             ],
           ),

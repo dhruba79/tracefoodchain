@@ -418,34 +418,34 @@ Future<List<Map<String, dynamic>>> getContainedItems(
 }
 
 Future<Map<String, dynamic>> getObjectOrGenerateNew(
-    String uid, type, field) async {
+  String uid, List<String> types, String field) async {
   Map<String, dynamic> rDoc = {};
-  //check all items with this type: do they have the id on the field?
+  //check all items with these types: do they have the id on the field?
   List<Map<dynamic, dynamic>> candidates = localStorage.values
-      .where((candidate) => candidate['template']["RALType"] == type)
-      .toList();
+    .where((candidate) => types.contains(candidate['template']["RALType"]))
+    .toList();
   for (dynamic candidate in candidates) {
-    Map<String, dynamic> candidate2 = Map<String, dynamic>.from(candidate);
-    switch (field) {
-      case "uid":
-        if (candidate2["identity"]["UID"] == uid) rDoc = candidate2;
-        break;
-      case "alternateUid":
-        if (candidate2["identity"]["alternateIDs"].length != 0) {
-          if (candidate2["identity"]["alternateIDs"][0]["UID"] == uid) {
-            rDoc = candidate2;
-          }
-        }
-        break;
-      default:
+  Map<String, dynamic> candidate2 = Map<String, dynamic>.from(candidate);
+  switch (field) {
+    case "uid":
+    if (candidate2["identity"]["UID"] == uid) rDoc = candidate2;
+    break;
+    case "alternateUid":
+    if (candidate2["identity"]["alternateIDs"].length != 0) {
+      if (candidate2["identity"]["alternateIDs"][0]["UID"] == uid) {
+      rDoc = candidate2;
+      }
     }
-    if (rDoc.isNotEmpty) break;
+    break;
+    default:
+  }
+  if (rDoc.isNotEmpty) break;
   }
   if (rDoc.isEmpty) {
-    Map<String, dynamic> rDoc2 = await getOpenRALTemplate(type);
-    rDoc = rDoc2;
-    rDoc["identity"]["UID"] = "";
-    debugPrint("generated new template for $type");
+  Map<String, dynamic> rDoc2 = await getOpenRALTemplate(types[0]);
+  rDoc = rDoc2;
+  rDoc["identity"]["UID"] = "";
+  debugPrint("generated new template for ${types[0]}");
   }
   return rDoc;
 }

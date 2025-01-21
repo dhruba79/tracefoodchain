@@ -313,6 +313,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                             transfer_ownership =
                                 await setObjectMethod(transfer_ownership, true);
+                            Navigator.of(context).pop(); 
                           }
                         });
                         break;

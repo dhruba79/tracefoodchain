@@ -296,7 +296,7 @@
   "deviceToDevice": "Gerät-zu-Gerät",
   "ciatFirstSale": "CIAT Erstverkauf",
   "buyCoffeeDeviceToDevice": "Kaffee kaufen (Gerät-zu-Gerät)",
-  "scanSelectFutureContainer": "Container scannen/auswählen",
+  "scanSelectFutureContainer": "Zielbehälter scannen/auswählen",
   "scanContainerInstructions": "Verwenden Sie QR-Code/NFC oder wählen Sie manuell aus, wo der Kaffee gelagert werden soll.",
   "presentInfoToSeller": "Informationen dem Verkäufer präsentieren",
   "presentInfoToSellerInstructions": "Zeigen Sie dem Verkäufer den QR-Code oder NFC-Tag, um die Transaktion zu starten.",

@@ -22,7 +22,7 @@ Future<void> aggregateItems(
 
   // Step 2: Get or create the receiving container object
   Map<String, dynamic> receivingContainer = await getObjectOrGenerateNew(
-      receivingContainerUID, "container", "alternateUid");
+      receivingContainerUID, ["container","bag","building","transportVehicle"], "alternateUid");
 
   if (getObjectMethodUID(receivingContainer).isEmpty) {
     receivingContainer["identity"]["alternateIDs"] ??= [];
@@ -63,6 +63,7 @@ Future<void> aggregateItems(
     }
   }
 
-  await fshowInfoDialog(context,
-      "Aggregation complete. ${selectedItemUIDs.length} items moved to the new container.");
+  // Step 4: Show completion dialog
+  // await fshowInfoDialog(context,
+  //     "Aggregation complete. ${selectedItemUIDs.length} items moved to the new container.");
 }

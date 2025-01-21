@@ -122,9 +122,11 @@ Future<void> showAggregateItemsDialog(
     builder: (BuildContext context) {
       final l10n = AppLocalizations.of(context)!;
       return AlertDialog(
-        title: Text(l10n.aggregateItems),
+        title: Text(l10n.aggregateItems,
+            style: const TextStyle(color: Colors.black)),
         content: Text(
-            '${l10n.selectItemToSell} ${selectedItemUIDs.length} items. ${l10n.scanSelectFutureContainer}'),
+            '${l10n.scanSelectFutureContainer}',
+            style: const TextStyle(color: Colors.black)),
         actions: <Widget>[
           TextButton(
             child: Text(l10n.cancel),
