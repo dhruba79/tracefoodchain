@@ -48,21 +48,7 @@ class StepperBuyCoffee {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Buy Coffee (device-to-device)',
-              style: TextStyle(color: Colors.black)),
-          content:
-              BuyCoffeeStepper(receivingContainerUID: receivingContainerUID),
-          actions: <Widget>[
-            TextButton(
-              child:
-                  const Text('Cancel', style: TextStyle(color: Colors.black)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
+        return BuyCoffeeStepper(receivingContainerUID: receivingContainerUID);
       },
     );
   }

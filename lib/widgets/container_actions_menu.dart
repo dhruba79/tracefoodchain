@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
+import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/online_sale_dialog.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
@@ -64,11 +65,11 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
               leading: const Icon(Icons.shopping_cart, size: 20),
               title: Text(l10n.sellOffline,
                   style: const TextStyle(color: Colors.black)),
-              onTap: () => _sellContainerOffline(context),
+              onTap: () => _sellContainerOffline(context, widget.container),
             ),
           ),
           if (widget.isConnected && widget.container["needsSync"] == null)
-          // if (widget.isConnected ) //! DEBUG ONLY
+            // if (widget.isConnected ) //! DEBUG ONLY
             PopupMenuItem(
               child: ListTile(
                 leading: const Icon(Icons.shopping_cart, size: 20),
@@ -196,10 +197,16 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     widget.onRepaint();
   }
 
-  void _sellContainerOffline(BuildContext context) async {
+  void _sellContainerOffline(
+      BuildContext context, Map<String, dynamic> container) async {
     Navigator.pop(context, "close menu");
+    final currentContainerUID =
+        container["currentGeolocation"]["container"]["UID"];
+    Map<String, dynamic> oldContainer =
+        await getObjectMethod(currentContainerUID);
     StepperSellCoffee sellCoffeeProcess = StepperSellCoffee();
-    await sellCoffeeProcess.startProcess(context);
+    await sellCoffeeProcess.startProcess(
+        context, container, appUserDoc!, oldContainer);
     widget.onRepaint();
   }
 

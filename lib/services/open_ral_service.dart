@@ -382,7 +382,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
     }
 
   for (final uid in ouidList) {
-    print("checking $uid");
+    debugPrint("checking $uid");
     final oDoc = await getObjectMethod(uid);
     if (oDoc.isNotEmpty) {
       try {
@@ -391,16 +391,16 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
                 orElse: () => {})
             .isEmpty) {
           //Check if already in List
-          print("Eintrag $methodUID existiert noch nicht in Methodhistory!");
+          debugPrint("Eintrag $methodUID existiert noch nicht in Methodhistory!");
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
           await setObjectMethod(oDoc, true);
         } else {
-          print("Eintrag $methodUID existiert schon in Methodhistory");
+          debugPrint("Eintrag $methodUID existiert schon in Methodhistory");
         }
       } catch (e) {
-        print("Knoten MethodHistory existiert noch nicht in $uid");
+        debugPrint("Knoten MethodHistory existiert noch nicht in $uid");
         oDoc["methodHistoryRef"] = {"UID": methodUID, "RALType": methodRALType};
 
         await setObjectMethod(oDoc, true);

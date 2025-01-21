@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -252,4 +253,68 @@ String formatTimestamp(dynamic timestamp) {
     print('Error formatting timestamp: $e');
     return 'Invalid Date';
   }
+}
+
+dynamic convertToJson(dynamic firestoreObj) {
+  if (firestoreObj is List) {
+    return firestoreObj.map((item) => convertToJson(item)).toList();
+  } else if (firestoreObj is Map) {
+    final Map<String, dynamic> convertedObj = {};
+    firestoreObj.forEach((key, value) {
+      if (value is Timestamp) {
+        convertedObj[key] = {
+          '_seconds': value.seconds,
+          '_nanoseconds': value.nanoseconds
+        };
+      } else if (value is DateTime) {
+        convertedObj[key] = value.toIso8601String();
+      } else if (value is GeoPoint) {
+        convertedObj[key] = {
+          '_latitude': value.latitude,
+          '_longitude': value.longitude
+        };
+      } else {
+        convertedObj[key] = convertToJson(value);
+      }
+    });
+    return convertedObj;
+  } else if (firestoreObj is DateTime) {
+    return firestoreObj.toIso8601String();
+  } else {
+    // Simple datatype like string or number
+    return firestoreObj;
+  }
+}
+
+dynamic convertToFirestore(dynamic jsonObj) {
+  if (jsonObj is List) {
+    return jsonObj.map((item) => convertToFirestore(item)).toList();
+  } else if (jsonObj is Map) {
+    final Map<String, dynamic> convertedObj = {};
+    jsonObj.forEach((key, value) {
+      if (value is Map && hasTwoKeys(value)) {
+        if (value.containsKey('_seconds') &&
+            value.containsKey('_nanoseconds')) {
+          convertedObj[key] =
+              Timestamp(value['_seconds'], value['_nanoseconds']);
+        } else if (value.containsKey('_latitude') &&
+            value.containsKey('_longitude')) {
+          convertedObj[key] = GeoPoint(value['_latitude'], value['_longitude']);
+        } else {
+          convertedObj[key] = convertToFirestore(value);
+        }
+      } else {
+        convertedObj[key] = convertToFirestore(value);
+      }
+    });
+    return convertedObj;
+  } else {
+    // Simple datatype like string or number
+    return jsonObj;
+  }
+}
+
+/// Helper method to check if the object has exactly two keys
+bool hasTwoKeys(Map obj) {
+  return obj.keys.length == 2;
 }

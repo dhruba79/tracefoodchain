@@ -43,7 +43,15 @@ class SaleInfo {
 }
 
 class StepperSellCoffee {
-  Future<void> startProcess(BuildContext context) async {
+  Future<void> startProcess(
+      BuildContext context,
+      Map<String, dynamic> itemToSell,
+      Map<String, dynamic> sellerInfo,
+      Map<String, dynamic> oldContainer) async {
+    coffee = itemToSell; // Set the global coffee variable
+    seller = sellerInfo; // Set the global seller variable
+    field = oldContainer; // Set the global field variable
+
     final l10n = AppLocalizations.of(context)!;
     await showDialog(
       context: context,
@@ -193,7 +201,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                           if (transfer_ownership == null ||
                               change_container == null) {
                             await fshowInfoDialog(context,
-                                "ERROR: The received data are not valid!");
+                                l10n.errorIncorrectData //"ERROR: The received data are not valid!"
+                                );
                           } else {
                             _nextStep();
                           } //Present finished job to buyer
@@ -217,7 +226,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                         //"execute method changeOwner"
                         coffee["currentOwners"] = [
-                          {
+                          {//ToDO: use the buyer's UID from the transfer ownership job!
                             "UID": getObjectMethodUID(appUserDoc!),
                             "role": "owner"
                           }
@@ -233,10 +242,12 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                         change_container =
                             addInputobject(change_container, coffee, "item");
-                        change_container = addInputobject(
-                            change_container, field, "oldContainer");
+                        if (field.isNotEmpty) {
+                          change_container = addInputobject(
+                              change_container, field, "oldContainer");
+                        }
 
-                        //"execute method changeContainer"
+                        //"execute method changeContainer" => change container of coffee or other containers
                         coffee["currentGeolocation"]["container"]["UID"] =
                             getObjectMethodUID(receivingContainer);
                         change_container =
@@ -278,14 +289,25 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         ).then((result) async {
                           final transSuccess = await fshowQuestionDialog(
                               context,
-                              "Did the buyer receive the information correctly?",
-                              "YES",
-                              "NO");
+                              l10n.confirmTransfer, //"Did the buyer receive the information correctly?",
+                              l10n.yes,
+                              l10n.no);
                           if (transSuccess == true) {
                             _nextStep();
                           } else {
+                            //Container and Owner back to old state
+                            coffee["currentOwners"] = [
+                              {
+                                "UID": getObjectMethodUID(appUserDoc!),
+                                "role": "owner"
+                              }
+                            ];
+                            coffee["currentGeolocation"]["container"]["UID"] =
+                            getObjectMethodUID(field);
+                            await setObjectMethod(coffee, true);
                             //Jobs als cancelled markieren
                             transfer_ownership["methodState"] = "cancelled";
+
                             transfer_ownership =
                                 await setObjectMethod(transfer_ownership, true);
                           }
@@ -378,7 +400,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                           borderRadius:
                               BorderRadius.vertical(top: Radius.circular(16)),
                         ),
-                        child:  Text(
+                        child: Text(
                           l10n.coffeeInformation,
                           style: TextStyle(
                             color: Colors.white,
@@ -442,8 +464,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                   label: l10n.processingState,
                                   value: selectedProcessingState,
                                   items: processingStates
-                                      .map((state) =>
-                                          getLanguageSpecificState(state,context))
+                                      .map((state) => getLanguageSpecificState(
+                                          state, context))
                                       .toList(),
                                   hintText: l10n.selectProcessingState,
                                   onChanged: (String? newValue) {
@@ -493,7 +515,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                           overflowAlignment: OverflowBarAlignment.center,
                           children: [
                             TextButton(
-                              child:  Text(l10n.cancel,
+                              child: Text(l10n.cancel,
                                   style: TextStyle(color: Colors.black87)),
                               onPressed: () => Navigator.of(context).pop(),
                             ),
@@ -508,8 +530,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     quantity <= 0 ||
                                     selectedUnit == null ||
                                     selectedProcessingState == null) {
-                                  await fshowInfoDialog(context,
-                                      l10n.fillInReminder);
+                                  await fshowInfoDialog(
+                                      context, l10n.fillInReminder);
                                 } else {
                                   Navigator.of(context).pop(CoffeeInfo(
                                     country: selectedCountry!,
@@ -695,4 +717,3 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
   }
   return rDoc;
 }
-

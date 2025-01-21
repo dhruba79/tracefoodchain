@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:trace_foodchain_app/main.dart';
+import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/online_sale_dialog.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
@@ -51,8 +53,12 @@ class CoffeeActionsMenu extends StatelessWidget {
                   style: const TextStyle(color: Colors.black)),
               onTap: () async {
                 Navigator.pop(context, "close menu");
+                final currentContainerUID =
+                   coffee["currentGeolocation"]["container"]["UID"];
+                Map<String, dynamic> oldContainer = await getObjectMethod(currentContainerUID);
                 StepperSellCoffee sellCoffeeProcess = StepperSellCoffee();
-                await sellCoffeeProcess.startProcess(context);
+                await sellCoffeeProcess.startProcess(
+                    context, coffee, appUserDoc!, oldContainer);
                 onRepaint();
               },
             ),

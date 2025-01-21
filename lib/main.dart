@@ -1,7 +1,9 @@
 //! Generate new localisation: flutter gen-l10n
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -269,7 +271,10 @@ void main() async {
   runApp(
     ChangeNotifierProvider.value(
       value: appState,
-      child: const MyApp(),
+      child:  DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (context) => MyApp(), // Wrap your app
+    ),
     ),
   );
 }
@@ -338,6 +343,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, appState, _) {
       return MaterialApp(
+          
+          // locale: DevicePreview.locale(context),
+           locale: appState.locale, // Re-enable this line to use the locale from the appState
+          builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [
             AppLocalizations.delegate,
@@ -351,7 +360,7 @@ class MyApp extends StatelessWidget {
             Locale('de', ''), // German
             Locale('fr', ''), // French
           ],
-          locale: appState.locale, // Re-enable this line
+       
           title: 'TraceFoodChain App',
           theme: customTheme,
           home: const SplashScreen());
