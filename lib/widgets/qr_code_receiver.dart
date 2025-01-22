@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
@@ -18,53 +19,113 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
   final Map<int, String> _receivedChunks = {};
   int _totalChunks = 0;
   bool _isReceiving = true;
+  DateTime? _startTime; // Neue Variable für Zeitmessung
 
   void _processScannedCode(String? code) {
-    if (!_isReceiving) return;
+    if (!_isReceiving || _isProcessing) return;
 
     if (code != null && code.contains(':')) {
-      //we have to separate
       _isProcessing = true;
-      int colonIndex = code.indexOf(':');
-      final headerAll = code.substring(0, colonIndex);
-      String payload = code.substring(colonIndex + 1);
-      // debugPrint("Payload: ${payload}");
-      debugPrint("Header: $headerAll");
-      final header = headerAll.split('/');
-      final chunkIndex = int.parse(header[0]);
-      _totalChunks = int.parse(header[1]);
-      final data = payload;
-      _isProcessing = false;
-      setState(() {
-        _receivedChunks[chunkIndex] = data;
-      });
 
-      if (_receivedChunks.length == _totalChunks) {
-        _assembleData();
+      try {
+        // Startzeit beim ersten Chunk setzen
+        if (_receivedChunks.isEmpty) {
+          _startTime = DateTime.now();
+        }
+
+        int colonIndex = code.indexOf(':');
+        final headerAll = code.substring(0, colonIndex);
+        String payload = code.substring(colonIndex + 1);
+        final header = headerAll.split('/');
+        final chunkIndex = int.parse(header[0]);
+        _totalChunks = int.parse(header[1]);
+
+        if (chunkIndex < 1 || chunkIndex > _totalChunks) {
+          debugPrint('Ungültiger Chunk-Index: $chunkIndex');
+          return;
+        }
+
+        if (!_receivedChunks.containsKey(chunkIndex)) {
+          _receivedChunks[chunkIndex] = payload;
+          setState(() {});
+
+          // Automatische Verarbeitung wenn alle Chunks da sind
+          if (_canProcess()) {
+            _assembleData();
+          }
+        }
+      } catch (e) {
+        debugPrint('Fehler beim Verarbeiten des Chunks: $e');
+      } finally {
+        _isProcessing = false;
       }
     }
   }
 
+  bool _canProcess() {
+    if (_totalChunks == 0) return false;
+
+    for (int i = 1; i <= _totalChunks; i++) {
+      if (!_receivedChunks.containsKey(i)) return false;
+    }
+    return true;
+  }
+
   void _assembleData() {
-    final assembledData =
-        List.generate(_totalChunks, (index) => _receivedChunks[index + 1] ?? '')
-            .join();
-    // debugPrint(assembledData.toString());
-    setState(() {
-      _isReceiving = false;
-    });
+    try {
+      final assembledData = List.generate(_totalChunks, (index) {
+        final chunk = _receivedChunks[index + 1];
+        if (chunk == null) {
+          throw Exception('Fehlender Chunk at ${index + 1}');
+        }
+        return chunk;
+      }).join();
 
-    // Use a post-frame callback to ensure the dialog is shown after the current frame is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        final receivedProcessList = json.decode(assembledData);
+      // Zeitmessung beenden und Dauer berechnen
+      final duration = _startTime != null
+          ? DateTime.now().difference(_startTime!)
+          : Duration.zero;
 
-        Navigator.of(context).pop(receivedProcessList);
-      } catch (e) {
-        debugPrint(assembledData);
-        fshowInfoDialog(context, AppLocalizations.of(context)!.noDataAvailable);
-      }
-    });
+      setState(() {
+        _isReceiving = false;
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          final receivedProcessList = json.decode(assembledData);
+
+          // Zuerst Dialog mit Zeitmessung anzeigen
+          if (kDebugMode)
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Verarbeitung abgeschlossen',
+                    style: TextStyle(color: Colors.black)),
+                content: Text(
+                    'Verarbeitungszeit: ${duration.inSeconds}.${duration.inMilliseconds % 1000} Sekunden',
+                    style: const TextStyle(color: Colors.black)),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Dialog schließen
+                      Navigator.of(context).pop(
+                          receivedProcessList); // Zurück zur vorherigen Seite
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+        } catch (e) {
+          debugPrint('Fehler beim Dekodieren: $assembledData');
+          fshowInfoDialog(
+              context, AppLocalizations.of(context)!.noDataAvailable);
+        }
+      });
+    } catch (e) {
+      debugPrint('Fehler beim Assemblieren: $e');
+      fshowInfoDialog(context, AppLocalizations.of(context)!.noDataAvailable);
+    }
   }
 
   void _resetReceiver() {
@@ -72,6 +133,7 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       _receivedChunks.clear();
       _totalChunks = 0;
       _isReceiving = true;
+      _startTime = null; // Startzeit zurücksetzen
     });
   }
 
@@ -108,12 +170,16 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
               '${l10n.dataReceived} ${_receivedChunks.length} ${l10n.next} $_totalChunks chunks',
               style: const TextStyle(color: Colors.black)),
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            onPressed: _resetReceiver,
-            child: Text(l10n.scan),
-          ),
+        Row(
+          mainAxisAlignment:
+              MainAxisAlignment.center, // von spaceEvenly zu center geändert
+          children: [
+            ElevatedButton(
+              onPressed: _resetReceiver,
+              child: Text(l10n.scan),
+            ),
+            // Verarbeitungs-Button entfernt
+          ],
         ),
       ],
     );
