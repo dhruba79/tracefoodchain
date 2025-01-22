@@ -178,18 +178,18 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getContainedItems(
       String containerUID) async {
-    List<Map<String, dynamic>> rstring = [];
+    List<Map<String, dynamic>> rList = [];
     for (var doc in localStorage.values) {
       try {
         final containerUID2 = doc["currentGeolocation"]["container"]["UID"];
 
         if (containerUID2 == containerUID) {
           Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
-          rstring.add(doc2);
+          rList.add(doc2);
         }
       } catch (e) {}
     }
-    return rstring;
+    return rList;
   }
 
   Future<Map<String, dynamic>> getFirstSale(Map<String, dynamic> coffee) async {

@@ -245,16 +245,21 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         transfer_ownership =
                             await setObjectMethod(transfer_ownership, true);
 
-                        change_container =
-                            addInputobject(change_container, coffee, "item");
+                        change_container = addInputobject(
+                            change_container,
+                            coffee,
+                            "item"); //The item that goes into the new container
                         if (field.isNotEmpty) {
                           change_container = addInputobject(
                               change_container, field, "oldContainer");
                         }
 
                         //"execute method changeContainer" => change container of coffee or other containers
+                        receivingContainer = change_container["inputObjects"]
+                            .firstWhere((io) => io["role"] == "newContainer");
+                        final rcuid = getObjectMethodUID(receivingContainer);
                         coffee["currentGeolocation"]["container"]["UID"] =
-                            getObjectMethodUID(receivingContainer);
+                            rcuid;
                         change_container =
                             addOutputobject(change_container, coffee, "item");
 
@@ -275,12 +280,45 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         List<Map<String, dynamic>> transmittedList = [];
                         transmittedList.add(transfer_ownership);
                         transmittedList.add(change_container);
+                        transmittedList.add(coffee);
+                        //Add first method from method history for coffee objects as it contains the field info
+
                         //!CAVE all nested objects of the container must be transmitted too
 
                         final containedItemsList =
                             await _databaseHelper.getNestedContainedItems(
                                 getObjectMethodUID(coffee));
+                        //ToDo owner of all nestd objects must be receiver
                         for (final item in containedItemsList) {
+                          if (item["template"]["RALType"] == "coffee" &&
+                              item["methodHistoryRef"] != null &&
+                              item["methodHistoryRef"].isNotEmpty) {
+                            final firstContainerMethod =
+                                item["methodHistoryRef"].firstWhere(
+                              (method) =>
+                                  method["RALType"] == "changeContainer",
+                              orElse: () => null,
+                            );
+                            if (firstContainerMethod != null) {
+                              final firstContainerJobUID =
+                                  firstContainerMethod["UID"];
+                              final firstJob =
+                                  await getObjectMethod(firstContainerJobUID);
+                              transmittedList.add(
+                                  firstJob); //This adds the first container change job of the coffee to the transfer which contains the field info
+                            }
+                          }
+
+                          if (item["currentOwners"] != null) {
+                            item["currentOwners"] = [
+                              {
+                                "UID": getObjectMethodUID(buyer),
+                                "role": "owner"
+                              }
+                            ];
+                            await setObjectMethod(item, true);
+                          }
+
                           transmittedList.add(item);
                         }
 
@@ -302,16 +340,24 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             _nextStep();
                           } else {
                             //Container and Owner back to old state
-
-                            coffee["currentOwners"] = [
-                              {
-                                "UID": getObjectMethodUID(appUserDoc!),
-                                "role": "owner"
+                            for (final item in transmittedList) {
+                              if (item["currentOwners"] != null) {
+                                item["currentOwners"] = [
+                                  {
+                                    "UID": getObjectMethodUID(appUserDoc!),
+                                    "role": "owner"
+                                  }
+                                ];
                               }
-                            ];
+                            }
 
-                            coffee["currentGeolocation"]["container"]["UID"] =
-                                getObjectMethodUID(field);
+                            if (field.isEmpty) {
+                              coffee["currentGeolocation"]["container"]["UID"] =
+                                  "unknown";
+                            } else {
+                              coffee["currentGeolocation"]["container"]["UID"] =
+                                  getObjectMethodUID(field);
+                            }
 
                             await setObjectMethod(coffee, true);
 
