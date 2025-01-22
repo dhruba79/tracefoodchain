@@ -47,6 +47,10 @@
 	<string>This App uses NFC to read NFC-tags.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>This app needs camera access to scan QR codes</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open to get your current position.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to location when in the background.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs photos access to get QR code from photo library</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

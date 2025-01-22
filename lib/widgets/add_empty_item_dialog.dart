@@ -160,8 +160,22 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
 
   Future<void> _getCurrentLocation() async {
     try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Location permissions are denied';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw 'Location permissions are permanently denied';
+      }
+
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.best,
+        ),
       );
       setState(() {
         _latitudeController.text = position.latitude.toString();
