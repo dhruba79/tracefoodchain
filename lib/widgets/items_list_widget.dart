@@ -175,7 +175,8 @@ class _ItemsListState extends State<ItemsList> {
                     //ToDo: Nur Container anzeigen, die nicht genested sind
                     for (final delivery in snapshot.data!) {
                       if (delivery["currentGeolocation"]["container"]["UID"] ==
-                          "unknown") {
+                          "unknown" ||delivery["currentGeolocation"]["container"]["UID"] ==
+                          "") {
                         deliveries.add(delivery);
                       }
                     }

@@ -292,11 +292,14 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
   //The jobs are received in finished form from the seller
 
   for (final jobOrObject in receivedData) {
-    await setObjectMethod(jobOrObject, true);
-    //ToDo: Wenn es ein job ist, dann outputobjects persistieren
 
-    //!CAVE all nested objects of the container must be transmitted too
-    //! If container changes owner, who is owner of the contained items
-    //ToDo: persist objects
+    //if it is an object, change ownership!
+    if(jobOrObject["currentOwners"] != null){
+    jobOrObject["currentOwners"] = [
+      {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
+    ];
+    }
+    await setObjectMethod(jobOrObject, true);
+  
   }
 }
