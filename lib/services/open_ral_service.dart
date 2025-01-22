@@ -450,6 +450,23 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
   return rDoc;
 }
 
+Future<bool> checkAlternateIDExists(String alternateID) async {
+  List<Map<dynamic, dynamic>> allItems = localStorage.values
+      .where((item) => item['identity']?['alternateIDs'] != null)
+      .toList();
+
+  for (dynamic item in allItems) {
+    Map<String, dynamic> itemMap = Map<String, dynamic>.from(item);
+    List alternateIDs = itemMap['identity']['alternateIDs'];
+    
+    if (alternateIDs.any((id) => id['UID'] == alternateID)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 Future<Map<String, dynamic>> getContainerByAlternateUID(String uid) async {
   Map<String, dynamic> rDoc = {};
   //check all items with this type: do they have the id on the field?

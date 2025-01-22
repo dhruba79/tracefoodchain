@@ -252,6 +252,7 @@
       }
     }
   },
+  "uidAlreadyExists": "Este ID ya existe, por favor elija otro",
   "selectItemToSell": "Por favor seleccione un artículo para vender",
   "debugDeleteContainer": "Eliminar contenedor (Debug)",
   "languageEnglish": "Inglés",

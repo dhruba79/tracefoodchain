@@ -33,6 +33,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   final TextEditingController _longitudeController = TextEditingController();
   String? _latitudeError;
   String? _longitudeError;
+  String? _uidError;  // Add this line
 
   @override
   void initState() {
@@ -83,6 +84,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                   child: CustomTextField(
                     controller: _uidController,
                     hintText: l10n.uid,
+                    errorText: _uidError,  // Add error text
                   ),
                 ),
                 IconButton(
@@ -283,17 +285,37 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
     final scannedCode = await ScanningService.showScanDialog(
         context, Provider.of<AppState>(context, listen: false));
     if (scannedCode != null) {
-      setState(() => _uidController.text = scannedCode);
+      // Check if UID exists before setting
+      final isUIDTaken = await checkAlternateIDExists(scannedCode);
+      if (isUIDTaken) {
+        setState(() {
+          _uidError = AppLocalizations.of(context)!.uidAlreadyExists;
+          _uidController.text = '';
+        });
+        await fshowInfoDialog(context, AppLocalizations.of(context)!.uidAlreadyExists);
+      } else {
+        setState(() {
+          _uidError = null;
+          _uidController.text = scannedCode;
+        });
+      }
     }
   }
 
   Future<void> _addItem() async {
     final l10n = AppLocalizations.of(context)!;
 
+    // Check if UID exists before adding item
+    final isUIDTaken = await checkAlternateIDExists(_uidController.text);
+    if (isUIDTaken) {
+      setState(() => _uidError = l10n.uidAlreadyExists);
+      await fshowInfoDialog(context, l10n.uidAlreadyExists);
+      return;
+    }
+
     setState(() {
       _capacityError = _validateCapacity(_capacityController.text);
-      // _latitudeError = _validateCoordinate(_latitudeController.text, true);
-      // _longitudeError = _validateCoordinate(_longitudeController.text, false);
+      _uidError = null;
     });
 
     if (_selectedType == null ||

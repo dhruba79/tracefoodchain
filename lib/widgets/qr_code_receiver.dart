@@ -107,9 +107,11 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      'Processing time: ${duration.inSeconds}.${duration.inMilliseconds % 1000}s'),
+                      'Processing time: ${duration.inSeconds}.${duration.inMilliseconds % 1000}s',
+                      style: const TextStyle(color: Colors.black)),
                   const SizedBox(height: 8),
-                  Text('Received data size: ${assembledData.length} bytes'),
+                  Text('Received data size: ${assembledData.length} bytes',
+                      style: const TextStyle(color: Colors.black)),
                 ],
               ),
               actions: [
