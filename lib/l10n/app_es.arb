@@ -74,6 +74,8 @@
   "generateTransferData": "Generar Datos de Transferencia",
   "startScanning": "Iniciar Escaneo",
   "stopScanning": "Detener Escaneo",
+  "startPresenting": "Comenzar Presentación",
+  "stopPresenting": "Detener Presentación",
   "transferDataGenerated": "Datos de Transferencia Generados",
   "dataReceived": "Datos Recibidos",
   "ok": "OK",

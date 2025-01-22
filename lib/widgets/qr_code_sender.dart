@@ -5,6 +5,23 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 
+enum QrErrorCorrectLevel { L, M, Q, H }
+
+extension QrErrorCorrectLevelExtension on QrErrorCorrectLevel {
+  int get value {
+    switch (this) {
+      case QrErrorCorrectLevel.L:
+        return 1;
+      case QrErrorCorrectLevel.M:
+        return 0;
+      case QrErrorCorrectLevel.Q:
+        return 3;
+      case QrErrorCorrectLevel.H:
+        return 2;
+    }
+  }
+}
+
 int moveSpeed = 500; // Increased default display time to 500ms
 int chunkSize = 500; // Reduced chunk size for less dense QR codes
 
@@ -18,11 +35,18 @@ class QRCodeSender extends StatefulWidget {
 }
 
 class _QRCodeSenderState extends State<QRCodeSender> {
+  // Add new state variable
+  QrErrorCorrectLevel _errorCorrectLevel = QrErrorCorrectLevel.Q;
   List<String> _chunks = [];
   int _currentChunkIndex = 0;
   Timer? _timer;
   double _currentSpeed = moveSpeed.toDouble();
   double _qrSize = 400.0;
+  String _cycleTime = '';
+  DateTime? _cycleStartTime;
+  bool _cycleMeasured = false;
+  double _currentChunkSize = chunkSize.toDouble();
+  bool _isInPause = false;
 
   @override
   void initState() {
@@ -56,9 +80,37 @@ class _QRCodeSenderState extends State<QRCodeSender> {
 
   void _startQRMovie() {
     _currentChunkIndex = 0;
+    _cycleMeasured = false;
+    _cycleTime = '';
+    _isInPause = false;
+
     _timer = Timer.periodic(Duration(milliseconds: moveSpeed), (timer) {
       setState(() {
-        _currentChunkIndex = (_currentChunkIndex + 1) % _chunks.length;
+        if (_isInPause) {
+          _isInPause = false;
+          _currentChunkIndex = 0;
+          return;
+        }
+
+        // Start measuring at first chunk
+        if (_currentChunkIndex == 0 && !_cycleMeasured) {
+          _cycleStartTime = DateTime.now();
+        }
+
+        _currentChunkIndex++;
+
+        // When reaching last chunk
+        if (_currentChunkIndex >= _chunks.length) {
+          if (!_cycleMeasured) {
+            final cycleEndTime = DateTime.now();
+            final cycleDuration = cycleEndTime.difference(_cycleStartTime!);
+            _cycleTime =
+                '${cycleDuration.inSeconds}.${(cycleDuration.inMilliseconds % 1000).toString().padLeft(3, '0')}s';
+            _cycleMeasured = true;
+          }
+          _currentChunkIndex = _chunks.length - 1; // Stay on last frame
+          _isInPause = true; // Enter pause state
+        }
       });
     });
   }
@@ -66,6 +118,7 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   void _stopQRMovie() {
     _timer?.cancel();
     _timer = null;
+    _cycleStartTime = null;
   }
 
   void _updateSpeed(double newSpeed) {
@@ -77,6 +130,26 @@ class _QRCodeSenderState extends State<QRCodeSender> {
         _startQRMovie();
       }
     });
+  }
+
+  void _updateChunkSize(double newSize) {
+    setState(() {
+      _currentChunkSize = newSize;
+      chunkSize = newSize.toInt();
+      _chunks = _splitData(widget.data); // Regenerate chunks with new size
+      if (_timer != null) {
+        _stopQRMovie();
+        _startQRMovie();
+      }
+    });
+  }
+
+  void _updateErrorCorrection(QrErrorCorrectLevel? newLevel) {
+    if (newLevel != null) {
+      setState(() {
+        _errorCorrectLevel = newLevel;
+      });
+    }
   }
 
   @override
@@ -112,9 +185,17 @@ class _QRCodeSenderState extends State<QRCodeSender> {
                   data: _chunks[_currentChunkIndex],
                   version: QrVersions.auto,
                   size: _qrSize,
-                  errorCorrectionLevel: QrErrorCorrectLevel.H,
+                  errorCorrectionLevel:
+                      _errorCorrectLevel.value, // Convert enum to int
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF000000), // Pure black
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: Color(0xFF000000),
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Color(0xFF000000),
+                  ),
                 ),
               ),
             )
@@ -124,41 +205,104 @@ class _QRCodeSenderState extends State<QRCodeSender> {
               style: const TextStyle(color: Colors.white),
             ),
           const SizedBox(height: 20),
-          if (kDebugMode) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Speed: ', style: TextStyle(color: Colors.white)),
-                Slider(
-                  value: _currentSpeed,
-                  min: 300, // Increased minimum speed
-                  max: 2000, // Increased maximum speed
-                  divisions: 17,
-                  label: '${_currentSpeed.round()} ms',
-                  onChanged: _updateSpeed,
+          if (_cycleTime.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Cycle Time: $_cycleTime',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Size: ', style: TextStyle(color: Colors.white)),
-                Slider(
-                  value: _qrSize,
-                  min: 200,
-                  max: 600,
-                  divisions: 8,
-                  label: '${_qrSize.round()} px',
-                  onChanged: (value) => setState(() => _qrSize = value),
+          if (kDebugMode)
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Speed: ',
+                            style: TextStyle(color: Colors.white)),
+                        Slider(
+                          value: _currentSpeed,
+                          min: 300,
+                          max: 2000,
+                          divisions: 17,
+                          label: '${_currentSpeed.round()} ms',
+                          onChanged: _updateSpeed,
+                        ),
+                        Text(
+                          '${_currentSpeed.round()} ms',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Chunk Size: ',
+                            style: TextStyle(color: Colors.white)),
+                        Slider(
+                          value: _currentChunkSize,
+                          min: 100,
+                          max: 1000,
+                          divisions: 9,
+                          label: '${_currentChunkSize.round()} bytes',
+                          onChanged: _updateChunkSize,
+                        ),
+                        Text(
+                          '${_currentChunkSize.round()} bytes',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('Error Correction: ',
+                            style: TextStyle(color: Colors.white)),
+                        DropdownButton<QrErrorCorrectLevel>(
+                          value: _errorCorrectLevel,
+                          dropdownColor: Colors.black87,
+                          items: [
+                            DropdownMenuItem(
+                              value: QrErrorCorrectLevel.L,
+                              child: Text('Low (7%)',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            DropdownMenuItem(
+                              value: QrErrorCorrectLevel.M,
+                              child: Text('Medium (15%)',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            DropdownMenuItem(
+                              value: QrErrorCorrectLevel.Q,
+                              child: Text('Quartile (25%)',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                            DropdownMenuItem(
+                              value: QrErrorCorrectLevel.H,
+                              child: Text('High (30%)',
+                                  style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                          onChanged: _updateErrorCorrection,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ],
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
-            child:
-                Text(_timer == null ? l10n.startScanning : l10n.stopScanning),
+            child: Text(
+                _timer == null ? l10n.startPresenting : l10n.stopPresenting),
           ),
         ],
       ),

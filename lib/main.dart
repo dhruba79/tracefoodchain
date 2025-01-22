@@ -271,10 +271,10 @@ void main() async {
   runApp(
     ChangeNotifierProvider.value(
       value: appState,
-      child:  DevicePreview(
-      enabled: !kReleaseMode,
-      builder: (context) => MyApp(), // Wrap your app
-    ),
+      child: DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) => MyApp(), // Wrap your app
+      ),
     ),
   );
 }
@@ -343,9 +343,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, appState, _) {
       return MaterialApp(
-          
+
           // locale: DevicePreview.locale(context),
-           locale: appState.locale, // Re-enable this line to use the locale from the appState
+          locale: appState
+              .locale, // Re-enable this line to use the locale from the appState
           builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [
@@ -360,7 +361,6 @@ class MyApp extends StatelessWidget {
             Locale('de', ''), // German
             Locale('fr', ''), // French
           ],
-       
           title: 'TraceFoodChain App',
           theme: customTheme,
           home: const SplashScreen());
