@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -62,18 +64,22 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   }
 
   List<String> _splitData(String data) {
+    // Compress and encode the data
+    final minifiedJson = json.encode(json.decode(data)); // Minify JSON
+    final compressed = gzip.encode(utf8.encode(minifiedJson));
+    final base64Data = base64.encode(compressed);
+
     return List.generate(
-      (data.length / chunkSize).ceil(),
+      (base64Data.length / chunkSize).ceil(),
       (index) {
         final start = index * chunkSize;
         final end = (index + 1) * chunkSize;
-        String chunk =
-            data.substring(start, end > data.length ? data.length : end);
-        // Pad last chunk with spaces to match chunkSize
+        String chunk = base64Data.substring(
+            start, end > base64Data.length ? base64Data.length : end);
         if (chunk.length < chunkSize) {
           chunk = chunk.padRight(chunkSize);
         }
-        return '${index + 1}/${(data.length / chunkSize).ceil()}:$chunk';
+        return '${index + 1}/${(base64Data.length / chunkSize).ceil()}:$chunk';
       },
     );
   }

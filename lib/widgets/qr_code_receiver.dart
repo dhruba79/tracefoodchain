@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -81,6 +82,11 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
         return chunk;
       }).join();
 
+      // Decode and decompress data
+      final bytes = base64.decode(assembledData.trim());
+      final decompressed = utf8.decode(gzip.decode(bytes));
+      final decodedData = json.decode(decompressed);
+
       // Zeitmessung beenden und Dauer berechnen
       final duration = _startTime != null
           ? DateTime.now().difference(_startTime!)
@@ -91,35 +97,34 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
       });
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          final receivedProcessList = json.decode(assembledData);
-
-          // Zuerst Dialog mit Zeitmessung anzeigen
-          if (kDebugMode)
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Verarbeitung abgeschlossen',
-                    style: TextStyle(color: Colors.black)),
-                content: Text(
-                    'Verarbeitungszeit: ${duration.inSeconds}.${duration.inMilliseconds % 1000} Sekunden',
-                    style: const TextStyle(color: Colors.black)),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(); // Dialog schließen
-                      Navigator.of(context).pop(
-                          receivedProcessList); // Zurück zur vorherigen Seite
-                    },
-                    child: const Text('OK'),
-                  ),
+        if (kDebugMode) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Processing complete'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                      'Processing time: ${duration.inSeconds}.${duration.inMilliseconds % 1000}s'),
+                  const SizedBox(height: 8),
+                  Text('Received data size: ${assembledData.length} bytes'),
                 ],
               ),
-            );
-        } catch (e) {
-          debugPrint('Fehler beim Dekodieren: $assembledData');
-          fshowInfoDialog(
-              context, AppLocalizations.of(context)!.noDataAvailable);
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(decodedData);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          Navigator.of(context).pop(decodedData);
         }
       });
     } catch (e) {
