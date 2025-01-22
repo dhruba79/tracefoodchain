@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter/services.dart';
 
-int moveSpeed = 300; //time in ms between 2 "frames"
-int chunkSize = 750;
+int moveSpeed = 500; // Increased default display time to 500ms
+int chunkSize = 500; // Reduced chunk size for less dense QR codes
 
 class QRCodeSender extends StatefulWidget {
   final String data;
@@ -21,11 +22,19 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   int _currentChunkIndex = 0;
   Timer? _timer;
   double _currentSpeed = moveSpeed.toDouble();
+  double _qrSize = 400.0;
 
   @override
   void initState() {
     super.initState();
     _chunks = _splitData(widget.data);
+    // Set maximum brightness when QR sender starts
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+      ),
+    );
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
   }
 
   List<String> _splitData(String data) {
@@ -72,6 +81,11 @@ class _QRCodeSenderState extends State<QRCodeSender> {
 
   @override
   void dispose() {
+    // Restore system UI when widget is disposed
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: SystemUiOverlay.values,
+    );
     _stopQRMovie();
     super.dispose();
   }
@@ -80,43 +94,74 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_timer != null)
-          SizedBox(
-            height: 300,
-            width: 300,
-            child: QrImageView(
-              data: _chunks[_currentChunkIndex],
-              version: QrVersions.auto,
-              size: 300.0,
-            ),
-          )
-        else
-          Text(l10n.waitingForData),
-        const SizedBox(height: 20),
-        if (kDebugMode)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Speed: '),
-              Slider(
-                value: _currentSpeed,
-                min: 200,
-                max: 1000,
-                divisions: 8,
-                label: '${_currentSpeed.round()} ms',
-                onChanged: _updateSpeed,
+    return Container(
+      color: Colors.black, // Add black background for better contrast
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_timer != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: Colors.white, width: 20),
               ),
-            ],
+              child: SizedBox(
+                height: _qrSize,
+                width: _qrSize,
+                child: QrImageView(
+                  data: _chunks[_currentChunkIndex],
+                  version: QrVersions.auto,
+                  size: _qrSize,
+                  errorCorrectionLevel: QrErrorCorrectLevel.H,
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF000000), // Pure black
+                ),
+              ),
+            )
+          else
+            Text(
+              l10n.waitingForData,
+              style: const TextStyle(color: Colors.white),
+            ),
+          const SizedBox(height: 20),
+          if (kDebugMode) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Speed: ', style: TextStyle(color: Colors.white)),
+                Slider(
+                  value: _currentSpeed,
+                  min: 300, // Increased minimum speed
+                  max: 2000, // Increased maximum speed
+                  divisions: 17,
+                  label: '${_currentSpeed.round()} ms',
+                  onChanged: _updateSpeed,
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Size: ', style: TextStyle(color: Colors.white)),
+                Slider(
+                  value: _qrSize,
+                  min: 200,
+                  max: 600,
+                  divisions: 8,
+                  label: '${_qrSize.round()} px',
+                  onChanged: (value) => setState(() => _qrSize = value),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
+            child:
+                Text(_timer == null ? l10n.startScanning : l10n.stopScanning),
           ),
-        const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
-          child: Text(_timer == null ? l10n.startScanning : l10n.stopScanning),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
