@@ -32,8 +32,9 @@ dynamic getCloudConnectionProperty(String domain, connectorType, property) {
   dynamic rObject;
   try {
     // domain und subconnector suchen (connectorType)
-    Map<String,dynamic> subConnector = Map<String,dynamic>.from(cloudConnectors[domain]!["linkedObjects"]
-        .firstWhere((subConnector) => subConnector["role"] == connectorType));
+    Map<String, dynamic> subConnector = Map<String, dynamic>.from(
+        cloudConnectors[domain]!["linkedObjects"].firstWhere(
+            (subConnector) => subConnector["role"] == connectorType));
     //gewünschte Eigenschaft lesen
     rObject = getSpecificPropertyfromJSON(subConnector, property);
   } catch (e) {
@@ -391,7 +392,8 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
                 orElse: () => {})
             .isEmpty) {
           //Check if already in List
-          debugPrint("Eintrag $methodUID existiert noch nicht in Methodhistory!");
+          debugPrint(
+              "Eintrag $methodUID existiert noch nicht in Methodhistory!");
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
@@ -409,43 +411,35 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
   }
 }
 
-Future<List<Map<String, dynamic>>> getContainedItems(
-    Map<String, dynamic> item) async {
-  List<Map<String, dynamic>> rList = [];
-//ToDo: iteratively cycle through all contained items until a container is empty
-
-  return rList;
-}
-
 Future<Map<String, dynamic>> getObjectOrGenerateNew(
-  String uid, List<String> types, String field) async {
+    String uid, List<String> types, String field) async {
   Map<String, dynamic> rDoc = {};
   //check all items with these types: do they have the id on the field?
   List<Map<dynamic, dynamic>> candidates = localStorage.values
-    .where((candidate) => types.contains(candidate['template']["RALType"]))
-    .toList();
+      .where((candidate) => types.contains(candidate['template']["RALType"]))
+      .toList();
   for (dynamic candidate in candidates) {
-  Map<String, dynamic> candidate2 = Map<String, dynamic>.from(candidate);
-  switch (field) {
-    case "uid":
-    if (candidate2["identity"]["UID"] == uid) rDoc = candidate2;
-    break;
-    case "alternateUid":
-    if (candidate2["identity"]["alternateIDs"].length != 0) {
-      if (candidate2["identity"]["alternateIDs"][0]["UID"] == uid) {
-      rDoc = candidate2;
-      }
+    Map<String, dynamic> candidate2 = Map<String, dynamic>.from(candidate);
+    switch (field) {
+      case "uid":
+        if (candidate2["identity"]["UID"] == uid) rDoc = candidate2;
+        break;
+      case "alternateUid":
+        if (candidate2["identity"]["alternateIDs"].length != 0) {
+          if (candidate2["identity"]["alternateIDs"][0]["UID"] == uid) {
+            rDoc = candidate2;
+          }
+        }
+        break;
+      default:
     }
-    break;
-    default:
-  }
-  if (rDoc.isNotEmpty) break;
+    if (rDoc.isNotEmpty) break;
   }
   if (rDoc.isEmpty) {
-  Map<String, dynamic> rDoc2 = await getOpenRALTemplate(types[0]);
-  rDoc = rDoc2;
-  rDoc["identity"]["UID"] = "";
-  debugPrint("generated new template for ${types[0]}");
+    Map<String, dynamic> rDoc2 = await getOpenRALTemplate(types[0]);
+    rDoc = rDoc2;
+    rDoc["identity"]["UID"] = "";
+    debugPrint("generated new template for ${types[0]}");
   }
   return rDoc;
 }
@@ -458,12 +452,12 @@ Future<bool> checkAlternateIDExists(String alternateID) async {
   for (dynamic item in allItems) {
     Map<String, dynamic> itemMap = Map<String, dynamic>.from(item);
     List alternateIDs = itemMap['identity']['alternateIDs'];
-    
+
     if (alternateIDs.any((id) => id['UID'] == alternateID)) {
       return true;
     }
   }
-  
+
   return false;
 }
 

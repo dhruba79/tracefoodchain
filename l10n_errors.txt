@@ -1,1 +1,10 @@
-{}
+{
+  "de": [
+    "inputOfAdditionalInformation",
+    "provideValidContainer",
+    "buttonNext",
+    "buttonScan",
+    "buttonStart",
+    "buttonBack"
+  ]
+}

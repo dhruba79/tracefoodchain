@@ -24,8 +24,8 @@ extension QrErrorCorrectLevelExtension on QrErrorCorrectLevel {
   }
 }
 
-int moveSpeed = 500; // Increased default display time to 500ms
-int chunkSize = 500; // Reduced chunk size for less dense QR codes
+int moveSpeed = 300; // Default display time 300ms
+int chunkSize = 500; // Default chunk size 500 bytes
 
 class QRCodeSender extends StatefulWidget {
   final String data;
@@ -38,7 +38,8 @@ class QRCodeSender extends StatefulWidget {
 
 class _QRCodeSenderState extends State<QRCodeSender> {
   // Add new state variable
-  QrErrorCorrectLevel _errorCorrectLevel = QrErrorCorrectLevel.Q;
+  QrErrorCorrectLevel _errorCorrectLevel =
+      QrErrorCorrectLevel.M; // Set to Medium
   List<String> _chunks = [];
   int _currentChunkIndex = 0;
   Timer? _timer;

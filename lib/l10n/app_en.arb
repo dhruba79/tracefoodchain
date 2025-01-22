@@ -70,6 +70,7 @@
   "yes": "Yes",
   "no": "No",
   "errorIncorrectData":"ERROR: The received data are not valid!",
+  "provideValidSellerTag" :"Please provide a valid seller tag.",
   "confirmTransfer" : "Did the buyer receive the information correctly?",
   "peerTransfer": "Peer Transfer",
   "generateTransferData": "Generate Transfer Data",
@@ -338,5 +339,14 @@
   "inbox": "Inbox",
   "sendFeedback": "Send Feedback",
   "fillInReminder":"Please fill all fields correctly",
-  "manual":"Manual entry"
+  "manual":"Manual entry",
+  "selectCountryFirst": "Please select country first!",
+  "inputOfAdditionalInformation": "Input of additional information is mandatory!",
+  "provideValidContainer": "Please provide a valid receiving container tag.",
+  "buttonNext": "NEXT",
+  "buttonScan": "SCAN!",
+  "buttonStart": "START!",
+  "buttonBack": "BACK",
+  "locationPermissionsDenied": "Location permissions are denied",
+  "locationPermissionsPermanentlyDenied": "Location permissions are permanently denied"
 }

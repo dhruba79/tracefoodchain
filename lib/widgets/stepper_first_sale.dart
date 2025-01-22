@@ -122,6 +122,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
   void _nextStep() async {
     final appState = Provider.of<AppState>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
 
     switch (_currentStep) {
       case 0:
@@ -133,7 +134,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
             _currentStep += 1;
           });
         } else {
-          await fshowInfoDialog(context, "Please provide a valid seller tag.");
+          await fshowInfoDialog(context, l10n.provideValidSellerTag);
         }
         break;
 
@@ -167,14 +168,23 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
           var scannedCode =
               await ScanningService.showScanDialog(context, appState);
           if (scannedCode != null) {
-            saleInfo.receivingContainerUID = scannedCode;
-            String containerType = "container";
-            dynamic container = await getContainerByAlternateUID(scannedCode);
-            if (!container.isEmpty) {
-              containerType = container["template"]["RALType"];
+            //ToDo: Check if UID is already in use!
+            final isUIDTaken = await checkAlternateIDExists(scannedCode);
+            if (isUIDTaken) {
+              await fshowInfoDialog(
+                context,
+                AppLocalizations.of(context)!.uidAlreadyExists,
+              );
+            } else {
+              saleInfo.receivingContainerUID = scannedCode;
+              String containerType = "container";
+              dynamic container = await getContainerByAlternateUID(scannedCode);
+              if (!container.isEmpty) {
+                containerType = container["template"]["RALType"];
+              }
+              await sellCoffee(saleInfo, containerType);
+              Navigator.of(context).pop();
             }
-            await sellCoffee(saleInfo, containerType);
-            Navigator.of(context).pop();
           } else {
             await fshowInfoDialog(
                 context, "Please provide a valid receiving container tag.");
@@ -204,13 +214,14 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
         },
         steps: _steps,
         controlsBuilder: (BuildContext context, ControlsDetails details) {
-          String buttonText = "NEXT";
+          final l10n = AppLocalizations.of(context)!;
+          String buttonText = l10n.buttonNext;
           if (_currentStep == 0 ||
               (_currentStep == 2 && widget.receivingContainerUID == null)) {
-            buttonText = "SCAN!";
+            buttonText = l10n.buttonScan;
           } else if (_currentStep == 1 &&
               widget.receivingContainerUID != null) {
-            buttonText = "START!";
+            buttonText = l10n.buttonStart;
           }
 
           return Column(
@@ -228,7 +239,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton(
                     onPressed: details.onStepCancel,
-                    child: const Text('BACK',
+                    child: Text(l10n.buttonBack,
                         style: TextStyle(color: Colors.black)),
                   ),
                 ),
@@ -377,22 +388,24 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 ),
                                 ...qualityCriteria.map((criteria) {
                                   return CheckboxListTile(
-                                    title: Text( getLanguageSpecificState(
-                                          criteria, context),
+                                    title: Text(
+                                        getLanguageSpecificState(
+                                            criteria, context),
                                         style: const TextStyle(
                                             color: Colors.black87)),
-                                    value: selectedQualityCriteria
-                                        .contains(getLanguageSpecificState(
-                                          criteria, context)),
+                                    value: selectedQualityCriteria.contains(
+                                        getLanguageSpecificState(
+                                            criteria, context)),
                                     onChanged: (bool? value) {
                                       setState(() {
                                         if (value == true) {
-                                          selectedQualityCriteria.add(getLanguageSpecificState(
-                                          criteria, context));
+                                          selectedQualityCriteria.add(
+                                              getLanguageSpecificState(
+                                                  criteria, context));
                                         } else {
-                                          selectedQualityCriteria
-                                              .remove(getLanguageSpecificState(
-                                          criteria, context));
+                                          selectedQualityCriteria.remove(
+                                              getLanguageSpecificState(
+                                                  criteria, context));
                                         }
                                       });
                                     },
@@ -636,8 +649,8 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
 
   //! due to project specifications, field and company are the same for Honduras atm
   seller = {};
-  seller =
-      await getObjectOrGenerateNew(saleInfo.geoId!, ["company"], "alternateUid");
+  seller = await getObjectOrGenerateNew(
+      saleInfo.geoId!, ["company"], "alternateUid");
   //ToDo: Would be better to have company information
   if (getObjectMethodUID(seller) == "") {
     seller["identity"]["alternateIDs"]

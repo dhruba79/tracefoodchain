@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
@@ -147,6 +148,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
+    final DatabaseHelper _databaseHelper = DatabaseHelper();
     return SizedBox(
       height: 500,
       width: 300,
@@ -274,9 +276,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         transmittedList.add(transfer_ownership);
                         transmittedList.add(change_container);
                         //!CAVE all nested objects of the container must be transmitted too
-                        //! If container changes owner, who is owner of the contained items
+
                         final containedItemsList =
-                            await getContainedItems(coffee);
+                            await _databaseHelper.getNestedContainedItems(
+                                getObjectMethodUID(coffee));
                         for (final item in containedItemsList) {
                           transmittedList.add(item);
                         }
@@ -299,21 +302,25 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             _nextStep();
                           } else {
                             //Container and Owner back to old state
+
                             coffee["currentOwners"] = [
                               {
                                 "UID": getObjectMethodUID(appUserDoc!),
                                 "role": "owner"
                               }
                             ];
+
                             coffee["currentGeolocation"]["container"]["UID"] =
                                 getObjectMethodUID(field);
+
                             await setObjectMethod(coffee, true);
+
                             //Jobs als cancelled markieren
                             transfer_ownership["methodState"] = "cancelled";
 
                             transfer_ownership =
                                 await setObjectMethod(transfer_ownership, true);
-                            Navigator.of(context).pop(); 
+                            Navigator.of(context).pop();
                           }
                         });
                         break;

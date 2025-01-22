@@ -70,6 +70,7 @@
   "no": "No", 
   "confirmTransfer": "¿El comprador recibió la información correctamente?",
   "errorIncorrectData": "ERROR: ¡Los datos recibidos no son válidos!",
+  "provideValidSellerTag": "Por favor, proporciona una etiqueta de vendedor válida.",
   "peerTransfer": "Transferencia entre Pares",
   "generateTransferData": "Generar Datos de Transferencia",
   "startScanning": "Iniciar Escaneo",
@@ -319,6 +320,7 @@
   "coffeeInformation": "Información del Café",
   "countryOfOrigin": "País de origen",
   "selectCountry": "Seleccionar país",
+  "selectCountryFirst": "¡Por favor, seleccione primero un país!",
   "selectSpecies": "Seleccionar especie",
   "enterQuantity": "Ingresar cantidad",
   "start": "¡INICIAR!",
@@ -337,5 +339,13 @@
   "inbox": "Bandeja de entrada",
   "sendFeedback": "Enviar comentarios",
   "fillInReminder": "Por favor complete todos los campos correctamente",
-  "manual": "Entrada manual"
+  "manual": "Entrada manual",
+  "inputOfAdditionalInformation": "¡Es obligatorio ingresar información adicional!",
+  "provideValidContainer": "Por favor proporcione una etiqueta válida del contenedor receptor.",
+  "buttonNext": "SIGUIENTE",
+  "buttonScan": "¡ESCANEAR!",
+  "buttonStart": "¡INICIAR!",
+  "buttonBack": "ATRÁS",
+  "locationPermissionsDenied": "Los permisos de ubicación están denegados",
+  "locationPermissionsPermanentlyDenied": "Los permisos de ubicación están denegados permanentemente"
 }

@@ -69,6 +69,7 @@
   "yes": "Ja",
   "no": "Nein", 
   "errorIncorrectData":"FEHLER: Die empfangenen Daten sind ungültig!",
+  "provideValidSellerTag": "Bitte geben Sie ein gültiges Verkäufer-Tag an.",
   "confirmTransfer": "Hat der Käufer die Informationen korrekt erhalten?",
   "peerTransfer": "Peer-Übertragung",
   "generateTransferData": "Übertragungsdaten generieren",
@@ -337,5 +338,8 @@
   "notSynced":"Nicht mit Cloud synchronisiert",
   "synced":"Mit Cloud synchronisiert",
   "fillInReminder":"Bitte füllen Sie alle Felder korrekt aus",
-  "manual":"Manuelle Eingabe"
+  "manual":"Manuelle Eingabe",
+  "selectCountryFirst": "Bitte wählen Sie zuerst ein Land aus!",
+  "locationPermissionsDenied": "Standortberechtigungen sind verweigert",
+  "locationPermissionsPermanentlyDenied": "Standortberechtigungen sind dauerhaft verweigert"
 }

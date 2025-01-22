@@ -69,6 +69,7 @@
   "yes": "Oui",
   "no": "Non", 
   "errorIncorrectData": "ERREUR : Les données reçues ne sont pas valides !",
+  "provideValidSellerTag": "Veuillez fournir une étiquette de vendeur valide.",
   "confirmTransfer": "L'acheteur a-t-il reçu correctement les informations ?",
   "peerTransfer": "Transfert entre Pairs",
   "generateTransferData": "Générer les Données de Transfert",
@@ -320,6 +321,7 @@
   "coffeeInformation": "Informations sur le Café",
   "countryOfOrigin": "Pays d'origine",
   "selectCountry": "Sélectionner le pays",
+  "selectCountryFirst": "Veuillez d'abord sélectionner un pays !",
   "selectSpecies": "Sélectionner l'espèce",
   "enterQuantity": "Saisir la quantité",
   "start": "DÉMARRER!",
@@ -338,5 +340,13 @@
   "presentInfoToBuyerInstructions": "Montrez le code QR ou le tag NFC à l'acheteur pour finaliser la transaction.",
   "selectFromDatabase": "Sélectionner depuis la base de données",
   "fillInReminder":"Veuillez remplir correctement tous les champs",
-  "manual":"Saisie manuelle"
+  "manual":"Saisie manuelle",
+  "inputOfAdditionalInformation": "La saisie d'informations supplémentaires est obligatoire !",
+  "provideValidContainer": "Veuillez fournir une étiquette valide du conteneur de réception.",
+  "buttonNext": "SUIVANT",
+  "buttonScan": "SCANNER !",
+  "buttonStart": "DÉMARRER !",
+  "buttonBack": "RETOUR",
+  "locationPermissionsDenied": "Les permissions de localisation sont refusées",
+  "locationPermissionsPermanentlyDenied": "Les permissions de localisation sont refusées de façon permanente"
 }
