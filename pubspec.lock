@@ -46,6 +46,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.5.0"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      sha256: "4bae5ae63e6d6dd17c4aac8086f3dec26c0236f6a0f03416c6c19d830c367cf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.8"
   async:
     dependency: transitive
     description:
@@ -286,6 +294,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.5"
+  cryptography:
+    dependency: "direct main"
+    description:
+      name: cryptography
+      sha256: d146b76d33d94548cf035233fbc2f4338c1242fa119013bead807d033fc4ae05
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.7.0"
   dart_style:
     dependency: transitive
     description:
@@ -334,6 +350,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  encrypt:
+    dependency: "direct main"
+    description:
+      name: encrypt
+      sha256: "62d9aa4670cc2a8798bab89b39fc71b6dfbacf615de6cf5001fb39f7e4a996a2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.3"
   equatable:
     dependency: transitive
     description:
@@ -513,10 +537,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_nfc_kit
-      sha256: fe0b86f4883e4a0ebeb6d1fbbc5a86123b95969a4d225bc5a760acda5e3f42e8
+      sha256: "586a8309a7be4d9be307c46d5e9db1460a9f59a37a097c77d53e2f6bfc11be2d"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.2"
+    version: "3.4.2"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -533,6 +557,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.9.3"
+  flutter_secure_storage:
+    dependency: "direct main"
+    description:
+      name: flutter_secure_storage
+      sha256: "9f3dd2ac3b6875b0fde5b04734789c3ef35ba3965c18e99dd564a7a2f8056df6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.1"
   flutter_speed_dial:
     dependency: "direct main"
     description:
@@ -725,10 +757,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: c1b2e9b5ea78c45e1a0788d29606ba27dc5f71f019f32ca5140f61ef071838cf
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -985,6 +1017,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "4be0097fcf3fd3e8449e53730c631200ebc7b88016acecab2b0da2f0149222fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.9.1"
   pool:
     dependency: transitive
     description:

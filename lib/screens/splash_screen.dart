@@ -201,7 +201,7 @@ class _SplashScreenState extends State<SplashScreen>
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
-          await cloudSyncService.syncObjectsAndMethods(cloudKey);
+          await cloudSyncService.syncMethods(cloudKey);
         }
       }
       cloudConnectors =

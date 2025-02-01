@@ -106,7 +106,7 @@ class AppState extends ChangeNotifier {
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
-            cloudSyncService.syncObjectsAndMethods(cloudKey);
+            cloudSyncService.syncMethods(cloudKey);
           }
         }
       }

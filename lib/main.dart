@@ -22,6 +22,7 @@ import 'package:trace_foodchain_app/screens/splash_screen.dart';
 import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 // import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'package:trace_foodchain_app/helpers/key_management.dart';
 // import 'dart:html' as html;
 
 late Box<Map<dynamic, dynamic>> localStorage;
@@ -36,6 +37,7 @@ ValueNotifier<int> inboxCount = ValueNotifier<int>(0);
 
 bool batchSalePossible = false;
 CloudSyncService cloudSyncService = CloudSyncService('permarobotics.com');
+late KeyManager keyManager;
 
 ThemeData customTheme = ThemeData(
   useMaterial3: true,
@@ -280,6 +282,22 @@ void main() async {
 }
 
 Future<void> _initializeAppState(AppState appState) async {
+  keyManager = KeyManager();
+  
+  // Check if private key exists, if not generate new keypair
+  final privateKey = await keyManager.getPrivateKey();
+  if (privateKey == null) {
+    debugPrint("No private key found - generating new keypair...");
+    final success = await keyManager.generateAndStoreKeys();
+    if (!success) {
+      debugPrint("WARNING: Failed to initialize key management!");
+      // Hier könnte man dem Benutzer eine Warnung anzeigen
+      // oder die App in einen eingeschränkten Modus versetzen
+    }
+  } else {
+    debugPrint("Found existing private key");
+  }
+
   // Check internet connectivity at startup
   debugPrint("checking connectivity on startup...");
   var connectivityResult = await (Connectivity().checkConnectivity());

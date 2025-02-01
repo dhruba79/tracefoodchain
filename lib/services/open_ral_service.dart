@@ -246,7 +246,7 @@ Future<Map<String, dynamic>> setObjectMethod(
   if (objectMethod["needsSync"] != null) {
     if ((objectMethod["needsSync"] == true) &&
         (!connectivityResult.contains(ConnectivityResult.none))) {
-      await cloudSyncService.syncObjectsAndMethods('permarobotics.com');
+      await cloudSyncService.syncMethods('permarobotics.com');
     }
   }
   return objectMethod;
