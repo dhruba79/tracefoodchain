@@ -253,6 +253,14 @@
       }
     }
   },
+    "errorSendingEmailWithError": "Fehler beim E-Mail-Versand",
+    "signOut": "Abmelden",
+    "resendEmail": "E-Mail erneut senden!",
+    "waitingForEmailVerification": "Warte auf E-Mail-Bestätigung. Bitte prüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail.",
+    "emailVerification": "E-Mail-Bestätigung",
+  "securityError": "Sicherheitsfehler",
+  "securityErrorMessage": "Die Sicherheitseinstellungen für Digitale Unterschriften konnten nicht generiert werden. Bitte versuchen Sie es später erneut und stellen Sie sicher, dass Sie eine Internetverbindung haben.",
+  "closeApp": "App schließen",
   "uidAlreadyExists": "Diese ID existiert bereits, bitte wählen Sie eine andere!",
   "selectItemToSell": "Bitte wählen Sie einen Artikel zum Verkaufen aus",
   "debugDeleteContainer": "Container löschen (Debug)",

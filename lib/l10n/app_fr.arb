@@ -253,6 +253,14 @@
       }
     }
   },
+    "errorSendingEmailWithError": "Erreur lors de l'envoi de l'e-mail",
+    "signOut": "Se déconnecter",
+    "resendEmail": "Renvoyer l'e-mail !",
+    "waitingForEmailVerification": "En attente de vérification de l'e-mail. Veuillez vérifier votre boîte de réception et confirmer votre e-mail.",
+    "emailVerification": "Vérification de l'e-mail",
+    "securityError": "Erreur de sécurité",
+    "securityErrorMessage": "Les paramètres de sécurité pour les signatures numériques n'ont pas pu être générés. Veuillez réessayer plus tard et assurez-vous d'avoir une connexion Internet.",
+    "closeApp": "Fermer l'application",
   "uidAlreadyExists": "Cet identifiant existe déjà, veuillez en choisir un autre",
   "selectItemToSell": "Veuillez sélectionner un article à vendre",
   "debugDeleteContainer": "Supprimer le conteneur (Debug)",

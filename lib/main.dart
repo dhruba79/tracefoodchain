@@ -11,6 +11,7 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/firebase_options.dart';
+import 'package:trace_foodchain_app/helpers/digital_signature.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -23,6 +24,11 @@ import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 // import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/helpers/key_management.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+// Bedingte Imports für Web/Mobile
+import 'dart:html' if (dart.library.io) 'dart:io' show Platform;
+
+import 'package:trace_foodchain_app/services/service_functions.dart';
 // import 'dart:html' as html;
 
 late Box<Map<dynamic, dynamic>> localStorage;
@@ -31,13 +37,15 @@ late Map<String, Map<String, dynamic>> cloudConnectors;
 Map<String, dynamic>? appUserDoc;
 ValueNotifier<bool> repaintContainerList = ValueNotifier<bool>(false);
 ValueNotifier<bool> rebuildSpeedDial = ValueNotifier<bool>(false);
+bool  secureCommunicationEnabled = false;
 
 List<Map<String, dynamic>> inbox = [];
 ValueNotifier<int> inboxCount = ValueNotifier<int>(0);
 
 bool batchSalePossible = false;
-CloudSyncService cloudSyncService = CloudSyncService('permarobotics.com');
+CloudSyncService cloudSyncService = CloudSyncService('tracefoodchain.org');
 late KeyManager keyManager;
+late DigitalSignature digitalSignature;
 
 ThemeData customTheme = ThemeData(
   useMaterial3: true,
@@ -284,19 +292,7 @@ void main() async {
 Future<void> _initializeAppState(AppState appState) async {
   keyManager = KeyManager();
   
-  // Check if private key exists, if not generate new keypair
-  final privateKey = await keyManager.getPrivateKey();
-  if (privateKey == null) {
-    debugPrint("No private key found - generating new keypair...");
-    final success = await keyManager.generateAndStoreKeys();
-    if (!success) {
-      debugPrint("WARNING: Failed to initialize key management!");
-      // Hier könnte man dem Benutzer eine Warnung anzeigen
-      // oder die App in einen eingeschränkten Modus versetzen
-    }
-  } else {
-    debugPrint("Found existing private key");
-  }
+  
 
   // Check internet connectivity at startup
   debugPrint("checking connectivity on startup...");

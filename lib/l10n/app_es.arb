@@ -253,6 +253,15 @@
       }
     }
   },
+
+    "errorSendingEmailWithError": "Error al enviar el correo electrónico",
+    "signOut": "Cerrar sesión",
+    "resendEmail": "¡Reenviar correo electrónico!",
+    "waitingForEmailVerification": "Esperando verificación de correo electrónico. Por favor, revise su bandeja de entrada y confirme su correo.",
+    "emailVerification": "Verificación de correo electrónico",
+    "securityError": "Error de seguridad",
+    "securityErrorMessage": "No se pudieron generar los ajustes de seguridad para firmas digitales. Por favor, inténtelo más tarde y asegúrese de tener una conexión a Internet.",
+    "closeApp": "Cerrar aplicación",
   "uidAlreadyExists": "Este ID ya existe, por favor elija otro",
   "selectItemToSell": "Por favor seleccione un artículo para vender",
   "debugDeleteContainer": "Eliminar contenedor (Debug)",

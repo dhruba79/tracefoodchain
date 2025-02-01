@@ -254,6 +254,14 @@
       }
     }
   },
+  "errorSendingEmailWithError": "Error sending email",
+  "signOut": "Sign out",
+  "resendEmail": "Resend email!",
+  "waitingForEmailVerification": "Waiting for email verification. Please check your inbox and confirm your email.",
+  "emailVerification": "Email verification",
+  "securityError": "Security error",
+  "securityErrorMessage":"We could not generate the setup for digital signage. Please try again later making sure you have internet connection.",
+  "closeApp" : "Close App", 
   "uidAlreadyExists": "This ID already exists, please chose another one",
   "selectItemToSell": "Please select an item to sell",
   "debugDeleteContainer": "Delete container (Debug)",

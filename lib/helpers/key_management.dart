@@ -49,7 +49,6 @@ class KeyManager {
   Future<List<int>?> getPrivateKey() async {
     final encodedKey = await _storage.read(key: 'private_key');
     if (encodedKey == null) {
-      print("Kein gespeicherter Schlüssel gefunden!");
       return null;
     }
     return base64Decode(encodedKey);

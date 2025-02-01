@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -110,25 +111,25 @@ class _SplashScreenState extends State<SplashScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Email Verification'),
+          title: Text(l10n.emailVerification),
           content: SizedBox(
               height: 150,
-              child: const DataLoadingIndicator(
-                  text:
-                      'Waiting for email verification. Please check your inbox and confirm your email.',
+              child: DataLoadingIndicator(
+                  text: l10n.waitingForEmailVerification,
                   textColor: Colors.black54,
-                  spinnerColor: Color(0xFF35DB00))),
+                  spinnerColor: const Color(0xFF35DB00))),
           actions: <Widget>[
             if (canResendEmail)
               TextButton(
-                child: const Text('Send email again!'),
+                child: Text(l10n.resendEmail),
                 onPressed: () async {
                   await sendVerificationEmail();
                 },
               ),
             TextButton(
-              child: const Text('Sign out'),
+              child: Text(l10n.signOut),
               onPressed: () async {
                 _signOut();
               },
@@ -168,6 +169,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future sendVerificationEmail() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final user = FirebaseAuth.instance.currentUser!;
       await user.sendEmailVerification();
@@ -180,9 +182,7 @@ class _SplashScreenState extends State<SplashScreen>
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-        "Error sending email $e",
-      )));
+          content: Text(l10n.errorSendingEmailWithError + " " + e.toString())));
     }
   }
 
@@ -195,7 +195,7 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
-      await cloudSyncService.syncOpenRALTemplates('permarobotics.com');
+      await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
       // sync objects and methods (includes cloudconnectors)
       for (final cloudKey in cloudConnectors.keys) {
@@ -258,10 +258,45 @@ class _SplashScreenState extends State<SplashScreen>
           setSpecificPropertyJSON(appUserDoc!, "userRole", 'Trader', "String");
       appUserDoc = await setObjectMethod(appUserDoc!, true);
     }
+    // Check if private key exists, if not generate new keypair
+    final privateKey = await keyManager.getPrivateKey();
+    if (privateKey == null) {
+      debugPrint("No private key found - generating new keypair...");
+      final success = await keyManager.generateAndStoreKeys();
+      if (!success) {
+        debugPrint("WARNING: Failed to initialize key management!");
+        secureCommunicationEnabled = false;
+      }
+    } else {
+      debugPrint("Found existing private key");
+      secureCommunicationEnabled = true;
+    }
     //  else {
-    Navigator.of(context).pushReplacement(
-      FadeRoute(builder: (_) => const HomeScreen()),
-    );
+
+    if (secureCommunicationEnabled == false) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          final l10n = AppLocalizations.of(context)!;
+          return AlertDialog(
+            title: Text(l10n.securityError),
+            content: Text(l10n.securityErrorMessage),
+            actions: <Widget>[
+              TextButton(
+                child: Text(l10n.closeApp),
+                onPressed: () =>
+                    Navigator.of(context).pop(() => SystemNavigator.pop()),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        FadeRoute(builder: (_) => const HomeScreen()),
+      );
+    }
     // }
   }
 

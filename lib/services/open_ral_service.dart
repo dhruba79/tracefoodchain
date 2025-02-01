@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/repositories/initial_data.dart';
@@ -35,7 +36,7 @@ dynamic getCloudConnectionProperty(String domain, connectorType, property) {
     Map<String, dynamic> subConnector = Map<String, dynamic>.from(
         cloudConnectors[domain]!["linkedObjects"].firstWhere(
             (subConnector) => subConnector["role"] == connectorType));
-    //gewünschte Eigenschaft lesen
+    //read requested property
     rObject = getSpecificPropertyfromJSON(subConnector, property);
   } catch (e) {
     debugPrint(
@@ -225,10 +226,54 @@ Future<Map<String, dynamic>> setObjectMethod(
   if (getObjectMethodUID(objectMethod) == "") {
     setObjectMethodUID(objectMethod, uuid.v4());
     if (objectMethod.containsKey("existenceStarts")) {
+      //Es handelt sich um eine neue Methode, daher muss sie digital signiert werden
+      //!DIGITAL SIGNATURE
+
+      //ToDo: Herausfinden, ob nur uuid oder gesamte Methode signiert werden soll
+
+      // Usecases:
+      // 1. aggregateItems (nur der User) => gesamte Methode
+      // 2. changeOwner (seller - buyer) => nur UUID
+      // 3. changeContainer (sale prozess ODER nur der User)
+      //      Sale Prozess: nur UUID, lokal beim User: gesamte Methode
+      // 4. changeProcessingState (nur der User) gesamte Methode
+      // 5. addChangeItem (nur der User) inkl neuer User, Container, Bag... gesamte Methode
+      String signingTarget = "UID";
+      String signingObject = "";
+      switch (signingTarget) {
+        case "UID":
+          signingObject = getObjectMethodUID(objectMethod);
+          break;
+        case "objectMethod":
+          signingObject = jsonEncode(objectMethod);
+          break;
+        default:
+      }
+      final signature = await digitalSignature.generateSignature(signingObject);
+      if (objectMethod["digitalSignatures"] == null) {
+        objectMethod["digitalSignatures"] = [];
+      }
+      objectMethod["digitalSignatures"].add({"signature":signature, "signerUID": FirebaseAuth.instance.currentUser?.uid});
+
       if (objectMethod["existenceStarts"] == null) {
         objectMethod["existenceStarts"] = DateTime
             .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
       }
+    }
+  } else {
+    if (objectMethod.containsKey("existenceStarts")) {
+      //!DIGITAL SIGNATURE
+      //ToDO: Ggf. doch noch nach UID und Gesamtmethode unterscheiden?
+      //Es ist eine bestehende Methode mit UUID, die nur nachsigniert werden muss,
+      //weil sie 2-seitig ist und zur anderen Seite zurück geschickt werden muss
+      // Dann die eigene Signatur hinzufügen für die Gesamtmethode
+      String signingObject = jsonEncode(objectMethod);
+      final signature = await digitalSignature.generateSignature(signingObject);
+      if (objectMethod["digitalSignatures"] == null) {
+        objectMethod["digitalSignatures"] = [];
+      }
+      objectMethod["digitalSignatures"].add({"signature":signature, "signerUID": FirebaseAuth.instance.currentUser?.uid});
+
     }
   }
 
@@ -246,7 +291,7 @@ Future<Map<String, dynamic>> setObjectMethod(
   if (objectMethod["needsSync"] != null) {
     if ((objectMethod["needsSync"] == true) &&
         (!connectivityResult.contains(ConnectivityResult.none))) {
-      await cloudSyncService.syncMethods('permarobotics.com');
+      await cloudSyncService.syncMethods('tracefoodchain.org');
     }
   }
   return objectMethod;

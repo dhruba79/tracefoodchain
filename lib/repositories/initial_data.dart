@@ -622,7 +622,11 @@ Map<String, dynamic> initialCloudConnectorOpenRAL = {
       },
       "specificProperties": [
         {"key": "appId", "unit": "String", "value": ""},
-        {"key": "apiKey", "value": dotenv.env['FIREBASE_API_KEY'] ?? '', "unit": "String"},
+        {
+          "key": "apiKey",
+          "value": dotenv.env['FIREBASE_API_KEY'] ?? '',
+          "unit": "String"
+        },
         {"value": "", "unit": "String", "key": "projectId"},
         {"unit": "String", "value": "", "key": "messagingSenderId"},
         {"unit": "authDomain", "key": "messagingSenderId", "value": ""}
@@ -698,7 +702,11 @@ Map<String, dynamic> initialCloudConnectorOpenRAL = {
                 "https://europe-west3-ral1-80620.cloudfunctions.net/checkHealthWeb"
           }
         },
-        {"unit": "String", "key": "apiKey", "value": dotenv.env['FIREBASE_API_KEY'] ?? ''}
+        {
+          "unit": "String",
+          "key": "apiKey",
+          "value": dotenv.env['FIREBASE_API_KEY'] ?? ''
+        }
       ],
       "objectState": "undefined",
       "template": {
@@ -728,12 +736,12 @@ Map<String, dynamic> initialCloudConnectorWHISP = {};
 // cloud connector Asset Registry
 Map<String, dynamic> initialCloudConnectorAssetRegistry = {};
 // cloud connector Permarobotics
-Map<String, dynamic> initialCloudConnectorPermarobotics = {
+Map<String, dynamic> initialCloudConnectorTraceFoodchain = {
   "methodHistoryRef": [],
   "ownerHistoryRef": [],
   "objectState": "undefined",
   "specificProperties": [
-    {"key": "cloudDomain", "unit": "String", "value": "permarobotics.com"}
+    {"key": "cloudDomain", "unit": "String", "value": "tracefoodchain.org"}
   ],
   "locationHistoryRef": [],
   "currentOwners": [],
@@ -807,81 +815,18 @@ Map<String, dynamic> initialCloudConnectorPermarobotics = {
       "specificProperties": [
         {
           "value": {
-            "definition": "Endpoint to execute any openRAL method.",
+            "definition": "Endpoint to execute persist the public key.",
             "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/executeRalMethod"
+                "https://europe-west3-tracefoodchain.cloudfunctions.net/persistPublicKey"
           },
           "unit": "json",
-          "key": "executeRalMethod"
-        },
-        {
-          "value": {
-            "definition":
-                "Endpoint to get an openRAL object from permarobotics.",
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/dataAccess-getSensorInfo"
-          },
-          "unit": "json",
-          "key": "getSensorInfo"
-        },
-        {
-          "key": "getSensorData",
-          "value": {
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/dataAccess-getSensorData",
-            "definition":
-                "Endpoint to retrieve a number of datasets from the permarobotics data lake."
-          },
-          "unit": "json"
-        },
-        {
-          "value": {
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/dataAccess-getSensorDataRange",
-            "definition":
-                "Endpoint to retrieve a number of datasets with given date startpoint and endpoint from the permarobotics data lake."
-          },
-          "unit": "json",
-          "key": "getSensorDataRange"
+          "key": "persistPublicKey"
         },
         {
           "key": "apiKey",
           "unit": "String",
           "value": dotenv.env['FIREBASE_API_KEY'] ?? ''
         },
-        {
-          "key": "getSubscriberInfo",
-          "unit": "json",
-          "value": {
-            "parameters": ["dataSensorUid", "userUid"],
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/getSubscriberInfo",
-            "method": "HTTP-GET",
-            "definition": "Endpoint to get alarm structure for a data head."
-          }
-        },
-        {
-          "unit": "json",
-          "key": "addSubscriber",
-          "value": {
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/updateUserSubscriptions",
-            "method": "HTTP-POST",
-            "definition": "Endpoint to add a subscriber to an alarm function",
-            "parameters": []
-          }
-        },
-        {
-          "unit": "json",
-          "value": {
-            "definition":
-                "A temporary specialized cloud function to return all pending downlink jobs in the database",
-            "method": "HTTP-GET",
-            "url":
-                "https://europe-west3-permarobotics.cloudfunctions.net/getPendingDownlinks"
-          },
-          "key": "getPendingDownlinks"
-        }
       ],
       "locationHistoryRef": [],
       "currentOwners": [],
@@ -921,9 +866,10 @@ Map<String, dynamic> initialCloudConnectorPermarobotics = {
   "identity": {
     "alternateNames": [],
     "alternateIDs": [],
-    "name": "cloud connector permarobotics",
+    "name": "cloud connector tracefoodchain",
     "siteTag": "",
-    "UID": "O18uLljVZmKetQMs1Jmo" //! Change this to TFC-specific cloud connector! (its from SDx atm)
+    "UID":
+        "O18uLljVZmKetQMs1Jmo" //! Change this to TFC-specific cloud connector! (its from SDx atm)
   },
   "currentGeolocation": {
     "postalAddress": {
@@ -942,7 +888,7 @@ Map<String, dynamic> initialCloudConnectorPermarobotics = {
 
 List<Map<String, dynamic>> initialCloudConnectors = [
   initialCloudConnectorOpenRAL,
-  initialCloudConnectorPermarobotics,
+  initialCloudConnectorTraceFoodchain,
   //initialCloudConnectorWHISP, //ToDo: Generate Cloud Connector
   //initialCloudConnectorAssetRegistry //ToDo: Generate Cloud Connector
 ];

@@ -39,7 +39,7 @@ class CloudApiClient {
             'Authorization': 'Bearer $apiKey',
           },
           body: jsonEncode({
-            'userId': apiKey,
+            'userId': FirebaseAuth.instance.currentUser?.uid,
             'publicKey': publicKeyBase64,
             'deviceId': deviceId
           }),
@@ -66,10 +66,10 @@ class CloudApiClient {
           domain, "cloudFunctionsConnector", "syncMethodToCloud")["url"];
     } catch (e) {}
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
-    // getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
+   
     if (urlString != null && apiKey != null) {
       final response = await http.post(
-        // Uri.parse('$baseUrl/syncMethodToCloud'),
+        
         Uri.parse(urlString),
         headers: {
           'Content-Type': 'application/json',
@@ -79,11 +79,10 @@ class CloudApiClient {
       );
 
       if (response.statusCode == 200) {
-       // return jsonDecode(response.body);
+        // return jsonDecode(response.body);
       } else {
         //Response codes? 400: Bad Request, 401: Unauthorized, 403: Forbidden, 404: Not Found, 500: Internal Server Error
-       debugPrint(
-            'Failed to sync method to cloud: ${response.statusCode}');
+        debugPrint('Failed to sync method to cloud: ${response.statusCode}');
       }
     } else {
       throw Exception("no valid cloud connection properties found!");
@@ -91,16 +90,15 @@ class CloudApiClient {
   }
 
   Future<void> syncObjectsMethodsFromCloud(String domain) async {
-     dynamic urlString;
+    dynamic urlString;
     try {
-      urlString = getCloudConnectionProperty(
-          domain, "cloudFunctionsConnector", "syncObjectsMethodsFromCloud")["url"];
+      urlString = getCloudConnectionProperty(domain, "cloudFunctionsConnector",
+          "syncObjectsMethodsFromCloud")["url"];
     } catch (e) {}
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
-  
+
     if (urlString != null && apiKey != null) {
       final response = await http.post(
-
         Uri.parse(urlString),
         headers: {
           'Content-Type': 'application/json',
@@ -110,18 +108,16 @@ class CloudApiClient {
       );
 
       if (response.statusCode == 200) {
-          //Todo: Eine Liste von Objekten und Methoden aus der Cloud bekommen und im Local Storage speichern
-       // return jsonDecode(response.body);
+        //Todo: Eine Liste von Objekten und Methoden aus der Cloud bekommen und im Local Storage speichern
+        // return jsonDecode(response.body);
       } else {
         //Response codes? 400: Bad Request, 401: Unauthorized, 403: Forbidden, 404: Not Found, 500: Internal Server Error
-       debugPrint(
+        debugPrint(
             'Failed to sync objects and methods from cloud: ${response.statusCode}');
       }
     } else {
       throw Exception("no valid cloud connection properties found!");
     }
-
-
   }
 }
 
