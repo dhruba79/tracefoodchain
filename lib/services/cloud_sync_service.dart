@@ -15,8 +15,8 @@ class CloudApiClient {
       String domain, Map<String, dynamic> method) async {
     final urlString = getCloudConnectionProperty(
         domain, "cloudFunctionsConnector", "executeRalMethod")["url"];
-    final apiKey =
-        getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+    // getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
     final response = await http.post(
       Uri.parse(urlString),
       headers: {
@@ -33,15 +33,15 @@ class CloudApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> getRalObjectByUid(
+  Future<Map<String, dynamic>?> getRalObjectByUid(
       String domain, String uid) async {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(
           domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];
     } catch (e) {}
-    final apiKey =
-        getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+    //  getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
     if (urlString != null && apiKey != null) {
       final response = await http.get(
         Uri.parse('$urlString?uid=$uid'),
@@ -51,7 +51,8 @@ class CloudApiClient {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else if (response.statusCode == 404) {
-        throw Exception('RalObject not found');
+        // throw Exception('RalObject not found');
+        return null;
       } else {
         throw Exception('Failed to get RalObject: ${response.statusCode}');
       }
@@ -65,10 +66,10 @@ class CloudApiClient {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(
-          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];//! ??????
+          domain, "cloudFunctionsConnector", "syncMethodToCloud")["url"];
     } catch (e) {}
-    final apiKey =
-        getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+    // getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
     if (urlString != null && apiKey != null) {
       final response = await http.post(
         // Uri.parse('$baseUrl/syncMethodToCloud'),
@@ -91,15 +92,15 @@ class CloudApiClient {
     }
   }
 
-  Future<Map<String, dynamic>> syncObjectToCloud(String domain,
+  Future<Map<String, dynamic>?> syncObjectToCloud(String domain,
       Map<String, dynamic> ralObject, String mergePreference) async {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(
-          domain, "cloudFunctionsConnector", "getRalObjectByUid")["url"];//! ?????? 
+          domain, "cloudFunctionsConnector", "syncObjectToCloud")["url"];
     } catch (e) {}
-    final apiKey =
-        getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+    //getCloudConnectionProperty(domain, "cloudFunctionsConnector", "apiKey");
     if (urlString != null && apiKey != null) {
       final response = await http.post(
         // Uri.parse('$baseUrl/syncObjectToCloud'),
@@ -117,7 +118,8 @@ class CloudApiClient {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else if (response.statusCode == 419) {
-        throw Exception('No common syncObject method found');
+        return null;
+        // throw Exception('No common syncObject method found');
       } else {
         throw Exception(
             'Failed to sync object to cloud: ${response.statusCode}');
@@ -175,9 +177,9 @@ class CloudSyncService {
         try {
           final cloudObject =
               await _apiClient.getRalObjectByUid(domain, objectUid);
-          if (cloudObject.isEmpty) {
+          if (cloudObject == null) {
             // Object doesn't exist in cloud, push to cloud
-            //! await _apiClient.syncObjectToCloud(doc2, 'external');
+            // ! await _apiClient.syncObjectToCloud(doc2, 'external');
             debugPrint('Pushed object $objectUid to cloud');
             //Auch local ohne "needsSync" abspeichern
             //!setObjectMethod(doc2,false);
