@@ -31,7 +31,7 @@ Future<void> aggregateItems(
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer, true);
+    receivingContainer = await setObjectMethod(receivingContainer,false, true);
   }
 
   // Step 3: Process each selected item
@@ -57,8 +57,8 @@ Future<void> aggregateItems(
       changeContainerProcess["methodState"] = "finished";
 
       // Persist changes
-      await setObjectMethod(item, true);
-      await setObjectMethod(changeContainerProcess, true);
+      await setObjectMethod(item,false, true);
+      await setObjectMethod(changeContainerProcess,true, true);//sign it!
       await updateMethodHistories(changeContainerProcess);
     }
   }

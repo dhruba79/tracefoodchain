@@ -60,7 +60,7 @@ class RoleSelectionScreen extends StatelessWidget {
     appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
     appUserDoc =
         setSpecificPropertyJSON(appUserDoc!, "userRole", role, "String");
-    appUserDoc = await setObjectMethod(appUserDoc!, true);
+    appUserDoc = await setObjectMethod(appUserDoc!,false, true);
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const HomeScreen()),
     );

@@ -31,6 +31,7 @@ import 'dart:html' if (dart.library.io) 'dart:io' show Platform;
 import 'package:trace_foodchain_app/services/service_functions.dart';
 // import 'dart:html' as html;
 
+int cloudSyncFrequency = 600; //in case internet is connected, this will sync with the cloud every xxx seconds
 late Box<Map<dynamic, dynamic>> localStorage;
 late Box<Map<dynamic, dynamic>> openRALTemplates;
 late Map<String, Map<String, dynamic>> cloudConnectors;

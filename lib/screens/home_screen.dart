@@ -12,12 +12,42 @@ import 'package:trace_foodchain_app/widgets/role_based_speed_dial.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 
 String displayContext = "action";
 ValueNotifier<bool> rebuildList = ValueNotifier<bool>(false);
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  Timer? _syncTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Starte den Sync-Timer basierend auf cloudSyncFrequency
+    _syncTimer = Timer.periodic(Duration(seconds: cloudSyncFrequency), (_) async {
+      final appState = Provider.of<AppState>(context, listen: false);
+      if (appState.isConnected) {
+        for (final cloudKey in cloudConnectors.keys) {
+          if (cloudKey != "open-ral.io") {
+            debugPrint("syncing $cloudKey");
+            await cloudSyncService.syncMethods(cloudKey);
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _syncTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

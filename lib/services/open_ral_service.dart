@@ -220,70 +220,77 @@ String getSpecificPropertyUnitfromJSON(
 
 //! 4.#########  setters for working with openRAL objects ########
 
-Future<Map<String, dynamic>> setObjectMethod(
-    Map<String, dynamic> objectMethod, bool markForSyncToCloud) async {
+Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
+    bool signMethod, bool markForSyncToCloud) async {
   //Make sure it gets a valid
   if (getObjectMethodUID(objectMethod) == "") {
+    //* NEUES OBJECT ODER METHODE
     setObjectMethodUID(objectMethod, uuid.v4());
     if (objectMethod.containsKey("existenceStarts")) {
-      //!DIGITAL SIGNATURE FOR A NEW METHOD
-      //check which parts of the method need to be signed. In general, the whole method is signed,
-      // but in some cases like offline sales, only parts are signed
+      if (signMethod == true) {
+        //!DIGITAL SIGNATURE FOR A NEW METHOD
+        //check which parts of the method need to be signed. In general, the whole method is signed,
+        // but in some cases like offline sales, only parts are signed
 
-      String signingObject = "";
-      List<String> pathsToSign = ["\$."];
+        String signingObject = "";
+        List<String> pathsToSign = ["\$."];
 
-      switch (objectMethod["template"]["RALType"]) {
-        case "changeContainer":
-          //! Check if it is part of a sales process, buyer side or local change
+        switch (objectMethod["template"]["RALType"]) {
+          case "changeContainer":
+            //! Check if it is part of a sales process, buyer side or local change
             bool isLocal = false;
             if (objectMethod["inputObjects"] != null) {
-              isLocal = objectMethod["inputObjects"].any((obj) => obj["role"] == "oldContainer");
+              isLocal = objectMethod["inputObjects"]
+                  .any((obj) => obj["role"] == "oldContainer");
             }
             if (isLocal) {
-            pathsToSign = [ //local change of container
-              "\$"
-            ];
-          } else {
-            pathsToSign = [ //sales process buyer side, only sign parts that are relevant for the buyer
+              pathsToSign = [
+                //local change of container
+                "\$"
+              ];
+            } else {
+              pathsToSign = [
+                //sales process buyer side, only sign parts that are relevant for the buyer
+                "\$.identity.UID",
+                "\$.inputObjects[?(@.role=='newContainer')]",
+                "\$.inputObjects[?(@.role=='buyer')]"
+              ];
+            }
+            break;
+          case "changeOwner": //This is the buyer side process
+            pathsToSign = [
               "\$.identity.UID",
-              "\$.inputObjects[?(@.role=='newContainer')]",
-              "\$.inputObjects[?(@.role=='buyer')]"
+              "\$.inputObjects[?(@.role=='newContainer')]"
+                  "\$.inputObjects[?(@.role=='buyer')]"
             ];
-          }
-          break;
-        case "changeOwner": //This is the buyer side process
-          pathsToSign = [
-            "\$.identity.UID",       
-            "\$.inputObjects[?(@.role=='newContainer')]"
-            "\$.inputObjects[?(@.role=='buyer')]"
-          ];
 
-          break;
-        default:
-          pathsToSign = [
-            "\$."
-          ]; //aggregateItems, changeProcessingState, addChangeItem
+            break;
+          default:
+            pathsToSign = [
+              "\$."
+            ]; //aggregateItems, changeProcessingState, addChangeItem
+        }
+        signingObject = createSigningObject(pathsToSign, objectMethod);
+
+        final signature =
+            await digitalSignature.generateSignature(signingObject);
+        if (objectMethod["digitalSignatures"] == null) {
+          objectMethod["digitalSignatures"] = [];
+        }
+        objectMethod["digitalSignatures"].add({
+          "signature": signature,
+          "signerUID": FirebaseAuth.instance.currentUser?.uid,
+          "signedContent": pathsToSign
+        });
       }
-      signingObject = createSigningObject(pathsToSign, objectMethod);
-
-      final signature = await digitalSignature.generateSignature(signingObject);
-      if (objectMethod["digitalSignatures"] == null) {
-        objectMethod["digitalSignatures"] = [];
-      }
-      objectMethod["digitalSignatures"].add({
-        "signature": signature,
-        "signerUID": FirebaseAuth.instance.currentUser?.uid,
-        "signedContent": pathsToSign
-      });
-
       if (objectMethod["existenceStarts"] == null) {
         objectMethod["existenceStarts"] = DateTime
             .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
       }
     }
   } else {
-    if (objectMethod.containsKey("existenceStarts")) {
+    //* EXISTIERENDES OBJECT ODER METHODE
+    if (objectMethod.containsKey("existenceStarts") && signMethod == true) {
       //!DIGITAL SIGNATURE FOR AN EXISTING METHOD, ALWAYS SIGN THE WHOLE METHOD
       String signingObject = jsonEncode(objectMethod);
       final signature = await digitalSignature.generateSignature(signingObject);
@@ -303,7 +310,7 @@ Future<Map<String, dynamic>> setObjectMethod(
     //Remove unwanted role declaration of objects
   }
 
-  //!tag for syncing
+  //!tag for syncing with cloud
   if (markForSyncToCloud) objectMethod["needsSync"] = true;
 
   await localStorage.put(getObjectMethodUID(objectMethod), objectMethod);
@@ -463,7 +470,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
-          await setObjectMethod(oDoc, true);
+          await setObjectMethod(oDoc, false,true);
         } else {
           debugPrint("Eintrag $methodUID existiert schon in Methodhistory");
         }
@@ -471,7 +478,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
         debugPrint("Knoten MethodHistory existiert noch nicht in $uid");
         oDoc["methodHistoryRef"] = {"UID": methodUID, "RALType": methodRALType};
 
-        await setObjectMethod(oDoc, true);
+        await setObjectMethod(oDoc,false, true);
       }
     }
   }
@@ -548,16 +555,17 @@ Future<Map<String, dynamic>> getContainerByAlternateUID(String uid) async {
   return rDoc;
 }
 
-String createSigningObject( List<String> pathsToSign, Map<String, dynamic> objectMethod) {
+String createSigningObject(
+    List<String> pathsToSign, Map<String, dynamic> objectMethod) {
   List<dynamic> partsToSign = [];
   for (String path in pathsToSign) {
     final jp = JsonPath(path);
     final matches = jp.read(objectMethod);
     if (matches.isNotEmpty) {
       if (matches.first.value is Map) {
-      partsToSign.add(Map<String, dynamic>.from(matches.first.value as Map));
+        partsToSign.add(Map<String, dynamic>.from(matches.first.value as Map));
       } else if (matches.first.value is List) {
-      partsToSign.add(matches.first.value as List);
+        partsToSign.add(matches.first.value as List);
       }
     }
   }

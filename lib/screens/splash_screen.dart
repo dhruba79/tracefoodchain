@@ -34,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _animation;
   bool _disposed = false;
   Timer? _verificationTimer;
+
   @override
   void initState() {
     super.initState();
@@ -197,7 +198,7 @@ class _SplashScreenState extends State<SplashScreen>
       debugPrint("syncing openRAL");
       await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
-      // sync objects and methods (includes cloudconnectors)
+      // sync all non-open-ral methods with it's clouds on startup
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
@@ -230,7 +231,7 @@ class _SplashScreenState extends State<SplashScreen>
           newUser, "email", FirebaseAuth.instance.currentUser?.email, "String");
       newUser["email"] = FirebaseAuth.instance.currentUser
           ?.email; // Necessary to find the user later by email!
-      newUser = await setObjectMethod(newUser, true);
+      newUser = await setObjectMethod(newUser,false, true);
       appUserDoc = await getObjectMethod(getObjectMethodUID(newUser));
     } else {
       //User mit dieser deviceId schon vorhanden.
@@ -256,7 +257,7 @@ class _SplashScreenState extends State<SplashScreen>
       appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
       appUserDoc =
           setSpecificPropertyJSON(appUserDoc!, "userRole", 'Trader', "String");
-      appUserDoc = await setObjectMethod(appUserDoc!, true);
+      appUserDoc = await setObjectMethod(appUserDoc!,false, true);
     }
     // Check if private key exists, if not generate new keypair
     final privateKey = await keyManager.getPrivateKey();

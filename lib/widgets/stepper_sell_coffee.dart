@@ -226,7 +226,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         transfer_ownership["executor"] = seller;
                         transfer_ownership["methodState"] = "finished";
                         transfer_ownership =
-                            await setObjectMethod(transfer_ownership, true);
+                            await setObjectMethod(transfer_ownership, false,true);
 
                         //"execute method changeOwner"
                         coffee["currentOwners"] = [
@@ -236,14 +236,14 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             "role": "owner"
                           }
                         ];
-                        coffee = await setObjectMethod(coffee, true);
+                        coffee = await setObjectMethod(coffee,false, true);
 
                         await updateMethodHistories(transfer_ownership);
                         //Make sure the outputobject is present in the post-transfer form.
                         transfer_ownership = addOutputobject(
                             transfer_ownership, coffee, "boughtItem");
                         transfer_ownership =
-                            await setObjectMethod(transfer_ownership, true);
+                            await setObjectMethod(transfer_ownership, true,true);
 
                         change_container = addInputobject(
                             change_container,
@@ -265,9 +265,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                         change_container["methodState"] = "finished";
                         change_container =
-                            await setObjectMethod(change_container, true);
+                            await setObjectMethod(change_container,false, true);
 
-                        coffee = await setObjectMethod(coffee, true);
+                        coffee = await setObjectMethod(coffee,false, true);
 
                         //an method histories  von field (Ernte), receiving container, coffee anhängen
                         await updateMethodHistories(change_container);
@@ -275,7 +275,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         change_container =
                             addOutputobject(change_container, coffee, "item");
                         change_container =
-                            await setObjectMethod(change_container, true);
+                            await setObjectMethod(change_container,true, true);
 
                         List<Map<String, dynamic>> transmittedList = [];
                         transmittedList.add(transfer_ownership);
@@ -316,7 +316,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 "role": "owner"
                               }
                             ];
-                            await setObjectMethod(item, true);
+                            await setObjectMethod(item, false,true);
                           }
 
                           transmittedList.add(item);
@@ -359,13 +359,13 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                   getObjectMethodUID(field);
                             }
 
-                            await setObjectMethod(coffee, true);
+                            await setObjectMethod(coffee,false, true);
 
                             //Jobs als cancelled markieren
                             transfer_ownership["methodState"] = "cancelled";
 
                             transfer_ownership =
-                                await setObjectMethod(transfer_ownership, true);
+                                await setObjectMethod(transfer_ownership, true,true);
                             Navigator.of(context).pop();
                           }
                         });

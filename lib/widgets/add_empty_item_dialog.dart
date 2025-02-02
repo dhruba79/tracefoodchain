@@ -351,8 +351,8 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
         "longitude": double.parse(_longitudeController.text),
       };
     }
-
-    final savedItem = await setObjectMethod(newItem, true);
+//ToDo: CHANGE IT: Method Based generation of new items!!!
+    final savedItem = await setObjectMethod(newItem,false, true);
     widget.onItemAdded(savedItem);
     Navigator.of(context).pop();
   }

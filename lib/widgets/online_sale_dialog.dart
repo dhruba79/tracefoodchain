@@ -137,8 +137,8 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     item["currentOwners"] = [
       {"UID": newOwner['uid'], "role": "owner"}
     ];
-    await setObjectMethod(changeOwnershipMethod, true);
-    await setObjectMethod(item, true);
+    await setObjectMethod(changeOwnershipMethod,true, true);//sign it!	
+    await setObjectMethod(item,false, true);
   }
 
   Future<void> _changeContainer(
@@ -148,8 +148,8 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     changeContainerMethod["outputObjects"] = [item];
     item["currentGeolocation"]["container"]["UID"] =
         newContainer["identity"]["UID"];
-    await setObjectMethod(changeContainerMethod, true);
-    await setObjectMethod(item, true);
+    await setObjectMethod(changeContainerMethod, true,true);//sign it!
+    await setObjectMethod(item, false,true);
   }
 
   Future<void> _sendPushNotification(Map<String, dynamic> receiver) async {

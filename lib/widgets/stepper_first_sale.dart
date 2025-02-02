@@ -630,7 +630,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer, true);
+    receivingContainer = await setObjectMethod(receivingContainer,false, true);
   }
   debugPrint("generated container ${getObjectMethodUID(receivingContainer)}");
 
@@ -643,7 +643,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   if (getObjectMethodUID(field) == "") {
     field["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
-    field = await setObjectMethod(field, true);
+    field = await setObjectMethod(field,false, true);
   }
   debugPrint("generated field ${getObjectMethodUID(field)}");
 
@@ -655,7 +655,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   if (getObjectMethodUID(seller) == "") {
     seller["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
-    seller = await setObjectMethod(seller, true);
+    seller = await setObjectMethod(seller,false, true);
   }
   debugPrint("generated seller ${getObjectMethodUID(seller)}");
 
@@ -677,7 +677,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       "qualityState",
       saleInfo.coffeeInfo!.qualityReductionCriteria,
       "stringlist"); //ToDo Check!
-  coffee = await setObjectMethod(coffee, true);
+  coffee = await setObjectMethod(coffee,false, true);
   debugPrint("generated harvest ${getObjectMethodUID(coffee)}");
 
   //********* B. Generate process "transfer_ownership" (selling process) *********
@@ -692,20 +692,20 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       addOutputobject(transfer_ownership, coffee, "boughtItem");
   transfer_ownership["executor"] = seller;
   transfer_ownership["methodState"] = "finished";
-  transfer_ownership = await setObjectMethod(transfer_ownership, true);
+  transfer_ownership = await setObjectMethod(transfer_ownership,false, true); //sign later
 
   //"execute method changeOwner"
   coffee["currentOwners"] = [
     {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
   ];
-  coffee = await setObjectMethod(coffee, true);
+  coffee = await setObjectMethod(coffee,false, true);
 
   await updateMethodHistories(transfer_ownership);
 
   //Make sure the sold object is present in post-process form in method!
   transfer_ownership =
       addOutputobject(transfer_ownership, coffee, "boughtItem");
-  transfer_ownership = await setObjectMethod(transfer_ownership, true);
+  transfer_ownership = await setObjectMethod(transfer_ownership,true, true);//sign!
 
   //******* C. Generate process "change_container" (put harvest into container) *********
   change_container = {};
@@ -725,15 +725,15 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
 
   change_container["executor"] = appUserDoc!;
   change_container["methodState"] = "finished";
-  change_container = await setObjectMethod(change_container, true);
+  change_container = await setObjectMethod(change_container,false, true);//sign later
 
-  coffee = await setObjectMethod(coffee, true);
+  coffee = await setObjectMethod(coffee,false, true);
 
   //an method histories  von field (Ernte), receiving container, coffee anhängen
   await updateMethodHistories(change_container);
   //Make sure the sold object is present in post-process form in method!
   change_container = addOutputobject(change_container, coffee, "item");
-  change_container = await setObjectMethod(change_container, true);
+  change_container = await setObjectMethod(change_container,true, true);//sign it!
 
   debugPrint("Transfer of ownership finished");
 }

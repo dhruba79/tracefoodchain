@@ -192,8 +192,8 @@ Future<void> showChangeContainerDialog(
                   changeContainerMethod["outputObjects"] = [item];
                   item["currentGeolocation"]["container"]["UID"] =
                       newContainer["identity"]["UID"];
-                  await setObjectMethod(changeContainerMethod, true);
-                  await setObjectMethod(item, true);
+                  await setObjectMethod(changeContainerMethod,true, true);
+                  await setObjectMethod(item,false, true);
                 }
               }
               Navigator.of(context).pop();
@@ -287,8 +287,8 @@ Future<void> showProcessingStateDialog(
     changeProcessingState["executor"] = appUserDoc!;
     changeProcessingState["methodState"] = "finished";
 
-    await setObjectMethod(coffee, true);
-    await setObjectMethod(changeProcessingState, true);
+    await setObjectMethod(coffee,false, true);
+    await setObjectMethod(changeProcessingState,true, true); //sign it!
     //Methode persistieren
     await updateMethodHistories(changeProcessingState);
   }

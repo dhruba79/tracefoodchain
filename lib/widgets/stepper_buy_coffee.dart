@@ -266,7 +266,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer, true);
+    receivingContainer = await setObjectMethod(receivingContainer,false, true);
   }
   debugPrint(
       "generated/loaded container ${getObjectMethodUID(receivingContainer)}");
@@ -299,7 +299,8 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
     }
-    await setObjectMethod(jobOrObject, true);
-  
+
+    final isJob = jobOrObject["methodHistoryRef"] != null;
+    await setObjectMethod(jobOrObject,isJob, true);//sign if job!
   }
 }

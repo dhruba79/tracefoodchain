@@ -11,6 +11,7 @@ import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:uuid/uuid.dart';
+import 'package:crypto/crypto.dart';
 
 class CloudApiClient {
   final String domain;
@@ -66,10 +67,9 @@ class CloudApiClient {
           domain, "cloudFunctionsConnector", "syncMethodToCloud")["url"];
     } catch (e) {}
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
-   
+
     if (urlString != null && apiKey != null) {
       final response = await http.post(
-        
         Uri.parse(urlString),
         headers: {
           'Content-Type': 'application/json',
@@ -89,31 +89,39 @@ class CloudApiClient {
     }
   }
 
-  Future<void> syncObjectsMethodsFromCloud(String domain) async {
+  Future<List<Map<String, dynamic>>> syncObjectsMethodsFromCloud(
+      String domain, Map<String, String> deviceHashes) async {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(domain, "cloudFunctionsConnector",
           "syncObjectsMethodsFromCloud")["url"];
-    } catch (e) {}
+    } catch (e) {
+      return [];
+    }
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
 
     if (urlString != null && apiKey != null) {
-      final response = await http.post(
-        Uri.parse(urlString),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode({'userId': apiKey}),
-      );
+      try {
+        final response = await http.post(
+          Uri.parse(urlString),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $apiKey',
+          },
+          body: jsonEncode(deviceHashes),
+        );
 
-      if (response.statusCode == 200) {
-        //Todo: Eine Liste von Objekten und Methoden aus der Cloud bekommen und im Local Storage speichern
-        // return jsonDecode(response.body);
-      } else {
-        //Response codes? 400: Bad Request, 401: Unauthorized, 403: Forbidden, 404: Not Found, 500: Internal Server Error
-        debugPrint(
-            'Failed to sync objects and methods from cloud: ${response.statusCode}');
+        if (response.statusCode == 200) {
+          final List<dynamic> jsonResponse = jsonDecode(response.body);
+          return jsonResponse.cast<Map<String, dynamic>>();
+        } else {
+          debugPrint(
+              'Failed to sync objects and methods from cloud: ${response.statusCode}');
+          return [];
+        }
+      } catch (e) {
+        debugPrint('Error syncing from cloud: $e');
+        return [];
       }
     } else {
       throw Exception("no valid cloud connection properties found!");
@@ -123,6 +131,8 @@ class CloudApiClient {
 
 class CloudSyncService {
   final CloudApiClient apiClient;
+  bool _isSyncing =
+      false; // Neues Flag, um parallele Sync-Aufrufe zu verhindern
 
   CloudSyncService(String domain) : apiClient = CloudApiClient(domain: domain);
 
@@ -141,25 +151,40 @@ class CloudSyncService {
 //This function syncs all methods and objects to the cloud if tagged as being changed/generated locally only
 
   Future<void> syncMethods(String domain) async {
+    if (_isSyncing) {
+      debugPrint("Sync bereits aktiv, überspringe $domain");
+      return;
+    }
+    _isSyncing = true;
     final databaseHelper = DatabaseHelper();
     try {
-      //* 1. Sync methods TO CLOUD
-
+      //*1. SYNC METHODS TO CLOUD - and build hash map for later syncing from cloud
       List<Map<String, dynamic>> methodsToSyncToCloud = [];
+      Map<String, String> deviceHashes = {};
       for (var doc in localStorage.values) {
         final doc2 = Map<String, dynamic>.from(doc);
-        if (doc2["needsSync"] != null) {
-          doc2.remove("needsSync");
-          if (doc2["methodHistoryRef"] != null) {
-//This is an object
-          } else {
-//This is a method
-            methodsToSyncToCloud.add(doc2);
+        if (doc2["methodHistoryRef"] != null) {
+          //This is an object
+          if (doc2["needsSync"] != null) {
+            doc2.remove("needsSync");//!objects will be synced to cloud ONLY via methods
+            setObjectMethod(doc2,false,false);
           }
+          final String hash = generateStableHash(doc2);
+          final String uid = getObjectMethodUID(doc2);
+          deviceHashes[uid] = hash;
+        } else {
+          //This is a method
+          if (doc2["needsSync"] != null) {
+            doc2.remove("needsSync");
+            methodsToSyncToCloud.add(doc2);//! needs sync to cloud
+          }
+
+          final String hash = generateStableHash(doc2);
+          final String uid = getObjectMethodUID(doc2);
+          deviceHashes[uid] = hash;
         }
       }
 
-      //* SYNC METHODS TO CLOUD
       for (final method in methodsToSyncToCloud) {
         //ToDo this is atm unidirectonal since they are never changed after local execution
         //ToDO in general openRAL settings, this would be bidirectional too
@@ -173,12 +198,23 @@ class CloudSyncService {
         }
       }
 
-      //TODO * 2. Look for objects and methods in the cloud that should be on the users device but are not
+      //*2. SYNC METHODS AND OBJECTS FROM CLOUD - independet of new methods on device
       //This happens in case a user has logged into a second device (e.g., webapp on PC)
-      //! await apiClient.syncObjectsMethodsFromCloud(***);
+      //1. Generate a hash list from all objects and methods on the device
+
+      //2. Get all objects and methods from the cloud that are not on the device or need to be updated
+      final returnList =
+          await apiClient.syncObjectsMethodsFromCloud(domain, deviceHashes);
+
+      for (final item in returnList) {
+        final docData = Map<String, dynamic>.from(item);
+        await setObjectMethod(docData,false, false);
+      }
       //
     } catch (e) {
       debugPrint("Error during syncing to cloud!");
+    } finally {
+      _isSyncing = false;
     }
     String ownerUID = FirebaseAuth.instance.currentUser!.uid;
     inbox = await databaseHelper.getInboxItems(ownerUID);
@@ -210,4 +246,10 @@ Future<String> getDeviceId() async {
     }
   }
   return const Uuid().v4(); // Fallback
+}
+
+String generateStableHash(Map<String, dynamic> docData) {
+  final jsonString = jsonEncode(docData);
+  final bytes = utf8.encode(jsonString);
+  return sha256.convert(bytes).toString();
 }
