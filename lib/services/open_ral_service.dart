@@ -235,20 +235,17 @@ Future<Map<String, dynamic>> setObjectMethod(
 
       switch (objectMethod["template"]["RALType"]) {
         case "changeContainer":
-          //! Check if it is part of a sales process
-            bool isLocal = true;
-            if (objectMethod["executor"] != null) {
-            String executorUID = objectMethod["executor"]["identity"]["UID"];
-            if (executorUID != FirebaseAuth.instance.currentUser?.uid) {
-              isLocal = false;//this is a sales process
-            }
+          //! Check if it is part of a sales process, buyer side or local change
+            bool isLocal = false;
+            if (objectMethod["inputObjects"] != null) {
+              isLocal = objectMethod["inputObjects"].any((obj) => obj["role"] == "oldContainer");
             }
             if (isLocal) {
             pathsToSign = [ //local change of container
               "\$"
             ];
           } else {
-            pathsToSign = [ //sales process
+            pathsToSign = [ //sales process buyer side, only sign parts that are relevant for the buyer
               "\$.identity.UID",
               "\$.inputObjects[?(@.role=='newContainer')]",
               "\$.inputObjects[?(@.role=='buyer')]"
@@ -256,7 +253,6 @@ Future<Map<String, dynamic>> setObjectMethod(
           }
           break;
         case "changeOwner": //This is the buyer side process
-
           pathsToSign = [
             "\$.identity.UID",       
             "\$.inputObjects[?(@.role=='newContainer')]"
