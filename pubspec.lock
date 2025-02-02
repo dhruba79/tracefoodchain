@@ -793,6 +793,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  iregexp:
+    dependency: transitive
+    description:
+      name: iregexp
+      sha256: "143859dcaeecf6f683102786762d70a47ef8441a0d2287a158172d32d38799cf"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   js:
     dependency: transitive
     description:
@@ -809,6 +817,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.9.0"
+  json_path:
+    dependency: "direct main"
+    description:
+      name: json_path
+      sha256: a3a06eb005f2e93d0df7f263cdf76bbd02c7602f5c4bed9be94fcca4c36be03e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.5"
   json_serializable:
     dependency: "direct dev"
     description:
@@ -881,6 +897,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  maybe_just_nothing:
+    dependency: transitive
+    description:
+      name: maybe_just_nothing
+      sha256: "0c06326e26d08f6ed43247404376366dc4d756cef23a4f1db765f546224c35e0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.3"
   meta:
     dependency: transitive
     description:
@@ -1129,6 +1153,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  rfc_6901:
+    dependency: transitive
+    description:
+      name: rfc_6901
+      sha256: df1bbfa3d023009598f19636d6114c6ac1e0b7bb7bf6a260f0e6e6ce91416820
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   shared_preferences:
     dependency: "direct main"
     description:

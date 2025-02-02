@@ -50,6 +50,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   cryptography: ^2.7.0
   encrypt: ^5.0.3
+  json_path: ^0.7.5
 
   # flutter_test: any
   # path: any

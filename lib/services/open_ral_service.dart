@@ -1,8 +1,8 @@
 //This is a collection of services for working with openRAL
 //It has to work online and offline, so we have to use Hive to store templates
 import 'dart:convert';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:json_path/json_path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trace_foodchain_app/main.dart';
@@ -226,34 +226,60 @@ Future<Map<String, dynamic>> setObjectMethod(
   if (getObjectMethodUID(objectMethod) == "") {
     setObjectMethodUID(objectMethod, uuid.v4());
     if (objectMethod.containsKey("existenceStarts")) {
-      //Es handelt sich um eine neue Methode, daher muss sie digital signiert werden
-      //!DIGITAL SIGNATURE
+      //!DIGITAL SIGNATURE FOR A NEW METHOD
+      //check which parts of the method need to be signed. In general, the whole method is signed,
+      // but in some cases like offline sales, only parts are signed
 
-      //ToDo: Herausfinden, ob nur uuid oder gesamte Methode signiert werden soll
-
-      // Usecases:
-      // 1. aggregateItems (nur der User) => gesamte Methode
-      // 2. changeOwner (seller - buyer) => nur UUID
-      // 3. changeContainer (sale prozess ODER nur der User)
-      //      Sale Prozess: nur UUID, lokal beim User: gesamte Methode
-      // 4. changeProcessingState (nur der User) gesamte Methode
-      // 5. addChangeItem (nur der User) inkl neuer User, Container, Bag... gesamte Methode
-      String signingTarget = "UID";
       String signingObject = "";
-      switch (signingTarget) {
-        case "UID":
-          signingObject = getObjectMethodUID(objectMethod);
+      List<String> pathsToSign = ["\$."];
+
+      switch (objectMethod["template"]["RALType"]) {
+        case "changeContainer":
+          //! Check if it is part of a sales process
+            bool isLocal = true;
+            if (objectMethod["executor"] != null) {
+            String executorUID = objectMethod["executor"]["identity"]["UID"];
+            if (executorUID != FirebaseAuth.instance.currentUser?.uid) {
+              isLocal = false;//this is a sales process
+            }
+            }
+            if (isLocal) {
+            pathsToSign = [ //local change of container
+              "\$"
+            ];
+          } else {
+            pathsToSign = [ //sales process
+              "\$.identity.UID",
+              "\$.inputObjects[?(@.role=='newContainer')]",
+              "\$.inputObjects[?(@.role=='buyer')]"
+            ];
+          }
           break;
-        case "objectMethod":
-          signingObject = jsonEncode(objectMethod);
+        case "changeOwner": //This is the buyer side process
+
+          pathsToSign = [
+            "\$.identity.UID",       
+            "\$.inputObjects[?(@.role=='newContainer')]"
+            "\$.inputObjects[?(@.role=='buyer')]"
+          ];
+
           break;
         default:
+          pathsToSign = [
+            "\$."
+          ]; //aggregateItems, changeProcessingState, addChangeItem
       }
+      signingObject = createSigningObject(pathsToSign, objectMethod);
+
       final signature = await digitalSignature.generateSignature(signingObject);
       if (objectMethod["digitalSignatures"] == null) {
         objectMethod["digitalSignatures"] = [];
       }
-      objectMethod["digitalSignatures"].add({"signature":signature, "signerUID": FirebaseAuth.instance.currentUser?.uid});
+      objectMethod["digitalSignatures"].add({
+        "signature": signature,
+        "signerUID": FirebaseAuth.instance.currentUser?.uid,
+        "signedContent": pathsToSign
+      });
 
       if (objectMethod["existenceStarts"] == null) {
         objectMethod["existenceStarts"] = DateTime
@@ -262,18 +288,17 @@ Future<Map<String, dynamic>> setObjectMethod(
     }
   } else {
     if (objectMethod.containsKey("existenceStarts")) {
-      //!DIGITAL SIGNATURE
-      //ToDO: Ggf. doch noch nach UID und Gesamtmethode unterscheiden?
-      //Es ist eine bestehende Methode mit UUID, die nur nachsigniert werden muss,
-      //weil sie 2-seitig ist und zur anderen Seite zurück geschickt werden muss
-      // Dann die eigene Signatur hinzufügen für die Gesamtmethode
+      //!DIGITAL SIGNATURE FOR AN EXISTING METHOD, ALWAYS SIGN THE WHOLE METHOD
       String signingObject = jsonEncode(objectMethod);
       final signature = await digitalSignature.generateSignature(signingObject);
       if (objectMethod["digitalSignatures"] == null) {
         objectMethod["digitalSignatures"] = [];
       }
-      objectMethod["digitalSignatures"].add({"signature":signature, "signerUID": FirebaseAuth.instance.currentUser?.uid});
-
+      objectMethod["digitalSignatures"].add({
+        "signature": signature,
+        "signerUID": FirebaseAuth.instance.currentUser?.uid,
+        "signedContent": ["\$."]
+      });
     }
   }
 
@@ -525,4 +550,20 @@ Future<Map<String, dynamic>> getContainerByAlternateUID(String uid) async {
   }
 
   return rDoc;
+}
+
+String createSigningObject( List<String> pathsToSign, Map<String, dynamic> objectMethod) {
+  List<dynamic> partsToSign = [];
+  for (String path in pathsToSign) {
+    final jp = JsonPath(path);
+    final matches = jp.read(objectMethod);
+    if (matches.isNotEmpty) {
+      if (matches.first.value is Map) {
+      partsToSign.add(Map<String, dynamic>.from(matches.first.value as Map));
+      } else if (matches.first.value is List) {
+      partsToSign.add(matches.first.value as List);
+      }
+    }
+  }
+  return jsonEncode(partsToSign);
 }
