@@ -148,7 +148,8 @@ Future<void> showAggregateItemsDialog(
 }
 
 Future<void> showChangeContainerDialog(
-    BuildContext context, Map<String, dynamic> item) async {
+    BuildContext context, Map<String, dynamic> item,
+    {Map<String, dynamic>? preexistingChangeContainer}) async {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -186,8 +187,12 @@ Future<void> showChangeContainerDialog(
 
                 //4. Change container
                 {
-                  final changeContainerMethod =
-                      await getOpenRALTemplate("changeContainer");
+                  Map<String, dynamic>? changeContainerMethod;
+                  if (preexistingChangeContainer != null) {//in case this is a running method now being finished
+                    changeContainerMethod = preexistingChangeContainer;
+                  } else{  changeContainerMethod =
+                      await getOpenRALTemplate("changeContainer");}
+     
                   changeContainerMethod["executor"] = appUserDoc;
                   changeContainerMethod["methodState"] = "finished";
                   changeContainerMethod["inputObjects"] = [item, newContainer];

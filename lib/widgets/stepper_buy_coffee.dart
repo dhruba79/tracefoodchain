@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -291,16 +292,54 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
       "generated/loaded container ${getObjectMethodUID(receivingContainer)}");
 
   transfer_ownership = await getOpenRALTemplate("changeOwner");
+  setObjectMethodUID(transfer_ownership, const Uuid().v4());
   transfer_ownership = addInputobject(transfer_ownership, appUserDoc!, "buyer");
+  //do not add executor, since this will be the seller
   transfer_ownership["methodState"] =
       "planned"; //ARE NOT PERSISTED, JUST SENT TO SELLER!
 
   change_container = await getOpenRALTemplate("changeContainer");
+  setObjectMethodUID(change_container, const Uuid().v4());
   change_container =
       addInputobject(change_container, receivingContainer, "newContainer");
   change_container["executor"] = appUserDoc!;
   change_container["methodState"] =
       "planned"; //ARE NOT PERSISTED, JUST SENT TO SELLER!
+
+//Sign both methods before sending them to the seller
+  List<String> pathsToSign = [
+    //sales process buyer side, only sign parts that are relevant for the buyer
+    "\$.identity.UID",
+    "\$.inputObjects[?(@.role=='newContainer')]",//only the new container is known as that time
+    "\$.executor"
+  ];
+  String signingObject = createSigningObject(pathsToSign, change_container);
+
+  final signature = await digitalSignature.generateSignature(signingObject);
+  if (change_container["digitalSignatures"] == null) {
+    change_container["digitalSignatures"] = [];
+  }
+  change_container["digitalSignatures"].add({
+    "signature": signature,
+    "signerUID": FirebaseAuth.instance.currentUser?.uid,
+    "signedContent": pathsToSign
+  });
+
+  pathsToSign = [
+    "\$.identity.UID",
+    "\$.inputObjects[?(@.role=='newContainer')]"
+  ];
+  signingObject = createSigningObject(pathsToSign, transfer_ownership);
+
+  final signature2 = await digitalSignature.generateSignature(signingObject);
+  if (transfer_ownership["digitalSignatures"] == null) {
+    transfer_ownership["digitalSignatures"] = [];
+  }
+  transfer_ownership["digitalSignatures"].add({
+    "signature": signature2,
+    "signerUID": FirebaseAuth.instance.currentUser?.uid,
+    "signedContent": pathsToSign
+  });
 
   rList.add(transfer_ownership);
   rList.add(change_container);
@@ -331,6 +370,7 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
 
   // Next, persist all jobs (methods)
   for (final jobOrObject in jobItems) {
-    await setObjectMethod(jobOrObject, true, true);
+    await setObjectMethod(
+        jobOrObject, false, true); //Do NOT sign again after return!!!
   }
 }

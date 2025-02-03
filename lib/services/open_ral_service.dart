@@ -224,56 +224,31 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
     bool signMethod, bool markForSyncToCloud) async {
   //Make sure it gets a valid
   if (getObjectMethodUID(objectMethod) == "") {
-    
-    //***************  NEW OBJECT OR METHOD ***************
-
-    setObjectMethodUID(objectMethod, uuid.v4());
+    throw ("ERROR: Object or Method has no UID!");
+  } else {
+    //***************  EXISTING OBJECT OR METHOD ***************
     if (objectMethod.containsKey("existenceStarts")) {
-
-    //***************  NEW METHOD ***************
-
+      //EXISTING METHOD 
+      if (objectMethod["existenceStarts"] == null) {
+        objectMethod["existenceStarts"] = DateTime
+            .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
+      }
+      //***************  EXISTING METHOD TO SIGN ***************
       if (signMethod == true) {
-        //!DIGITAL SIGNATURE FOR A NEW METHOD
-        //check which parts of the method need to be signed. In general, the whole method is signed,
-        // but in some cases like offline sales, only parts are signed
-
+        //!DIGITAL SIGNATURE FOR AN EXISTING METHOD
+        //if state is finished, always sign complete method
+        //if is running and change container, it is an "inbox" method missing the container in io and oo
+        //if is running and change owner, it is an "inbox" method missing the owner in io and oo
+        //
         String signingObject = "";
         List<String> pathsToSign = ["\$."];
-
-        switch (objectMethod["template"]["RALType"]) {
-          case "changeContainer":
-            //! Check if it is part of a sales process, buyer side or local change
-            bool isLocal = false;
-            if (objectMethod["inputObjects"] != null) {
-              isLocal = objectMethod["inputObjects"]
-                  .any((obj) => obj["role"] == "oldContainer");
-            }
-            if (isLocal) {
-              pathsToSign = [
-                //local change of container
-                "\$"
-              ];
-            } else {
-              pathsToSign = [
-                //sales process buyer side, only sign parts that are relevant for the buyer
-                "\$.identity.UID",
-                "\$.inputObjects[?(@.role=='newContainer')]",
-                "\$.inputObjects[?(@.role=='buyer')]"
-              ];
-            }
-            break;
-          case "changeOwner": //This is the buyer side process
-            pathsToSign = [
-              "\$.identity.UID",
-              "\$.inputObjects[?(@.role=='newContainer')]"
-                  "\$.inputObjects[?(@.role=='buyer')]"
-            ];
-
-            break;
-          default:
-            pathsToSign = [
-              "\$."
-            ]; //aggregateItems, changeProcessingState, addChangeItem
+        if ((objectMethod["methodState"] == "running") && (objectMethod["template"]["RALType"] == "changeContainer")) {
+          pathsToSign = [
+            //sale online process, new container not yet known
+            "\$.identity.UID",
+            "\$.inputObjects[?(@.role=='item')]",
+            //The new state of the item (with new container is not known at that time)
+          ];
         }
         signingObject = createSigningObject(pathsToSign, objectMethod);
 
@@ -285,33 +260,9 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
         objectMethod["digitalSignatures"].add({
           "signature": signature,
           "signerUID": FirebaseAuth.instance.currentUser?.uid,
-          "signedContent": pathsToSign
+          "signedContent": ["\$."]
         });
       }
-      if (objectMethod["existenceStarts"] == null) {
-        objectMethod["existenceStarts"] = DateTime
-            .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
-      }
-    }
-  } else {
-
-        //***************  EXISTING OBJECT OR METHOD ***************
-
-    if (objectMethod.containsKey("existenceStarts") && signMethod == true) {
-       
-          //***************  EXISTING METHOD TO SIGN ***************
-
-      //!DIGITAL SIGNATURE FOR AN EXISTING METHOD, ALWAYS SIGN THE WHOLE METHOD
-      String signingObject = jsonEncode(objectMethod);
-      final signature = await digitalSignature.generateSignature(signingObject);
-      if (objectMethod["digitalSignatures"] == null) {
-        objectMethod["digitalSignatures"] = [];
-      }
-      objectMethod["digitalSignatures"].add({
-        "signature": signature,
-        "signerUID": FirebaseAuth.instance.currentUser?.uid,
-        "signedContent": ["\$."]
-      });
     }
   }
 
@@ -332,7 +283,6 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
     if ((objectMethod["needsSync"] == true) &&
         (!connectivityResult.contains(ConnectivityResult.none))) {
       await cloudSyncService.syncMethods('tracefoodchain.org');
-     
     }
   }
   return objectMethod;
@@ -483,7 +433,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
-          await setObjectMethod(oDoc, false,true);
+          await setObjectMethod(oDoc, false, true);
         } else {
           debugPrint("Eintrag $methodUID existiert schon in Methodhistory");
         }
@@ -491,7 +441,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
         debugPrint("Knoten MethodHistory existiert noch nicht in $uid");
         oDoc["methodHistoryRef"] = {"UID": methodUID, "RALType": methodRALType};
 
-        await setObjectMethod(oDoc,false, true);
+        await setObjectMethod(oDoc, false, true);
       }
     }
   }

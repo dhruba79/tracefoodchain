@@ -165,7 +165,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     await setObjectMethod(item, false, false);
     //Step 3: add the output objects with updated method history to the method
     changeContainerMethod["outputObjects"] =
-        []; //We don't know the receiving container yet
+        [item]; 
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeContainerMethod);
     //Step 5: persist process
