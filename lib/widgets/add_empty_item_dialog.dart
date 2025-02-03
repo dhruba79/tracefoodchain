@@ -10,6 +10,7 @@ import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 //ToDo: Offer to add 1-n additional ID tags like GeoId
 
@@ -336,6 +337,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
     }
 
     Map<String, dynamic> newItem = await getOpenRALTemplate(_selectedType!);
+    setObjectMethodUID(newItem, const Uuid().v4());
     newItem["identity"]["alternateIDs"] = [
       {"UID": _uidController.text, "issuedBy": "owner"}
     ];
@@ -351,8 +353,24 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
         "longitude": double.parse(_longitudeController.text),
       };
     }
-//ToDo: CHANGE IT: Method Based generation of new items!!!
-    final savedItem = await setObjectMethod(newItem,false, true);
+
+    final addItem = await getOpenRALTemplate("generateDigitalSibling");
+    //Add Executor
+    addItem["executor"] = appUserDoc;
+    addItem["methodState"] = "finished";
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(addItem, const Uuid().v4());
+    //Step 2: save the objects a first time to get it the method history change
+    await setObjectMethod(newItem, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(addItem, newItem, "item");    
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
+    await updateMethodHistories(addItem);
+    //Step 5: persist process
+    await setObjectMethod(addItem, true, true); //sign it!
+
+    final savedItem = await getObjectMethod(getObjectMethodUID(
+        newItem)); //Reload new item with correct method history
     widget.onItemAdded(savedItem);
     Navigator.of(context).pop();
   }

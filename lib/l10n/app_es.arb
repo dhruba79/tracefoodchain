@@ -357,6 +357,8 @@
   "buttonBack": "ATRÁS",
   "locationPermissionsDenied": "Los permisos de ubicación están denegados",
   "locationPermissionsPermanentlyDenied": "Los permisos de ubicación están denegados permanentemente",
+  "errorMergeConflict": "Error del servidor: Conflicto de fusión - Los datos existen en diferentes versiones",
+  "errorServiceUnavailable": "Error del servidor: Servicio no disponible",
   "errorSyncToCloud": "Error al sincronizar datos con la nube",
   "errorBadRequest": "Error del servidor: Solicitud incorrecta",
   "errorUnauthorized": "Error del servidor: No autorizado",

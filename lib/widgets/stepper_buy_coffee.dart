@@ -8,6 +8,7 @@ import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 Map<String, dynamic> receivingContainer = {};
 Map<String, dynamic> field = {};
@@ -258,28 +259,48 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     String receivingContainerUID) async {
   List<Map<String, dynamic>> rList = [];
 
-  receivingContainer = await getObjectOrGenerateNew(
-      receivingContainerUID, ["container","bag","building","transportVehicle"], "alternateUid");
+  receivingContainer = await getObjectOrGenerateNew(receivingContainerUID,
+      ["container", "bag", "building", "transportVehicle"], "alternateUid");
   if (getObjectMethodUID(receivingContainer) == "") {
+    //This is a new container!!!
     receivingContainer["identity"]["alternateIDs"]
         .add({"UID": receivingContainerUID, "issuedBy": "owner"});
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer,false, true);
+
+    final addItem = await getOpenRALTemplate("generateDigitalSibling");
+    //Add Executor
+    addItem["executor"] = appUserDoc!;
+    addItem["methodState"] = "finished";
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(addItem, const Uuid().v4());
+    //Step 2: save the objects a first time to get it the method history change
+    await setObjectMethod(receivingContainer, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(addItem, receivingContainer, "item");
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
+    await updateMethodHistories(addItem);
+    //Step 5: persist process
+    await setObjectMethod(addItem, true, true); //sign it!
+
+    receivingContainer =
+        await getObjectMethod(getObjectMethodUID(receivingContainer));
   }
   debugPrint(
       "generated/loaded container ${getObjectMethodUID(receivingContainer)}");
 
   transfer_ownership = await getOpenRALTemplate("changeOwner");
   transfer_ownership = addInputobject(transfer_ownership, appUserDoc!, "buyer");
-  transfer_ownership["methodState"] = "planned";
+  transfer_ownership["methodState"] =
+      "planned"; //ARE NOT PERSISTED, JUST SENT TO SELLER!
 
   change_container = await getOpenRALTemplate("changeContainer");
   change_container =
       addInputobject(change_container, receivingContainer, "newContainer");
   change_container["executor"] = appUserDoc!;
-  change_container["methodState"] = "planned";
+  change_container["methodState"] =
+      "planned"; //ARE NOT PERSISTED, JUST SENT TO SELLER!
 
   rList.add(transfer_ownership);
   rList.add(change_container);
@@ -291,16 +312,25 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
   // This function persists all outputobjects and jobs in local database
   //The jobs are received in finished form from the seller
 
+  // First, persist all non-job objects
+  List<dynamic> jobItems = [];
   for (final jobOrObject in receivedData) {
-
-    //if it is an object, change ownership!
-    if(jobOrObject["currentOwners"] != null){
-    jobOrObject["currentOwners"] = [
-      {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
-    ];
-    }
-
     final isJob = jobOrObject["methodHistoryRef"] != null;
-    await setObjectMethod(jobOrObject,isJob, true);//sign if job!
+    if (!isJob) {
+      // If it is an object, change ownership!
+      if (jobOrObject["currentOwners"] != null) {
+        jobOrObject["currentOwners"] = [
+          {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
+        ];
+      }
+      await setObjectMethod(jobOrObject, false, true);
+    } else {
+      jobItems.add(jobOrObject);
+    }
+  }
+
+  // Next, persist all jobs (methods)
+  for (final jobOrObject in jobItems) {
+    await setObjectMethod(jobOrObject, true, true);
   }
 }

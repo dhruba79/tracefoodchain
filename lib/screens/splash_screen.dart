@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trace_foodchain_app/helpers/fade_route.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
-import 'package:trace_foodchain_app/screens/role_selection_screen.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
 import 'package:trace_foodchain_app/screens/home_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
@@ -18,6 +17,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/data_loading_indicator.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:trace_foodchain_app/constants.dart';
+import 'package:uuid/uuid.dart';
 
 bool canResendEmail = true;
 
@@ -231,7 +231,22 @@ class _SplashScreenState extends State<SplashScreen>
           newUser, "email", FirebaseAuth.instance.currentUser?.email, "String");
       newUser["email"] = FirebaseAuth.instance.currentUser
           ?.email; // Necessary to find the user later by email!
-      newUser = await setObjectMethod(newUser,false, true);
+
+      final addItem = await getOpenRALTemplate("generateDigitalSibling");
+      //Add Executor
+      addItem["executor"] = newUser;
+      addItem["methodState"] = "finished";
+      //Step 1: get method an uuid (for method history entries)
+      setObjectMethodUID(addItem, const Uuid().v4());
+      //Step 2: save the objects a first time to get it the method history change
+      await setObjectMethod(newUser, false, false);
+      //Step 3: add the output objects with updated method history to the method
+      addOutputobject(addItem, newUser, "item");
+      //Step 4: update method history in all affected objects (will also tag them for syncing)
+      await updateMethodHistories(addItem);
+      //Step 5: persist process
+      await setObjectMethod(addItem, true, true); //sign it!
+
       appUserDoc = await getObjectMethod(getObjectMethodUID(newUser));
     } else {
       //User mit dieser deviceId schon vorhanden.
@@ -257,7 +272,9 @@ class _SplashScreenState extends State<SplashScreen>
       appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
       appUserDoc =
           setSpecificPropertyJSON(appUserDoc!, "userRole", 'Trader', "String");
-      appUserDoc = await setObjectMethod(appUserDoc!,false, true);
+
+      //ToDo: addEditItem Method instead of just setObjectMethod
+      appUserDoc = await setObjectMethod(appUserDoc!, false, true);
     }
     // Check if private key exists, if not generate new keypair
     final privateKey = await keyManager.getPrivateKey();

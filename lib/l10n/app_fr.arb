@@ -357,6 +357,8 @@
   "buttonBack": "RETOUR",
   "locationPermissionsDenied": "Les permissions de localisation sont refusées",
   "locationPermissionsPermanentlyDenied": "Les permissions de localisation sont refusées de façon permanente",
+  "errorMergeConflict": "Erreur du serveur : Conflit de fusion - Les données existent dans différentes versions",
+  "errorServiceUnavailable": "Erreur du serveur : Service indisponible",
   "errorSyncToCloud": "Erreur lors de la synchronisation des données vers le cloud",
   "errorBadRequest": "Erreur serveur : Mauvaise requête",
   "errorUnauthorized": "Erreur serveur : Non autorisé",

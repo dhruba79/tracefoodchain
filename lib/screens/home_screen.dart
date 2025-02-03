@@ -54,10 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final appState = Provider.of<AppState>(context);
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Theme(
       data: customTheme,
       child: Scaffold(

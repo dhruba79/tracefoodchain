@@ -13,6 +13,7 @@ import 'package:trace_foodchain_app/widgets/coffee_processing_state_selector.dar
 import 'package:trace_foodchain_app/widgets/stepper_buy_coffee.dart';
 import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:uuid/uuid.dart';
 
 Future<void> showBuyCoffeeOptions(BuildContext context,
     {String? receivingContainerUID}) async {
@@ -124,8 +125,7 @@ Future<void> showAggregateItemsDialog(
       return AlertDialog(
         title: Text(l10n.aggregateItems,
             style: const TextStyle(color: Colors.black)),
-        content: Text(
-            '${l10n.scanSelectFutureContainer}',
+        content: Text('${l10n.scanSelectFutureContainer}',
             style: const TextStyle(color: Colors.black)),
         actions: <Widget>[
           TextButton(
@@ -188,12 +188,22 @@ Future<void> showChangeContainerDialog(
                 {
                   final changeContainerMethod =
                       await getOpenRALTemplate("changeContainer");
+                  changeContainerMethod["executor"] = appUserDoc;
+                  changeContainerMethod["methodState"] = "finished";
                   changeContainerMethod["inputObjects"] = [item, newContainer];
-                  changeContainerMethod["outputObjects"] = [item];
                   item["currentGeolocation"]["container"]["UID"] =
                       newContainer["identity"]["UID"];
-                  await setObjectMethod(changeContainerMethod,true, true);//sign it!
-                  await setObjectMethod(item,false, true);
+                  //Step 1: get method an uuid (for method history entries)
+                  setObjectMethodUID(changeContainerMethod, const Uuid().v4());
+                  //Step 2: save the objects to get it the method history change
+                  await setObjectMethod(item, false, false);
+                  //Step 3: add the output objects with updated method history to the method
+                  addOutputobject(changeContainerMethod, item, "item");
+                  //Step 4: update method history in all affected objects (will also tag them for syncing)
+                  await updateMethodHistories(changeContainerMethod);
+                  //Step 5: persist Method
+                  await setObjectMethod(
+                      changeContainerMethod, true, true); //sign it!
                 }
               }
               Navigator.of(context).pop();
@@ -279,17 +289,23 @@ Future<void> showProcessingStateDialog(
     Map<String, dynamic> changeProcessingState = {};
     changeProcessingState = await getOpenRALTemplate("changeProcessingState");
     addInputobject(changeProcessingState, coffee, "item");
+
     coffee = setSpecificPropertyJSON(
         coffee, "processingState", result["state"], "String");
-    addOutputobject(changeProcessingState, coffee, "item");
     coffee = setSpecificPropertyJSON(
         coffee, "qualityState", result["criteria"], "stringlist"); //ToDo Check!
+
     changeProcessingState["executor"] = appUserDoc!;
     changeProcessingState["methodState"] = "finished";
-
-    await setObjectMethod(coffee,false, true);
-    await setObjectMethod(changeProcessingState,true, true); //sign it!
-    //Methode persistieren
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(changeProcessingState, const Uuid().v4());
+    //Step 2: persist object changes
+    await setObjectMethod(coffee, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(changeProcessingState, coffee, "item");
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeProcessingState);
+    //Step 5: persist Method
+    await setObjectMethod(changeProcessingState, true, true); //sign it!
   }
 }

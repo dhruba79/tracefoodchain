@@ -548,6 +548,35 @@ Map<String, dynamic> initialMethodTemplateChangeProcessingState = {
   "nestedMethods": []
 };
 
+Map<String, dynamic> initialMethodTemplateGenerateDigitalSibling = {
+  "definition": {
+    "definitionText": "A process that generates a new digital sibling of an existing real world object",
+    "definitionURL": ""
+  },
+  "existenceStarts": null,
+  "executor": {},
+  "duration": null,
+  "identity": {
+    "UID": "",
+    "name": "",
+    "siteTag": "",
+    "alternateIDs": [],
+    "alternateNames": []
+  },
+  "methodState": "undefined",
+  "template": {
+    "RALType": "generateDigitalSibling",
+    "version": "1",
+    "methodStateTemplates": "generalMethodState"
+  },
+  "specificProperties": [],
+  "inputObjects": [],
+  "inputObjectsRef": [],
+  "outputObjects": [],
+  "outputObjectsRef": [],
+  "nestedMethods": []
+};
+
 List<Map<String, dynamic>> initialTemplates = [
   initialObjectTemplateFarm,
   initialObjectTemplateHuman,
@@ -561,7 +590,8 @@ List<Map<String, dynamic>> initialTemplates = [
   initialMethodTemplateHarvest,
   initialMethodTemplateChangeContainer,
   initialMethodTemplateChangeOwner,
-  initialMethodTemplateChangeProcessingState
+  initialMethodTemplateChangeProcessingState,
+  initialMethodTemplateGenerateDigitalSibling
 ];
 
 //! 2. cloud connectors

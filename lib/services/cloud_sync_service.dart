@@ -60,7 +60,7 @@ class CloudApiClient {
     return false;
   }
 
-  Future<String> syncMethodToCloud(
+  Future<Map<String, dynamic>> syncMethodToCloud(
       String domain, Map<String, dynamic> ralMethod) async {
     dynamic urlString;
     try {
@@ -81,16 +81,19 @@ class CloudApiClient {
 
       if (response.statusCode == 200) {
         // return jsonDecode(response.body);
-        return "success";
+        return {"response": "success"};
       } else {
         //Response codes? 400: Bad Request, 401: Unauthorized, 403: Forbidden, 404: Not Found, 500: Internal Server Error
         //Merge Conflict: 409
         debugPrint('Failed to sync method to cloud: ${response.statusCode}');
-        return "${response.statusCode}";
+        return {
+          "response": "${response.statusCode}",
+          "responseDetails": jsonDecode(response.body)
+        };
       }
     } else {
       // throw Exception("no valid cloud connection properties found!");
-      return "no valid cloud connection properties found!";
+      return {"response": "no valid cloud connection properties found!"};
     }
   }
 
@@ -195,23 +198,27 @@ class CloudSyncService {
         final doc2 = Map<String, dynamic>.from(method);
         final methodUid = getObjectMethodUID(doc2);
         try {
-          final syncresult = await apiClient.syncMethodToCloud(domain, doc2);
-          if (syncresult == "success") {
+          Map<String,dynamic> syncresult = await apiClient.syncMethodToCloud(domain, doc2);
+          if (syncresult["result"] == "success") {
             setObjectMethod(doc2, false, false); //removes sync flag
-            //Todo: remove sync flag from all connected objects:outputobjects
-          } else {
+            //ToDo: remove sync flag from all connected objects:outputobjects
+          } else {       
+            if (syncresult["resultDetails"]!=null){
+              //ToDo: handle different error details - 409 can have different reasons
+              //ToDo: Flag methods or objects with merge conflicts
+            }
             syncSuccess = false;
             globalSnackBarNotifier.value = {
               'type': 'error',
               'text': "error syncing to cloud",
-              'errorCode': syncresult
+              'errorCode': syncresult["result"]
             };
           }
         } catch (e) {
           syncSuccess = false;
           globalSnackBarNotifier.value = {
             'type': 'error',
-            'text':"error syncing to cloud",
+            'text': "error syncing to cloud",
             'errorCode': "unknown error"
           };
           debugPrint('Error syncing method {$methodUid}: $e');
