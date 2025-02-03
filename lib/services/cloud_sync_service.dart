@@ -97,14 +97,14 @@ class CloudApiClient {
     }
   }
 
-  Future<List<Map<String, dynamic>>> syncObjectsMethodsFromCloud(
-      String domain, Map<String, String> deviceHashes) async {
+  Future<Map<String, dynamic>> syncObjectsMethodsFromCloud(
+      String domain, Map<String, dynamic> deviceHashes) async {
     dynamic urlString;
     try {
       urlString = getCloudConnectionProperty(domain, "cloudFunctionsConnector",
           "syncObjectsMethodsFromCloud")["url"];
     } catch (e) {
-      return [];
+      return {};
     }
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
 
@@ -120,16 +120,16 @@ class CloudApiClient {
         );
 
         if (response.statusCode == 200) {
-          final List<dynamic> jsonResponse = jsonDecode(response.body);
-          return jsonResponse.cast<Map<String, dynamic>>();
+          Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+          return jsonResponse;
         } else {
           debugPrint(
               'Failed to sync objects and methods from cloud: ${response.statusCode}');
-          return [];
+          return {};
         }
       } catch (e) {
         debugPrint('Error syncing from cloud: $e');
-        return [];
+        return {};
       }
     } else {
       throw Exception("no valid cloud connection properties found!");
@@ -168,7 +168,7 @@ class CloudSyncService {
     try {
       //****** 1. SYNC METHODS TO CLOUD - and build hash map for later syncing from cloud *********
       List<Map<String, dynamic>> methodsToSyncToCloud = [];
-      Map<String, String> deviceHashes = {};
+      Map<String, dynamic> deviceHashes = {"objectHashTable":[],"methodHashTable":[]};
       for (var doc in localStorage.values) {
         final doc2 = Map<String, dynamic>.from(doc);
         if (doc2["methodHistoryRef"] != null) {
@@ -179,7 +179,8 @@ class CloudSyncService {
           }
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
-          deviceHashes[uid] = hash;
+
+          deviceHashes["objectHashTable"].add({"UID":uid,"hash":hash});
         } else {
           //This is a method
           if (doc2["needsSync"] != null) {
@@ -190,7 +191,7 @@ class CloudSyncService {
 
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
-          deviceHashes[uid] = hash;
+          deviceHashes["methodHashTable"].add({"UID":uid,"hash":hash});
         }
       }
       bool syncSuccess = true;
@@ -198,20 +199,79 @@ class CloudSyncService {
         final doc2 = Map<String, dynamic>.from(method);
         final methodUid = getObjectMethodUID(doc2);
         try {
-          Map<String,dynamic> syncresult = await apiClient.syncMethodToCloud(domain, doc2);
-          if (syncresult["result"] == "success") {
-            setObjectMethod(doc2, false, false); //removes sync flag
-            //ToDo: remove sync flag from all connected objects:outputobjects
-          } else {       
-            if (syncresult["resultDetails"]!=null){
-              //ToDo: handle different error details - 409 can have different reasons
-              //ToDo: Flag methods or objects with merge conflicts
+          Map<String, dynamic> syncresult =
+              await apiClient.syncMethodToCloud(domain, doc2);
+          if (syncresult["response"] == "success") {
+            setObjectMethod(doc2, false, false); //removes sync flag from method
+            // Look for all outputobjects in doc2 and remove sync flag as well
+            if (doc2.containsKey('outputObjects') &&
+                doc2['outputObjects'] is List) {
+              for (var objectDoc in doc2['outputObjects']) {
+                if (objectDoc is Map<String, dynamic> &&
+                    objectDoc.containsKey('needsSync')) {
+                  objectDoc.remove('needsSync');
+                  await setObjectMethod(objectDoc, false, false);
+                }
+              }
+            }
+          } else {
+            if (syncresult["responseDetails"] != null) {
+              switch (syncresult["response"]) {
+                case "409":
+                  //ToDo: Flag methods or objects with merge conflicts
+                  if (syncresult["responseDetails"]
+                      .containsKey("methodConflict")) {
+                    //problem to merge method
+                    //     - cloudVersionInvalid
+                    //     - clientVersionInvalid
+                    //     - conflictReasonUnknown
+                    Map<String, dynamic> conflictMethod =
+                        await getObjectMethod(getObjectMethodUID(doc2));
+                    conflictMethod["hasMergeConflict"] = true;
+                    conflictMethod["mergeConflictReason"] =
+                        syncresult["responseDetails"]["methodConflict"];
+                    await setObjectMethod(conflictMethod, false, true);
+                  }
+                  if (syncresult["responseDetails"]
+                      .containsKey("conflictObjects")) {
+                    // conflictObjects: List of objects with merge conflicts
+                    // "objectUid": "a9b94df2-2ad8-4f2f-b469-3d8bb6f9f054" => flag as problematic
+                    for (final object in syncresult["responseDetails"]
+                        ["conflictObjects"]) {
+                      Map<String, dynamic> conflictObject =
+                          await getObjectMethod(object["objectUid"]);
+                      conflictObject["hasMergeConflict"] = true;
+                      await setObjectMethod(conflictObject, false, true);
+                    }
+                  }
+
+                  break;
+                case "400":
+                  //general problem: one of
+                  // missingParameters:
+                  // invalidSignature => Flag method as invalid
+                  // errorMessage
+                  debugPrint("Error syncing method {$methodUid}: 400: " +
+                      syncresult["responseDetails"].toString());
+                  if (syncresult["responseDetails"]
+                      .containsKey("invalidSignature")) {
+                    Map<String, dynamic> conflictMethod =
+                        await getObjectMethod(getObjectMethodUID(doc2));
+                    conflictMethod["hasMergeConflict"] = true;
+                    conflictMethod["mergeConflictReason"] =
+                        "invalid digital signature";
+                    await setObjectMethod(conflictMethod, false, true);
+                  }
+
+                  break;
+                default:
+              }
             }
             syncSuccess = false;
             globalSnackBarNotifier.value = {
               'type': 'error',
               'text': "error syncing to cloud",
-              'errorCode': syncresult["result"]
+              'errorCode': syncresult["response"]
             };
           }
         } catch (e) {
@@ -236,10 +296,23 @@ class CloudSyncService {
       //1. Generate a hash list from all objects and methods on the device
 
       //2. Get all objects and methods from the cloud that are not on the device or need to be updated
-      final returnList =
+      final cloudData =
           await apiClient.syncObjectsMethodsFromCloud(domain, deviceHashes);
-
-      for (final item in returnList) {
+      // this will return an empty object in case there is an error.
+      if (cloudData.isEmpty) {
+        debugPrint("Unknown error syncing from cloud!");
+        return;
+      }
+      
+      // Fusioniere die beiden Listen "ralMethods" und "ralObjects" zu einer final mergedList
+      List<dynamic> mergedList = [];
+      if (cloudData.containsKey("ralMethods") && cloudData["ralMethods"] is List) {
+        mergedList.addAll(cloudData["ralMethods"]);
+      }
+      if (cloudData.containsKey("ralObjects") && cloudData["ralObjects"] is List) {
+        mergedList.addAll(cloudData["ralObjects"]);
+      }
+      for (final item in mergedList) {
         final docData = Map<String, dynamic>.from(item);
         await setObjectMethod(docData, false, false);
       }

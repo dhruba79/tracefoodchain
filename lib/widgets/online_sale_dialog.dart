@@ -63,56 +63,62 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
 
     if (!_isValidEmail(_emailController.text)) {
       setState(() {
-      _emailError = l10n.invalidEmail;
+        _emailError = l10n.invalidEmail;
       });
       return;
     }
 
     try {
-      Map<String, dynamic>? receiverDoc = await _findUserByEmail(_emailController.text);
+      Map<String, dynamic>? receiverDoc =
+          await _findUserByEmail(_emailController.text);
       if (receiverDoc != null) {
-      await _performSale(receiverDoc);
-      Navigator.of(context).pop();
-      await fshowInfoDialog(context, l10n.saleCompleted);
+        await _performSale(receiverDoc);
+        Navigator.of(context).pop();
+        await fshowInfoDialog(context, l10n.saleCompleted);
       } else {
-      await fshowInfoDialog(context, l10n.userNotFound);
+        await fshowInfoDialog(context, l10n.userNotFound);
       }
     } catch (e) {
       await fshowInfoDialog(context, l10n.saleError);
     }
-    }
+  }
 
-    bool _isValidEmail(String email) {
+  bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$').hasMatch(email);
-    }
+  }
 
-    //For the prototype, we use user verification by permarobotics cloud!
-    Future<Map<String, dynamic>?> _findUserByEmail(String email) async {
+  //For the prototype, we use user verification by permarobotics cloud!
+  Future<Map<String, dynamic>?> _findUserByEmail(String email) async {
     Map<String, dynamic>? userDoc;
     String? urlString;
     try {
       urlString = getCloudConnectionProperty("tracefoodchain.org",
-        "cloudFunctionsConnector", "findUserByEmail")["url"];
+          "cloudFunctionsConnector", "findUserByEmail")["url"];
     } catch (e) {}
-
-    if (urlString != null) {
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+    if (urlString != null && apiKey != null) {
       var url2 = '$urlString?email=$email';
       Uri uri2 = Uri.parse(url2);
       try {
-      // Wait for the HTTP response or timeout after 10 seconds.
-      var response = await http.get(uri2).timeout(const Duration(seconds: 20));
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);//Return userdoc
-      }
+        // Wait for the HTTP response or timeout after 10 seconds.
+        var response = await http.get(
+          uri2,
+          headers: {
+            'Authorization': 'Bearer $apiKey',
+          },
+        ).timeout(const Duration(seconds: 20));
+        if (response.statusCode == 200) {
+          return jsonDecode(response.body); //Return userdoc
+        }
       } on TimeoutException {
-      // Timeout occurred
-      // throw Exception("Server timeout");
+        // Timeout occurred
+        // throw Exception("Server timeout");
       }
     }
     return userDoc;
-    }
+  }
 
-  Future<void> _performSale(Map<String,dynamic> receiverDoc) async {
+  Future<void> _performSale(Map<String, dynamic> receiverDoc) async {
     //Deprecated: Generate transfer container
     // final transferContainer = await _generateTransferContainer(receiver);
 
@@ -155,7 +161,8 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
   Future<void> _changeContainer(Map<String, dynamic> item, receiverDoc) async {
     final changeContainerMethod = await getOpenRALTemplate("changeContainer");
     changeContainerMethod["inputObjects"] = [item];
-    item["currentGeolocation"]["container"]["UID"] = "";//We do not now the receiving container yet
+    item["currentGeolocation"]["container"]["UID"] =
+        ""; //We do not now the receiving container yet
     //Add Executor
     changeContainerMethod["executor"] = receiverDoc;
     changeContainerMethod["methodState"] = "running";
@@ -164,8 +171,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     //Step 2: save the objects a first time to get it the method history change
     await setObjectMethod(item, false, false);
     //Step 3: add the output objects with updated method history to the method
-    changeContainerMethod["outputObjects"] =
-        [item]; 
+    changeContainerMethod["outputObjects"] = [item];
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeContainerMethod);
     //Step 5: persist process

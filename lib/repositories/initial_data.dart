@@ -845,7 +845,7 @@ Map<String, dynamic> initialCloudConnectorTraceFoodchain = {
       "specificProperties": [
         {
           "value": {
-            "definition": "Endpoint to execute persist the public key.",
+            "definition": "Endpoint to persist the public key.",
             "url":
                 "https://europe-west3-tracefoodchain.cloudfunctions.net/persistPublicKey"
           },
@@ -856,7 +856,35 @@ Map<String, dynamic> initialCloudConnectorTraceFoodchain = {
           "key": "apiKey",
           "unit": "String",
           "value": dotenv.env['FIREBASE_API_KEY'] ?? ''
+        }, {
+          "value": {
+            "definition": "Endpoint to sync local methods to the cloud.",
+            "url":
+                "https://europe-west3-tracefoodchain.cloudfunctions.net/syncMethodToCloud"
+          },
+          "unit": "json",
+          "key": "syncMethodToCloud"
         },
+        
+        {
+          "value": {
+            "definition": "Endpoint to get all relevant objects and methods from cloud.",
+            "url":
+                "https://europe-west3-tracefoodchain.cloudfunctions.net/syncFromCloud"
+          },
+          "unit": "json",
+          "key": "syncFromCloud"
+        }, {
+          "value": {
+            "definition": "Endpoint to get a user doc by its email.",
+            "url":
+                "https://europe-west3-tracefoodchain.cloudfunctions.net/findUserByEmail"
+          },
+          "unit": "json",
+          "key": "findUserByEmail"
+        }
+        
+ 
       ],
       "locationHistoryRef": [],
       "currentOwners": [],

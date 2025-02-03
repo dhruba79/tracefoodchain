@@ -91,44 +91,7 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
   return json;
 }
 
-//! 3.#######  getters for working with openRAL objects ############
 
-Future<Map<String, dynamic>> getRALObjectFromDomain(
-    String domain, String objectUID) async {
-  Map<String, dynamic> returnObject = {};
-  if (cloudConnectors.isEmpty) getCloudConnectors();
-
-  String? dscMetadataUrl;
-  String dscMetadataUuidField =
-      "databaseID"; //ToDo: this is permarobotics specific - read from object connector
-  String dscMetadataEndpoint =
-      "getSensorInfo"; //ToDo: this is permarobotics specific - read from object connector
-
-  if (domain != "") {
-    dscMetadataUrl = getCloudConnectionProperty(
-        domain, "cloudFunctionsConnector", dscMetadataEndpoint)["url"];
-    debugPrint("url is $dscMetadataUrl");
-
-//ToDo: ÄNDERN, API KEY IM HEADER ÜBERMITTELN!!!!!
-
-    // var url2 =
-    //     '$dsc_metadata_url?${dsc_metadata_uuid_field}=${objectUID}?apiKey=${getCloudConnectionProperty("permarobotics.com", "cloudFunctionsConnector", "apiKey")}'; //databaseID
-    var url2 = '$dscMetadataUrl?$dscMetadataUuidField=$objectUID'; //databaseID
-    Uri uri2 = Uri.parse(url2);
-
-    var response2 = await http.get(uri2);
-    if (response2.statusCode == 200) {
-      returnObject = jsonDecode(response2.body)[0];
-    } else {
-      debugPrint("could not get object from domain $domain");
-      returnObject = {};
-    }
-  } else {
-    debugPrint("ERROR: no domain specified!");
-    returnObject = {};
-  }
-  return returnObject;
-}
 
 //Get object or method from local database
 Future<Map<String, dynamic>> getObjectMethod(String objectMethodUID) async {
