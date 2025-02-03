@@ -349,5 +349,16 @@
   "manual":"Manuelle Eingabe",
   "selectCountryFirst": "Bitte wählen Sie zuerst ein Land aus!",
   "locationPermissionsDenied": "Standortberechtigungen sind verweigert",
-  "locationPermissionsPermanentlyDenied": "Standortberechtigungen sind dauerhaft verweigert"
+  "locationPermissionsPermanentlyDenied": "Standortberechtigungen sind dauerhaft verweigert",
+  "errorSyncToCloud": "Fehler beim Synchronisieren der Daten mit der Cloud",
+  "errorBadRequest": "Serverfehler: Ungültige Anfrage",
+  "errorUnauthorized": "Serverfehler: Nicht autorisiert",
+  "errorForbidden": "Serverfehler: Verboten",
+  "errorNotFound": "Serverfehler: Nicht gefunden",
+  "errorInternalServerError": "Serverfehler: Interner Serverfehler",
+  "errorServiceUnavailabe": "Serverfehler: Dienst nicht verfügbar", 
+  "errorGatewayTimeout": "Serverfehler: Gateway-Timeout",
+  "errorUnknown": "Unbekannter Fehler",
+  "errorNoCloudConnectionProperties": "Keine Cloud-Verbindungsdaten gefunden",
+  "syncToCloudSuccessful": "Synchronisierung mit der Cloud erfolgreich"
 }

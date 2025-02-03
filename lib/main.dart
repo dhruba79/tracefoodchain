@@ -29,6 +29,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:html' if (dart.library.io) 'dart:io' show Platform;
 
 import 'package:trace_foodchain_app/services/service_functions.dart';
+import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
 // import 'dart:html' as html;
 
 int cloudSyncFrequency = 600; //in case internet is connected, this will sync with the cloud every xxx seconds
@@ -284,7 +285,9 @@ void main() async {
       value: appState,
       child: DevicePreview(
         enabled: !kReleaseMode,
-        builder: (context) => MyApp(), // Wrap your app
+        builder: (context) => GlobalSnackBarListener(
+          child: MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
+        ),
       ),
     ),
   );

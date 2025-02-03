@@ -192,7 +192,7 @@ Future<void> showChangeContainerDialog(
                   changeContainerMethod["outputObjects"] = [item];
                   item["currentGeolocation"]["container"]["UID"] =
                       newContainer["identity"]["UID"];
-                  await setObjectMethod(changeContainerMethod,true, true);
+                  await setObjectMethod(changeContainerMethod,true, true);//sign it!
                   await setObjectMethod(item,false, true);
                 }
               }

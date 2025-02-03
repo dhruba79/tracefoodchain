@@ -224,9 +224,14 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
     bool signMethod, bool markForSyncToCloud) async {
   //Make sure it gets a valid
   if (getObjectMethodUID(objectMethod) == "") {
-    //* NEUES OBJECT ODER METHODE
+    
+    //***************  NEW OBJECT OR METHOD ***************
+
     setObjectMethodUID(objectMethod, uuid.v4());
     if (objectMethod.containsKey("existenceStarts")) {
+
+    //***************  NEW METHOD ***************
+
       if (signMethod == true) {
         //!DIGITAL SIGNATURE FOR A NEW METHOD
         //check which parts of the method need to be signed. In general, the whole method is signed,
@@ -289,8 +294,13 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
       }
     }
   } else {
-    //* EXISTIERENDES OBJECT ODER METHODE
+
+        //***************  EXISTING OBJECT OR METHOD ***************
+
     if (objectMethod.containsKey("existenceStarts") && signMethod == true) {
+       
+          //***************  EXISTING METHOD TO SIGN ***************
+
       //!DIGITAL SIGNATURE FOR AN EXISTING METHOD, ALWAYS SIGN THE WHOLE METHOD
       String signingObject = jsonEncode(objectMethod);
       final signature = await digitalSignature.generateSignature(signingObject);
@@ -313,13 +323,16 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
   //!tag for syncing with cloud
   if (markForSyncToCloud) objectMethod["needsSync"] = true;
 
+  //Local storage
   await localStorage.put(getObjectMethodUID(objectMethod), objectMethod);
+
+  // sync with cloud if tagged for this and device is connected to the internet
   var connectivityResult = await (Connectivity().checkConnectivity());
-  //if connected to the internet, immediately sync to cloud, otherwise it has just been synced and only needs local persistence
   if (objectMethod["needsSync"] != null) {
     if ((objectMethod["needsSync"] == true) &&
         (!connectivityResult.contains(ConnectivityResult.none))) {
       await cloudSyncService.syncMethods('tracefoodchain.org');
+     
     }
   }
   return objectMethod;

@@ -356,5 +356,17 @@
   "buttonStart": "DÉMARRER !",
   "buttonBack": "RETOUR",
   "locationPermissionsDenied": "Les permissions de localisation sont refusées",
-  "locationPermissionsPermanentlyDenied": "Les permissions de localisation sont refusées de façon permanente"
+  "locationPermissionsPermanentlyDenied": "Les permissions de localisation sont refusées de façon permanente",
+  "errorSyncToCloud": "Erreur lors de la synchronisation des données vers le cloud",
+  "errorBadRequest": "Erreur serveur : Mauvaise requête",
+  "errorUnauthorized": "Erreur serveur : Non autorisé",
+  "errorForbidden": "Erreur serveur : Interdit",
+  "errorNotFound": "Erreur serveur : Introuvable",
+  "errorInternalServerError": "Erreur serveur : Erreur interne",
+  "errorServiceUnavailabe": "Erreur serveur : Service indisponible",
+  "errorGatewayTimeout": "Erreur serveur : Délai d'attente de la passerelle",
+  "errorUnknown": "Erreur inconnue",
+  "errorNoCloudConnectionProperties": "Aucune propriété de connexion au cloud trouvée",
+  "syncToCloudSuccessful": "Synchronisation vers le cloud réussie"
+  
 }

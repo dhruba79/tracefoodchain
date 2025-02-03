@@ -356,5 +356,17 @@
   "buttonStart": "START!",
   "buttonBack": "BACK",
   "locationPermissionsDenied": "Location permissions are denied",
-  "locationPermissionsPermanentlyDenied": "Location permissions are permanently denied"
+  "locationPermissionsPermanentlyDenied": "Location permissions are permanently denied",
+  "errorSyncToCloud": "Error syncing data to cloud",
+  "errorBadRequest": "Server Error: Bad Request - Invalid data or incorrect digital signature",
+  "errorUnauthorized": "Server Error: Unauthorized",
+  "errorForbidden": "Server Error: Forbidden",
+  "errorNotFound": "Server Error: Not Found",
+  "errorInternalServerError": "Server Error: Internal Server Error",
+  "errorServiceUnavailabe": "Server Error: Service Unavailable", 
+  "errorGatewayTimeout": "Server Error: Gateway Timeout",
+  "errorUnknown":"Unknown error",
+  "errorNoCloudConnectionProperties":"No cloud connection properties found",
+  "syncToCloudSuccessful":"Sync to cloud successful" 
+
 }

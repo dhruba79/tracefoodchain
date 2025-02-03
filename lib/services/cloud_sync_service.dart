@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
 
@@ -59,7 +60,7 @@ class CloudApiClient {
     return false;
   }
 
-  Future<void> syncMethodToCloud(
+  Future<String> syncMethodToCloud(
       String domain, Map<String, dynamic> ralMethod) async {
     dynamic urlString;
     try {
@@ -80,12 +81,16 @@ class CloudApiClient {
 
       if (response.statusCode == 200) {
         // return jsonDecode(response.body);
+        return "success";
       } else {
         //Response codes? 400: Bad Request, 401: Unauthorized, 403: Forbidden, 404: Not Found, 500: Internal Server Error
+        //Merge Conflict: 409
         debugPrint('Failed to sync method to cloud: ${response.statusCode}');
+        return "${response.statusCode}";
       }
     } else {
-      throw Exception("no valid cloud connection properties found!");
+      // throw Exception("no valid cloud connection properties found!");
+      return "no valid cloud connection properties found!";
     }
   }
 
@@ -158,7 +163,7 @@ class CloudSyncService {
     _isSyncing = true;
     final databaseHelper = DatabaseHelper();
     try {
-      //*1. SYNC METHODS TO CLOUD - and build hash map for later syncing from cloud
+      //****** 1. SYNC METHODS TO CLOUD - and build hash map for later syncing from cloud *********
       List<Map<String, dynamic>> methodsToSyncToCloud = [];
       Map<String, String> deviceHashes = {};
       for (var doc in localStorage.values) {
@@ -166,8 +171,8 @@ class CloudSyncService {
         if (doc2["methodHistoryRef"] != null) {
           //This is an object
           if (doc2["needsSync"] != null) {
-            doc2.remove("needsSync");//!objects will be synced to cloud ONLY via methods
-            setObjectMethod(doc2,false,false);
+            doc2.remove(
+                "needsSync"); //!need to avoid needsSync being in the Hash!
           }
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
@@ -175,8 +180,9 @@ class CloudSyncService {
         } else {
           //This is a method
           if (doc2["needsSync"] != null) {
-            doc2.remove("needsSync");
-            methodsToSyncToCloud.add(doc2);//! needs sync to cloud
+            doc2.remove(
+                "needsSync"); //!need to avoid needsSync being in the Hash!
+            methodsToSyncToCloud.add(doc2);
           }
 
           final String hash = generateStableHash(doc2);
@@ -184,21 +190,41 @@ class CloudSyncService {
           deviceHashes[uid] = hash;
         }
       }
-
+      bool syncSuccess = true;
       for (final method in methodsToSyncToCloud) {
-        //ToDo this is atm unidirectonal since they are never changed after local execution
-        //ToDO in general openRAL settings, this would be bidirectional too
         final doc2 = Map<String, dynamic>.from(method);
         final methodUid = getObjectMethodUID(doc2);
         try {
-          //! await apiClient.syncMethodToCloud(doc2);
-          //!setObjectMethod(doc2,false);
+          final syncresult = await apiClient.syncMethodToCloud(domain, doc2);
+          if (syncresult == "success") {
+            setObjectMethod(doc2, false, false); //removes sync flag
+            //Todo: remove sync flag from all connected objects:outputobjects
+          } else {
+            syncSuccess = false;
+            globalSnackBarNotifier.value = {
+              'type': 'error',
+              'text': "error syncing to cloud",
+              'errorCode': syncresult
+            };
+          }
         } catch (e) {
+          syncSuccess = false;
+          globalSnackBarNotifier.value = {
+            'type': 'error',
+            'text':"error syncing to cloud",
+            'errorCode': "unknown error"
+          };
           debugPrint('Error syncing method {$methodUid}: $e');
+        }
+        if (syncSuccess) {
+          globalSnackBarNotifier.value = {
+            'type': 'info',
+            'text': 'sync to cloud successful'
+          };
         }
       }
 
-      //*2. SYNC METHODS AND OBJECTS FROM CLOUD - independet of new methods on device
+      //******* 2. SYNC METHODS AND OBJECTS FROM CLOUD - independet of new methods on device ********
       //This happens in case a user has logged into a second device (e.g., webapp on PC)
       //1. Generate a hash list from all objects and methods on the device
 
@@ -208,11 +234,11 @@ class CloudSyncService {
 
       for (final item in returnList) {
         final docData = Map<String, dynamic>.from(item);
-        await setObjectMethod(docData,false, false);
+        await setObjectMethod(docData, false, false);
       }
       //
     } catch (e) {
-      debugPrint("Error during syncing to cloud!");
+      debugPrint("Error during syncing to cloud: $e !");
     } finally {
       _isSyncing = false;
     }
