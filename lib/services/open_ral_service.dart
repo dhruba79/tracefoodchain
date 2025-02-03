@@ -1,6 +1,7 @@
 //This is a collection of services for working with openRAL
 //It has to work online and offline, so we have to use Hive to store templates
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:json_path/json_path.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -90,8 +91,6 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
 
   return json;
 }
-
-
 
 //Get object or method from local database
 Future<Map<String, dynamic>> getObjectMethod(String objectMethodUID) async {
@@ -191,7 +190,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
   } else {
     //***************  EXISTING OBJECT OR METHOD ***************
     if (objectMethod.containsKey("existenceStarts")) {
-      //EXISTING METHOD 
+      //EXISTING METHOD
       if (objectMethod["existenceStarts"] == null) {
         objectMethod["existenceStarts"] = DateTime
             .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
@@ -204,8 +203,9 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
         //if is running and change owner, it is an "inbox" method missing the owner in io and oo
         //
         String signingObject = "";
-        List<String> pathsToSign = ["\$."];
-        if ((objectMethod["methodState"] == "running") && (objectMethod["template"]["RALType"] == "changeContainer")) {
+        List<String> pathsToSign = ["\$"];
+        if ((objectMethod["methodState"] == "running") &&
+            (objectMethod["template"]["RALType"] == "changeContainer")) {
           pathsToSign = [
             //sale online process, new container not yet known
             "\$.identity.UID",
@@ -223,7 +223,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
         objectMethod["digitalSignatures"].add({
           "signature": signature,
           "signerUID": FirebaseAuth.instance.currentUser?.uid,
-          "signedContent": ["\$."]
+          "signedContent": ["\$"]
         });
       }
     }
@@ -485,15 +485,57 @@ String createSigningObject(
     List<String> pathsToSign, Map<String, dynamic> objectMethod) {
   List<dynamic> partsToSign = [];
   for (String path in pathsToSign) {
-    final jp = JsonPath(path);
-    final matches = jp.read(objectMethod);
+    if (!path.startsWith("\$.") && (path != "\$")) {
+      path = "\$.$path";
+    }
+    JsonPath? jp;
+    try {
+      jp = JsonPath(path);
+    } catch (e) {
+      print(e);
+    }
+    final matches = jp!.read(objectMethod);
     if (matches.isNotEmpty) {
       if (matches.first.value is Map) {
-        partsToSign.add(Map<String, dynamic>.from(matches.first.value as Map));
+        Map<String, dynamic> valueMap =
+            Map<String, dynamic>.from(matches.first.value as Map);
+        valueMap.forEach((key, value) {
+          if (value is DateTime) {
+            valueMap[key] = value.toIso8601String();
+          } else if (value is GeoPoint) {
+            valueMap[key] = {
+              "latitude": value.latitude,
+              "longitude": value.longitude
+            };
+          }
+        });
+        partsToSign.add(Map<String, dynamic>.from(valueMap as Map));
       } else if (matches.first.value is List) {
-        partsToSign.add(matches.first.value as List);
+        if (matches.first.value != null && matches.first.value is Iterable) {
+          for (final item in matches.first.value as Iterable) {
+            Map<String, dynamic> valueMap =
+                Map<String, dynamic>.from(item as Map);
+            valueMap.forEach((key, value) {
+              if (value is DateTime) {
+                valueMap[key] = value.toIso8601String();
+              } else if (value is GeoPoint) {
+                valueMap[key] = {
+                  "latitude": value.latitude,
+                  "longitude": value.longitude
+                };
+              }
+            });
+            partsToSign.add(valueMap);
+          }
+        }
       }
     }
+  }
+  try {
+    //ToDO: We need to convert DateTime to isostring and geopoint to a map before serializing
+    final rstring = jsonEncode(partsToSign);
+  } catch (e) {
+    print(e);
   }
   return jsonEncode(partsToSign);
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' if (dart.library.io) 'dart:io' as html;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
@@ -63,6 +64,17 @@ class CloudApiClient {
   Future<Map<String, dynamic>> syncMethodToCloud(
       String domain, Map<String, dynamic> ralMethod) async {
     dynamic urlString;
+    Map<String, dynamic> valueMap = Map<String, dynamic>.from(ralMethod as Map);
+    valueMap.forEach((key, value) {
+      if (value is DateTime) {
+        valueMap[key] = value.toIso8601String();
+      } else if (value is GeoPoint) {
+        valueMap[key] = {
+          "latitude": value.latitude,
+          "longitude": value.longitude
+        };
+      }
+    });
     try {
       urlString = getCloudConnectionProperty(
           domain, "cloudFunctionsConnector", "syncMethodToCloud")["url"];
@@ -76,7 +88,7 @@ class CloudApiClient {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $apiKey',
         },
-        body: jsonEncode({'ralMethod': ralMethod}),
+        body: jsonEncode({'ralMethod': valueMap}),
       );
 
       if (response.statusCode == 200) {
@@ -168,7 +180,10 @@ class CloudSyncService {
     try {
       //****** 1. SYNC METHODS TO CLOUD - and build hash map for later syncing from cloud *********
       List<Map<String, dynamic>> methodsToSyncToCloud = [];
-      Map<String, dynamic> deviceHashes = {"objectHashTable":[],"methodHashTable":[]};
+      Map<String, dynamic> deviceHashes = {
+        "objectHashTable": [],
+        "methodHashTable": []
+      };
       for (var doc in localStorage.values) {
         final doc2 = Map<String, dynamic>.from(doc);
         if (doc2["methodHistoryRef"] != null) {
@@ -180,7 +195,7 @@ class CloudSyncService {
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
 
-          deviceHashes["objectHashTable"].add({"UID":uid,"hash":hash});
+          deviceHashes["objectHashTable"].add({"UID": uid, "hash": hash});
         } else {
           //This is a method
           if (doc2["needsSync"] != null) {
@@ -191,7 +206,7 @@ class CloudSyncService {
 
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
-          deviceHashes["methodHashTable"].add({"UID":uid,"hash":hash});
+          deviceHashes["methodHashTable"].add({"UID": uid, "hash": hash});
         }
       }
       bool syncSuccess = true;
@@ -303,13 +318,15 @@ class CloudSyncService {
         debugPrint("Unknown error syncing from cloud!");
         return;
       }
-      
+
       // Fusioniere die beiden Listen "ralMethods" und "ralObjects" zu einer final mergedList
       List<dynamic> mergedList = [];
-      if (cloudData.containsKey("ralMethods") && cloudData["ralMethods"] is List) {
+      if (cloudData.containsKey("ralMethods") &&
+          cloudData["ralMethods"] is List) {
         mergedList.addAll(cloudData["ralMethods"]);
       }
-      if (cloudData.containsKey("ralObjects") && cloudData["ralObjects"] is List) {
+      if (cloudData.containsKey("ralObjects") &&
+          cloudData["ralObjects"] is List) {
         mergedList.addAll(cloudData["ralObjects"]);
       }
       for (final item in mergedList) {
@@ -355,7 +372,18 @@ Future<String> getDeviceId() async {
 }
 
 String generateStableHash(Map<String, dynamic> docData) {
-  final jsonString = jsonEncode(docData);
+  Map<String, dynamic> valueMap = Map<String, dynamic>.from(docData as Map);
+  valueMap.forEach((key, value) {
+    if (value is DateTime) {
+      valueMap[key] = value.toIso8601String();
+    } else if (value is GeoPoint) {
+      valueMap[key] = {
+        "latitude": value.latitude,
+        "longitude": value.longitude
+      };
+    }
+  });
+  final jsonString = jsonEncode(valueMap);
   final bytes = utf8.encode(jsonString);
   return sha256.convert(bytes).toString();
 }

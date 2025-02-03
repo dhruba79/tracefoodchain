@@ -295,7 +295,7 @@ void main() async {
 
 Future<void> _initializeAppState(AppState appState) async {
   keyManager = KeyManager();
-  
+  digitalSignature = DigitalSignature();
   
 
   // Check internet connectivity at startup

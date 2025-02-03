@@ -221,7 +221,22 @@ class _SplashScreenState extends State<SplashScreen>
       }
     }
 
-    if (appUserDoc == null) {
+       // Check if private key exists, if not generate new keypair
+    final privateKey = await keyManager.getPrivateKey();
+    if (privateKey == null) {
+      debugPrint("No private key found - generating new keypair...");
+      final success = await keyManager.generateAndStoreKeys();
+      if (!success) {
+        debugPrint("WARNING: Failed to initialize key management!");
+        secureCommunicationEnabled = false;
+      }
+    } else {
+      debugPrint("Found existing private key");
+      secureCommunicationEnabled = true;
+    }
+
+    if (1 == 1) {//! DEBUG ONLY, REMOVE!!!
+    // if (appUserDoc == null) {
       //User profile does not yet exist
       debugPrint(
           "user profile not found in local database - creating new one...");
@@ -276,19 +291,8 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: addEditItem Method instead of just setObjectMethod
       appUserDoc = await setObjectMethod(appUserDoc!, false, true);
     }
-    // Check if private key exists, if not generate new keypair
-    final privateKey = await keyManager.getPrivateKey();
-    if (privateKey == null) {
-      debugPrint("No private key found - generating new keypair...");
-      final success = await keyManager.generateAndStoreKeys();
-      if (!success) {
-        debugPrint("WARNING: Failed to initialize key management!");
-        secureCommunicationEnabled = false;
-      }
-    } else {
-      debugPrint("Found existing private key");
-      secureCommunicationEnabled = true;
-    }
+
+ 
     //  else {
 
     if (secureCommunicationEnabled == false) {

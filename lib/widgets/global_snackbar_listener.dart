@@ -30,9 +30,18 @@ class _GlobalSnackBarListenerState extends State<GlobalSnackBarListener> {
 
   void _showSnackbar() {
     final msg = globalSnackBarNotifier.value;
-    if (msg != null && msg.containsKey('text') && msg.containsKey('type')) {
-      // Get localized text using AppLocalizations
-      final l10n = AppLocalizations.of(context)!;
+    if (msg == null || !msg.containsKey('text') || !msg.containsKey('type'))
+      return;
+
+    // Sicherstellen, dass der Kontext initialisiert ist, bevor l10n verwendet wird.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Prüfen, ob AppLocalizations verfügbar ist
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null) {
+        debugPrint('AppLocalizations.of(context) ist null');
+        return;
+      }
+
       String? text;
       String? mtext;
       switch (msg['text']) {
@@ -79,10 +88,12 @@ class _GlobalSnackBarListenerState extends State<GlobalSnackBarListener> {
             text = mtext + l10n.errorNoCloudConnectionProperties;
             break;
           default:
-            text = msg['text']!; //non-localized text
+            text = msg['text']!;
         }
+      } else {
+        text = mtext;
       }
-      // Festlegen der Farbe: Rot für Fehler, Grün für Infos
+
       final color = (msg['type'] == 'error') ? Colors.red : Colors.green;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -90,13 +101,13 @@ class _GlobalSnackBarListenerState extends State<GlobalSnackBarListener> {
           backgroundColor: color,
         ),
       );
-      // Notifier zurücksetzen
       globalSnackBarNotifier.value = null;
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    
     return widget.child;
   }
 }
