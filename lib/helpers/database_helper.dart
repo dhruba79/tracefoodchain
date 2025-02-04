@@ -139,7 +139,13 @@ class DatabaseHelper {
         final currentOwnerIncomingUID =
             doc["currentGeolocation"]["container"]["UID"];
 
-        if (currentOwnerIncomingUID == ownerUID) {
+        bool isOwner = false;
+        if (doc.containsKey("currentOwners") && doc["currentOwners"] is List) {
+          isOwner = (doc["currentOwners"] as List)
+              .any((owner) => owner["UID"] == ownerUID);
+        }
+
+        if (isOwner && currentOwnerIncomingUID == "") {//if user is owner and container is empty => inbox
           debugPrint(
               "found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
           Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);

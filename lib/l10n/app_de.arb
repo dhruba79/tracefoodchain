@@ -253,6 +253,14 @@
       }
     }
   },
+    "errorSendingEmailWithError": "Fehler beim E-Mail-Versand",
+    "signOut": "Abmelden",
+    "resendEmail": "E-Mail erneut senden!",
+    "waitingForEmailVerification": "Warte auf E-Mail-Bestätigung. Bitte prüfen Sie Ihren Posteingang und bestätigen Sie Ihre E-Mail.",
+    "emailVerification": "E-Mail-Bestätigung",
+  "securityError": "Sicherheitsfehler",
+  "securityErrorMessage": "Die Sicherheitseinstellungen für Digitale Unterschriften konnten nicht generiert werden. Bitte versuchen Sie es später erneut und stellen Sie sicher, dass Sie eine Internetverbindung haben.",
+  "closeApp": "App schließen",
   "uidAlreadyExists": "Diese ID existiert bereits, bitte wählen Sie eine andere!",
   "selectItemToSell": "Bitte wählen Sie einen Artikel zum Verkaufen aus",
   "debugDeleteContainer": "Container löschen (Debug)",
@@ -341,5 +349,17 @@
   "manual":"Manuelle Eingabe",
   "selectCountryFirst": "Bitte wählen Sie zuerst ein Land aus!",
   "locationPermissionsDenied": "Standortberechtigungen sind verweigert",
-  "locationPermissionsPermanentlyDenied": "Standortberechtigungen sind dauerhaft verweigert"
+  "locationPermissionsPermanentlyDenied": "Standortberechtigungen sind dauerhaft verweigert",
+  "errorMergeConflict": "Serverfehler: Merge-Konflikt - Daten existieren in unterschiedlichen Versionen",
+  "errorServiceUnavailable": "Serverfehler: Dienst nicht verfügbar",
+  "errorSyncToCloud": "Fehler beim Synchronisieren der Daten mit der Cloud",
+  "errorBadRequest": "Serverfehler: Ungültige Anfrage",
+  "errorUnauthorized": "Serverfehler: Nicht autorisiert",
+  "errorForbidden": "Serverfehler: Verboten",
+  "errorNotFound": "Serverfehler: Nicht gefunden",
+  "errorInternalServerError": "Serverfehler: Interner Serverfehler", 
+  "errorGatewayTimeout": "Serverfehler: Gateway-Timeout",
+  "errorUnknown": "Unbekannter Fehler",
+  "errorNoCloudConnectionProperties": "Keine Cloud-Verbindungsdaten gefunden",
+  "syncToCloudSuccessful": "Synchronisierung mit der Cloud erfolgreich"
 }

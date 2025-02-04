@@ -26,10 +26,6 @@ class _InboxScreenState extends State<InboxScreen> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Scaffold(
         appBar: AppBar(
           title: const Text("INBOX"),
@@ -355,9 +351,29 @@ class _InboxScreenState extends State<InboxScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             onPressed: () async {
-              showChangeContainerDialog(context, container);
+              //If an online sale was initiated correctly by the seller, the methodHistory of the item should contain
+              // a method with the RALType "changeContainer" and the methodState "running".
+              Map<String, dynamic>? preexistingChangeContainer;
+              Map<String, dynamic>? preexistingChangeContainerRef;
+              if (container.containsKey("methodHistoryRef") &&
+                  container["methodHistoryRef"] is List) {
+                preexistingChangeContainerRef =
+                    container["methodHistoryRef"].lastWhere(
+                  (method) => method["RALType"] == "changeContainer",
+                  orElse: () => null,
+                );
+              }
+              if (preexistingChangeContainerRef != null) {
+                final peCC =
+                    await getObjectMethod(preexistingChangeContainerRef["UID"]);
+                if (peCC["methodState"] == "running") {
+                  preexistingChangeContainer = peCC;
+                }
+              }
+              showChangeContainerDialog(context, container,
+                  preexistingChangeContainer: preexistingChangeContainer);
               String ownerUID = FirebaseAuth.instance.currentUser!.uid;
-              ownerUID = "OSOHGLJtjwaGU2PCqajgfaqE5fI2"; //!REMOVE
+              // ownerUID = "OSOHGLJtjwaGU2PCqajgfaqE5fI2"; //!REMOVE
               inbox = await databaseHelper.getInboxItems(ownerUID);
               inboxCount.value = inbox.length;
               rebuildInbox.value = true;

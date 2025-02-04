@@ -1,8 +1,10 @@
 //This is a collection of services for working with openRAL
 //It has to work online and offline, so we have to use Hive to store templates
 import 'dart:convert';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:json_path/json_path.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/repositories/initial_data.dart';
@@ -35,7 +37,7 @@ dynamic getCloudConnectionProperty(String domain, connectorType, property) {
     Map<String, dynamic> subConnector = Map<String, dynamic>.from(
         cloudConnectors[domain]!["linkedObjects"].firstWhere(
             (subConnector) => subConnector["role"] == connectorType));
-    //gewünschte Eigenschaft lesen
+    //read requested property
     rObject = getSpecificPropertyfromJSON(subConnector, property);
   } catch (e) {
     debugPrint(
@@ -88,45 +90,6 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
   }
 
   return json;
-}
-
-//! 3.#######  getters for working with openRAL objects ############
-
-Future<Map<String, dynamic>> getRALObjectFromDomain(
-    String domain, String objectUID) async {
-  Map<String, dynamic> returnObject = {};
-  if (cloudConnectors.isEmpty) getCloudConnectors();
-
-  String? dscMetadataUrl;
-  String dscMetadataUuidField =
-      "databaseID"; //ToDo: this is permarobotics specific - read from object connector
-  String dscMetadataEndpoint =
-      "getSensorInfo"; //ToDo: this is permarobotics specific - read from object connector
-
-  if (domain != "") {
-    dscMetadataUrl = getCloudConnectionProperty(
-        domain, "cloudFunctionsConnector", dscMetadataEndpoint)["url"];
-    debugPrint("url is $dscMetadataUrl");
-
-//ToDo: ÄNDERN, API KEY IM HEADER ÜBERMITTELN!!!!!
-
-    // var url2 =
-    //     '$dsc_metadata_url?${dsc_metadata_uuid_field}=${objectUID}?apiKey=${getCloudConnectionProperty("permarobotics.com", "cloudFunctionsConnector", "apiKey")}'; //databaseID
-    var url2 = '$dscMetadataUrl?$dscMetadataUuidField=$objectUID'; //databaseID
-    Uri uri2 = Uri.parse(url2);
-
-    var response2 = await http.get(uri2);
-    if (response2.statusCode == 200) {
-      returnObject = jsonDecode(response2.body)[0];
-    } else {
-      debugPrint("could not get object from domain $domain");
-      returnObject = {};
-    }
-  } else {
-    debugPrint("ERROR: no domain specified!");
-    returnObject = {};
-  }
-  return returnObject;
 }
 
 //Get object or method from local database
@@ -219,15 +182,49 @@ String getSpecificPropertyUnitfromJSON(
 
 //! 4.#########  setters for working with openRAL objects ########
 
-Future<Map<String, dynamic>> setObjectMethod(
-    Map<String, dynamic> objectMethod, bool markForSyncToCloud) async {
+Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
+    bool signMethod, bool markForSyncToCloud) async {
   //Make sure it gets a valid
   if (getObjectMethodUID(objectMethod) == "") {
-    setObjectMethodUID(objectMethod, uuid.v4());
+    throw ("ERROR: Object or Method has no UID!");
+  } else {
+    //***************  EXISTING OBJECT OR METHOD ***************
     if (objectMethod.containsKey("existenceStarts")) {
+      //EXISTING METHOD
       if (objectMethod["existenceStarts"] == null) {
         objectMethod["existenceStarts"] = DateTime
             .now(); //ToDo: Test: Can this be stored in Hive? Otherwise ISO8601 String!
+      }
+      //***************  EXISTING METHOD TO SIGN ***************
+      if (signMethod == true) {
+        //!DIGITAL SIGNATURE FOR AN EXISTING METHOD
+        //if state is finished, always sign complete method
+        //if is running and change container, it is an "inbox" method missing the container in io and oo
+        //if is running and change owner, it is an "inbox" method missing the owner in io and oo
+        //
+        String signingObject = "";
+        List<String> pathsToSign = ["\$"];
+        if ((objectMethod["methodState"] == "running") &&
+            (objectMethod["template"]["RALType"] == "changeContainer")) {
+          pathsToSign = [
+            //sale online process, new container not yet known
+            "\$.identity.UID",
+            "\$.inputObjects[?(@.role=='item')]",
+            //The new state of the item (with new container is not known at that time)
+          ];
+        }
+        signingObject = createSigningObject(pathsToSign, objectMethod);
+
+        final signature =
+            await digitalSignature.generateSignature(signingObject);
+        if (objectMethod["digitalSignatures"] == null) {
+          objectMethod["digitalSignatures"] = [];
+        }
+        objectMethod["digitalSignatures"].add({
+          "signature": signature,
+          "signerUID": FirebaseAuth.instance.currentUser?.uid,
+          "signedContent": ["\$"]
+        });
       }
     }
   }
@@ -237,16 +234,18 @@ Future<Map<String, dynamic>> setObjectMethod(
     //Remove unwanted role declaration of objects
   }
 
-  //!tag for syncing
+  //!tag for syncing with cloud
   if (markForSyncToCloud) objectMethod["needsSync"] = true;
 
+  //Local storage
   await localStorage.put(getObjectMethodUID(objectMethod), objectMethod);
+
+  // sync with cloud if tagged for this and device is connected to the internet
   var connectivityResult = await (Connectivity().checkConnectivity());
-  //if connected to the internet, immediately sync to cloud, otherwise it has just been synced and only needs local persistence
   if (objectMethod["needsSync"] != null) {
     if ((objectMethod["needsSync"] == true) &&
         (!connectivityResult.contains(ConnectivityResult.none))) {
-      await cloudSyncService.syncObjectsAndMethods('permarobotics.com');
+      await cloudSyncService.syncMethods('tracefoodchain.org');
     }
   }
   return objectMethod;
@@ -397,7 +396,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
           oDoc["methodHistoryRef"]
               .add({"UID": methodUID, "RALType": methodRALType});
 
-          await setObjectMethod(oDoc, true);
+          await setObjectMethod(oDoc, false, true);
         } else {
           debugPrint("Eintrag $methodUID existiert schon in Methodhistory");
         }
@@ -405,7 +404,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
         debugPrint("Knoten MethodHistory existiert noch nicht in $uid");
         oDoc["methodHistoryRef"] = {"UID": methodUID, "RALType": methodRALType};
 
-        await setObjectMethod(oDoc, true);
+        await setObjectMethod(oDoc, false, true);
       }
     }
   }
@@ -480,4 +479,63 @@ Future<Map<String, dynamic>> getContainerByAlternateUID(String uid) async {
   }
 
   return rDoc;
+}
+
+String createSigningObject(
+    List<String> pathsToSign, Map<String, dynamic> objectMethod) {
+  List<dynamic> partsToSign = [];
+  for (String path in pathsToSign) {
+    if (!path.startsWith("\$.") && (path != "\$")) {
+      path = "\$.$path";
+    }
+    JsonPath? jp;
+    try {
+      jp = JsonPath(path);
+    } catch (e) {
+      print(e);
+    }
+    final matches = jp!.read(objectMethod);
+    if (matches.isNotEmpty) {
+      if (matches.first.value is Map) {
+        Map<String, dynamic> valueMap =
+            Map<String, dynamic>.from(matches.first.value as Map);
+        valueMap.forEach((key, value) {
+          if (value is DateTime) {
+            valueMap[key] = value.toIso8601String();
+          } else if (value is GeoPoint) {
+            valueMap[key] = {
+              "latitude": value.latitude,
+              "longitude": value.longitude
+            };
+          }
+        });
+        partsToSign.add(Map<String, dynamic>.from(valueMap as Map));
+      } else if (matches.first.value is List) {
+        if (matches.first.value != null && matches.first.value is Iterable) {
+          for (final item in matches.first.value as Iterable) {
+            Map<String, dynamic> valueMap =
+                Map<String, dynamic>.from(item as Map);
+            valueMap.forEach((key, value) {
+              if (value is DateTime) {
+                valueMap[key] = value.toIso8601String();
+              } else if (value is GeoPoint) {
+                valueMap[key] = {
+                  "latitude": value.latitude,
+                  "longitude": value.longitude
+                };
+              }
+            });
+            partsToSign.add(valueMap);
+          }
+        }
+      }
+    }
+  }
+  try {
+    //ToDO: We need to convert DateTime to isostring and geopoint to a map before serializing
+    final rstring = jsonEncode(partsToSign);
+  } catch (e) {
+    print(e);
+  }
+  return jsonEncode(partsToSign);
 }

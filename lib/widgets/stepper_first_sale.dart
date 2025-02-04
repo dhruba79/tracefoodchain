@@ -7,6 +7,7 @@ import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
+import 'package:uuid/uuid.dart';
 import '../services/service_functions.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -630,7 +631,24 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
     receivingContainer["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
-    receivingContainer = await setObjectMethod(receivingContainer, true);
+
+    final addItem = await getOpenRALTemplate("generateDigitalSibling");
+    //Add Executor
+    addItem["executor"] = appUserDoc!;
+    addItem["methodState"] = "finished";
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(addItem, const Uuid().v4());
+    //Step 2: save the objects a first time to get it the method history change
+    await setObjectMethod(receivingContainer, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(addItem, receivingContainer, "item");
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
+    await updateMethodHistories(addItem);
+    //Step 5: persist process
+    await setObjectMethod(addItem, true, true); //sign it!
+
+    receivingContainer =
+        await getObjectMethod(getObjectMethodUID(receivingContainer));
   }
   debugPrint("generated container ${getObjectMethodUID(receivingContainer)}");
 
@@ -643,7 +661,23 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   if (getObjectMethodUID(field) == "") {
     field["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
-    field = await setObjectMethod(field, true);
+
+    final addItem = await getOpenRALTemplate("generateDigitalSibling");
+    //Add Executor
+    addItem["executor"] = appUserDoc!;
+    addItem["methodState"] = "finished";
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(addItem, const Uuid().v4());
+    //Step 2: save the objects a first time to get it the method history change
+    await setObjectMethod(field, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(addItem, field, "item");
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
+    await updateMethodHistories(addItem);
+    //Step 5: persist process
+    await setObjectMethod(addItem, true, true); //sign it!
+
+    field = await getObjectMethod(getObjectMethodUID(field));
   }
   debugPrint("generated field ${getObjectMethodUID(field)}");
 
@@ -655,7 +689,23 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   if (getObjectMethodUID(seller) == "") {
     seller["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
-    seller = await setObjectMethod(seller, true);
+
+    final addItem = await getOpenRALTemplate("generateDigitalSibling");
+    //Add Executor
+    addItem["executor"] = appUserDoc!;
+    addItem["methodState"] = "finished";
+    //Step 1: get method an uuid (for method history entries)
+    setObjectMethodUID(addItem, const Uuid().v4());
+    //Step 2: save the objects a first time to get it the method history change
+    await setObjectMethod(seller, false, false);
+    //Step 3: add the output objects with updated method history to the method
+    addOutputobject(addItem, seller, "item");
+    //Step 4: update method history in all affected objects (will also tag them for syncing)
+    await updateMethodHistories(addItem);
+    //Step 5: persist process
+    await setObjectMethod(addItem, true, true); //sign it!
+
+    seller = await getObjectMethod(getObjectMethodUID(seller));
   }
   debugPrint("generated seller ${getObjectMethodUID(seller)}");
 
@@ -677,7 +727,22 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       "qualityState",
       saleInfo.coffeeInfo!.qualityReductionCriteria,
       "stringlist"); //ToDo Check!
-  coffee = await setObjectMethod(coffee, true);
+
+  final addItem = await getOpenRALTemplate("generateDigitalSibling");
+  //Add Executor
+  addItem["executor"] = appUserDoc!;
+  addItem["methodState"] = "finished";
+  //Step 1: get method an uuid (for method history entries)
+  setObjectMethodUID(addItem, const Uuid().v4());
+  //Step 2: save the objects a first time to get it the method history change
+  await setObjectMethod(coffee, false, false);
+  //Step 3: add the output objects with updated method history to the method
+  addOutputobject(addItem, coffee, "item");
+  //Step 4: update method history in all affected objects (will also tag them for syncing)
+  await updateMethodHistories(addItem);
+  //Step 5: persist process
+  await setObjectMethod(addItem, true, true); //sign it!
+
   debugPrint("generated harvest ${getObjectMethodUID(coffee)}");
 
   //********* B. Generate process "transfer_ownership" (selling process) *********
@@ -688,24 +753,25 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   transfer_ownership = addInputobject(transfer_ownership, coffee, "soldItem");
   transfer_ownership = addInputobject(transfer_ownership, seller, "seller");
   transfer_ownership = addInputobject(transfer_ownership, appUserDoc!, "buyer");
-  transfer_ownership =
-      addOutputobject(transfer_ownership, coffee, "boughtItem");
-  transfer_ownership["executor"] = seller;
-  transfer_ownership["methodState"] = "finished";
-  transfer_ownership = await setObjectMethod(transfer_ownership, true);
 
   //"execute method changeOwner"
   coffee["currentOwners"] = [
     {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
   ];
-  coffee = await setObjectMethod(coffee, true);
 
+  transfer_ownership["executor"] = seller;
+  transfer_ownership["methodState"] = "finished";
+  //Step 1: get method an uuid (for method history entries)
+  setObjectMethodUID(transfer_ownership, const Uuid().v4());
+  //Step 2: save the objects a first time to get it the method history change
+  await setObjectMethod(coffee, false, false);
+  //Step 3: add the output objects with updated method history to the method
+
+  addOutputobject(transfer_ownership, coffee, "boughtItem");
+  //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(transfer_ownership);
-
-  //Make sure the sold object is present in post-process form in method!
-  transfer_ownership =
-      addOutputobject(transfer_ownership, coffee, "boughtItem");
-  transfer_ownership = await setObjectMethod(transfer_ownership, true);
+  //Step 5: persist process
+  await setObjectMethod(transfer_ownership, true, true); //sign it!
 
   //******* C. Generate process "change_container" (put harvest into container) *********
   change_container = {};
@@ -721,19 +787,18 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   //"execute method changeLocation"
   coffee["currentGeolocation"]["container"]["UID"] =
       getObjectMethodUID(receivingContainer);
-  change_container = addOutputobject(change_container, coffee, "item");
 
   change_container["executor"] = appUserDoc!;
   change_container["methodState"] = "finished";
-  change_container = await setObjectMethod(change_container, true);
-
-  coffee = await setObjectMethod(coffee, true);
-
-  //an method histories  von field (Ernte), receiving container, coffee anhängen
+  //Step 1: get method an uuid (for method history entries)
+  setObjectMethodUID(change_container, const Uuid().v4());
+  //Step 2: save the objectsto get it the method history change
+  await setObjectMethod(coffee, false, false);
+  //Step 3: add the output objects with updated method history to the method
+  addOutputobject(change_container, coffee, "item");
+  //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(change_container);
-  //Make sure the sold object is present in post-process form in method!
-  change_container = addOutputobject(change_container, coffee, "item");
-  change_container = await setObjectMethod(change_container, true);
-
+  //Step 5: persist process
+  await setObjectMethod(change_container, true, true); //sign it!
   debugPrint("Transfer of ownership finished");
 }

@@ -32,7 +32,7 @@ class _AuthScreenState extends State<AuthScreen> {
         await _handleSuccessfulAuth(
             userCredential.user!, "Signed in successfully.");
       } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found') {
+        if (e.code == 'invalid-credential') {
           // If user is not found, try to create a new account
           try {
             UserCredential userCredential =

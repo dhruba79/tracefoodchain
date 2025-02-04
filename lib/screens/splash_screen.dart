@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trace_foodchain_app/helpers/fade_route.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
-import 'package:trace_foodchain_app/screens/role_selection_screen.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
 import 'package:trace_foodchain_app/screens/home_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
@@ -17,6 +17,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/data_loading_indicator.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:trace_foodchain_app/constants.dart';
+import 'package:uuid/uuid.dart';
 
 bool canResendEmail = true;
 
@@ -33,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _animation;
   bool _disposed = false;
   Timer? _verificationTimer;
+
   @override
   void initState() {
     super.initState();
@@ -110,25 +112,25 @@ class _SplashScreenState extends State<SplashScreen>
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        final l10n = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Email Verification'),
+          title: Text(l10n.emailVerification),
           content: SizedBox(
               height: 150,
-              child: const DataLoadingIndicator(
-                  text:
-                      'Waiting for email verification. Please check your inbox and confirm your email.',
+              child: DataLoadingIndicator(
+                  text: l10n.waitingForEmailVerification,
                   textColor: Colors.black54,
-                  spinnerColor: Color(0xFF35DB00))),
+                  spinnerColor: const Color(0xFF35DB00))),
           actions: <Widget>[
             if (canResendEmail)
               TextButton(
-                child: const Text('Send email again!'),
+                child: Text(l10n.resendEmail),
                 onPressed: () async {
                   await sendVerificationEmail();
                 },
               ),
             TextButton(
-              child: const Text('Sign out'),
+              child: Text(l10n.signOut),
               onPressed: () async {
                 _signOut();
               },
@@ -168,6 +170,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future sendVerificationEmail() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final user = FirebaseAuth.instance.currentUser!;
       await user.sendEmailVerification();
@@ -180,9 +183,7 @@ class _SplashScreenState extends State<SplashScreen>
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-        "Error sending email $e",
-      )));
+          content: Text(l10n.errorSendingEmailWithError + " " + e.toString())));
     }
   }
 
@@ -195,13 +196,13 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
-      await cloudSyncService.syncOpenRALTemplates('permarobotics.com');
+      await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
-      // sync objects and methods (includes cloudconnectors)
+      // sync all non-open-ral methods with it's clouds on startup
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
-          await cloudSyncService.syncObjectsAndMethods(cloudKey);
+          await cloudSyncService.syncMethods(cloudKey);
         }
       }
       cloudConnectors =
@@ -220,7 +221,22 @@ class _SplashScreenState extends State<SplashScreen>
       }
     }
 
-    if (appUserDoc == null) {
+       // Check if private key exists, if not generate new keypair
+    final privateKey = await keyManager.getPrivateKey();
+    if (privateKey == null) {
+      debugPrint("No private key found - generating new keypair...");
+      final success = await keyManager.generateAndStoreKeys();
+      if (!success) {
+        debugPrint("WARNING: Failed to initialize key management!");
+        secureCommunicationEnabled = false;
+      }
+    } else {
+      debugPrint("Found existing private key");
+      secureCommunicationEnabled = true;
+    }
+
+    if (1 == 1) {//! DEBUG ONLY, REMOVE!!!
+    // if (appUserDoc == null) {
       //User profile does not yet exist
       debugPrint(
           "user profile not found in local database - creating new one...");
@@ -230,7 +246,22 @@ class _SplashScreenState extends State<SplashScreen>
           newUser, "email", FirebaseAuth.instance.currentUser?.email, "String");
       newUser["email"] = FirebaseAuth.instance.currentUser
           ?.email; // Necessary to find the user later by email!
-      newUser = await setObjectMethod(newUser, true);
+
+      final addItem = await getOpenRALTemplate("generateDigitalSibling");
+      //Add Executor
+      addItem["executor"] = newUser;
+      addItem["methodState"] = "finished";
+      //Step 1: get method an uuid (for method history entries)
+      setObjectMethodUID(addItem, const Uuid().v4());
+      //Step 2: save the objects a first time to get it the method history change
+      await setObjectMethod(newUser, false, false);
+      //Step 3: add the output objects with updated method history to the method
+      addOutputobject(addItem, newUser, "item");
+      //Step 4: update method history in all affected objects (will also tag them for syncing)
+      await updateMethodHistories(addItem);
+      //Step 5: persist process
+      await setObjectMethod(addItem, true, true); //sign it!
+
       appUserDoc = await getObjectMethod(getObjectMethodUID(newUser));
     } else {
       //User mit dieser deviceId schon vorhanden.
@@ -256,12 +287,38 @@ class _SplashScreenState extends State<SplashScreen>
       appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
       appUserDoc =
           setSpecificPropertyJSON(appUserDoc!, "userRole", 'Trader', "String");
-      appUserDoc = await setObjectMethod(appUserDoc!, true);
+
+      //ToDo: addEditItem Method instead of just setObjectMethod
+      appUserDoc = await setObjectMethod(appUserDoc!, false, true);
     }
+
+ 
     //  else {
-    Navigator.of(context).pushReplacement(
-      FadeRoute(builder: (_) => const HomeScreen()),
-    );
+
+    if (secureCommunicationEnabled == false) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          final l10n = AppLocalizations.of(context)!;
+          return AlertDialog(
+            title: Text(l10n.securityError),
+            content: Text(l10n.securityErrorMessage),
+            actions: <Widget>[
+              TextButton(
+                child: Text(l10n.closeApp),
+                onPressed: () =>
+                    Navigator.of(context).pop(() => SystemNavigator.pop()),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        FadeRoute(builder: (_) => const HomeScreen()),
+      );
+    }
     // }
   }
 

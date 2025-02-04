@@ -3,7 +3,7 @@ description: Trace Foodchains App for the diasca project
 
 publish_to: 'none'
 
-version: 1.0.9+8
+version: 1.2.0+9
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -46,6 +46,11 @@ dependencies:
   flutter_local_notifications: ^17.2.3
   flutter_dotenv: ^5.1.0
   device_preview: ^1.2.0
+  # encrypt: ^5.0.3
+  flutter_secure_storage: ^9.2.4
+  cryptography: ^2.7.0
+  encrypt: ^5.0.3
+  json_path: ^0.7.5
 
   # flutter_test: any
   # path: any

@@ -254,6 +254,14 @@
       }
     }
   },
+  "errorSendingEmailWithError": "Error sending email",
+  "signOut": "Sign out",
+  "resendEmail": "Resend email!",
+  "waitingForEmailVerification": "Waiting for email verification. Please check your inbox and confirm your email.",
+  "emailVerification": "Email verification",
+  "securityError": "Security error",
+  "securityErrorMessage":"We could not generate the setup for digital signage. Please try again later making sure you have internet connection.",
+  "closeApp" : "Close App", 
   "uidAlreadyExists": "This ID already exists, please chose another one",
   "selectItemToSell": "Please select an item to sell",
   "debugDeleteContainer": "Delete container (Debug)",
@@ -348,5 +356,18 @@
   "buttonStart": "START!",
   "buttonBack": "BACK",
   "locationPermissionsDenied": "Location permissions are denied",
-  "locationPermissionsPermanentlyDenied": "Location permissions are permanently denied"
+  "locationPermissionsPermanentlyDenied": "Location permissions are permanently denied",
+  "errorSyncToCloud": "Error syncing data to cloud",
+  "errorBadRequest": "Server Error: Bad Request - Invalid data or incorrect digital signature",
+  "errorMergeConflict": "Server Error: Merge Conflict - Data exists in different versions",
+  "errorServiceUnavailable": "Server Error: Service Unavailable",
+  "errorUnauthorized": "Server Error: Unauthorized",
+  "errorForbidden": "Server Error: Forbidden",
+  "errorNotFound": "Server Error: Not Found",
+  "errorInternalServerError": "Server Error: Internal Server Error", 
+  "errorGatewayTimeout": "Server Error: Gateway Timeout",
+  "errorUnknown":"Unknown error",
+  "errorNoCloudConnectionProperties":"No cloud connection properties found",
+  "syncToCloudSuccessful":"Sync to cloud successful" 
+
 }
