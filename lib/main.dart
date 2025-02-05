@@ -14,7 +14,6 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:trace_foodchain_app/debug/test_signature.dart';
 import 'package:trace_foodchain_app/firebase_options.dart';
 import 'package:trace_foodchain_app/helpers/digital_signature.dart';
 import 'package:trace_foodchain_app/helpers/key_management.dart';

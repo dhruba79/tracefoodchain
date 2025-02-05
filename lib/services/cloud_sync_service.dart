@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
+import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
@@ -112,9 +113,11 @@ class CloudApiClient {
       urlString = getCloudConnectionProperty(
         domain,
         "cloudFunctionsConnector",
-        "syncObjectsMethodsFromCloud",
+        "syncFromCloud",
       )["url"];
     } catch (e) {
+      debugPrint("Error getting cloud connection property 'syncObjectsMethodsFromCloud': $e");
+
       return {};
     }
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
@@ -188,6 +191,7 @@ class CloudSyncService {
           if (doc2["needsSync"] != null) {
             doc2.remove("needsSync"); //!need to avoid needsSync being in the Hash!
           }
+
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
 
@@ -201,6 +205,7 @@ class CloudSyncService {
 
           final String hash = generateStableHash(doc2);
           final String uid = getObjectMethodUID(doc2);
+
           deviceHashes["methodHashTable"].add({"UID": uid, "hash": hash});
         }
       }
@@ -292,13 +297,20 @@ class CloudSyncService {
       // Fusioniere die beiden Listen "ralMethods" und "ralObjects" zu einer final mergedList
       List<dynamic> mergedList = [];
       if (cloudData.containsKey("ralMethods") && cloudData["ralMethods"] is List) {
+        debugPrint("Got ${cloudData["ralMethods"].length} updated methods from cloud");
+
         mergedList.addAll(cloudData["ralMethods"]);
       }
       if (cloudData.containsKey("ralObjects") && cloudData["ralObjects"] is List) {
+        debugPrint("Got ${cloudData["ralObjects"].length} updated objects from cloud");
+
         mergedList.addAll(cloudData["ralObjects"]);
       }
       for (final item in mergedList) {
         final docData = Map<String, dynamic>.from(item);
+
+        //debugPrint(jsonEncode(docData));
+
         await setObjectMethod(docData, false, false);
       }
       //
@@ -345,14 +357,21 @@ String generateStableHash(Map<String, dynamic> docData) {
 
   valueMap = convertToJson(valueMap); //Replace Datetime and GeoPoint with JSON objects
 
+  //Sort alphabetically to ensure getting the same hash for the same data
+  valueMap = sortJsonAlphabetically(valueMap);
+
   final jsonString = jsonEncode(valueMap);
 
-  //debugPrint("JSON String: '$jsonString'");
+  final String uid = getObjectMethodUID(docData);
+
+  //debugPrint("JSON String for Hash: '$jsonString'");
 
   final bytes = utf8.encode(jsonString);
 
   // debugPrint("Bytes Length: ${bytes.length}");
   // debugPrint("First 10 Bytes: ${bytes.sublist(0, 10)}");
 
-  return sha256.convert(bytes).toString();
+  final hashStr = sha256.convert(bytes).toString();
+
+  return hashStr;
 }
