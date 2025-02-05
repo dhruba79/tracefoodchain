@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:trace_foodchain_app/main.dart';
@@ -70,8 +69,7 @@ class DatabaseHelper {
     return rstring;
   }
 
-  Future<String> updateDeliveryStatus(
-      Map<String, dynamic> harvests, String newStatus) async {
+  Future<String> updateDeliveryStatus(Map<String, dynamic> harvests, String newStatus) async {
     String rstring = "";
     //ToDo: Missing
     return rstring;
@@ -108,17 +106,14 @@ class DatabaseHelper {
     List<Map<String, dynamic>> rList = [];
     debugPrint("getting containers owned by $ownerUID");
     for (var doc in localStorage.values) {
-      if (["bag", "container", "building", "transportVehicle"]
-          .contains(doc["template"]["RALType"])) {
+      if (["bag", "container", "building", "transportVehicle"].contains(doc["template"]["RALType"])) {
         //ToDo: get a dynamic list of what is a container
         final currentOwners = doc["currentOwners"];
         for (var owner in currentOwners) {
           if (owner["UID"] == ownerUID) {
             //Check if it is not nested within other containers!
-            if ((doc["currentGeolocation"]["container"]["UID"] == "") ||
-                (doc["currentGeolocation"]["container"]["UID"] == "unknown")) {
-              debugPrint(
-                  "found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
+            if ((doc["currentGeolocation"]["container"]["UID"] == "") || (doc["currentGeolocation"]["container"]["UID"] == "unknown")) {
+              debugPrint("found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
               Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
               rList.add(doc2);
               break;
@@ -136,18 +131,16 @@ class DatabaseHelper {
     debugPrint("getting inbox items for $ownerUID");
     for (var doc in localStorage.values) {
       if (doc["currentGeolocation"] != null) {
-        final currentOwnerIncomingUID =
-            doc["currentGeolocation"]["container"]["UID"];
+        final currentOwnerIncomingUID = doc["currentGeolocation"]["container"]["UID"];
 
         bool isOwner = false;
         if (doc.containsKey("currentOwners") && doc["currentOwners"] is List) {
-          isOwner = (doc["currentOwners"] as List)
-              .any((owner) => owner["UID"] == ownerUID);
+          isOwner = (doc["currentOwners"] as List).any((owner) => owner["UID"] == ownerUID);
         }
 
-        if (isOwner && currentOwnerIncomingUID == "") {//if user is owner and container is empty => inbox
-          debugPrint(
-              "found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
+        if (isOwner && currentOwnerIncomingUID == "") {
+          //if user is owner and container is empty => inbox
+          debugPrint("found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
           Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
           rList.add(doc2);
           break;
@@ -158,8 +151,7 @@ class DatabaseHelper {
     return rList;
   }
 
-  Future<List<Map<String, dynamic>>> getNestedContainedItems(
-      String containerUID) async {
+  Future<List<Map<String, dynamic>>> getNestedContainedItems(String containerUID) async {
     Set<String> processedContainers = {};
     List<Map<String, dynamic>> allItems = [];
 
@@ -182,8 +174,7 @@ class DatabaseHelper {
     return allItems;
   }
 
-  Future<List<Map<String, dynamic>>> getContainedItems(
-      String containerUID) async {
+  Future<List<Map<String, dynamic>>> getContainedItems(String containerUID) async {
     List<Map<String, dynamic>> rList = [];
     for (var doc in localStorage.values) {
       try {
@@ -200,8 +191,7 @@ class DatabaseHelper {
 
   Future<Map<String, dynamic>> getFirstSale(Map<String, dynamic> coffee) async {
     Map<String, dynamic> rstring = {};
-    final firstSaleUID = coffee["methodHistoryRef"]
-        .firstWhere((method) => method["RALType"] == "changeContainer")["UID"];
+    final firstSaleUID = coffee["methodHistoryRef"].firstWhere((method) => method["RALType"] == "changeContainer")["UID"];
     final firstSale = await getObjectMethod(firstSaleUID);
     Map<String, dynamic> doc2 = Map<String, dynamic>.from(firstSale);
     rstring = firstSale;
@@ -220,15 +210,13 @@ class DatabaseHelper {
     return rstring;
   }
 
-  Future<List<Map<String, dynamic>>> buyHarvest(
-      Map<String, dynamic> harvest, double quantity, price) async {
+  Future<List<Map<String, dynamic>>> buyHarvest(Map<String, dynamic> harvest, double quantity, price) async {
     List<Map<String, dynamic>> rstring = [];
     //ToDo: Missing
     return rstring;
   }
 
-  Future<List<Map<String, dynamic>>> sellHarvest(
-      Map<String, dynamic> harvest, double quantity, price) async {
+  Future<List<Map<String, dynamic>>> sellHarvest(Map<String, dynamic> harvest, double quantity, price) async {
     List<Map<String, dynamic>> rstring = [];
     //ToDo: Missing
     //1. get openRAL template of
@@ -241,8 +229,7 @@ class DatabaseHelper {
     return rstring;
   }
 
-  Future<List<Map<String, dynamic>>> insertContainer(
-      Map<String, dynamic> container) async {
+  Future<List<Map<String, dynamic>>> insertContainer(Map<String, dynamic> container) async {
     List<Map<String, dynamic>> rstring = [];
     //ToDo: Missing
     return rstring;
@@ -261,6 +248,9 @@ String formatTimestamp(dynamic timestamp) {
   }
 }
 
+/// Converts parts of the object to a format that can be encoded to JSON
+/// e.g. DateTime is converted to ISO8601 string
+/// GeoPoint is converted to a map with latitude and longitude
 dynamic convertToJson(dynamic firestoreObj) {
   if (firestoreObj is List) {
     return firestoreObj.map((item) => convertToJson(item)).toList();
@@ -268,17 +258,11 @@ dynamic convertToJson(dynamic firestoreObj) {
     final Map<String, dynamic> convertedObj = {};
     firestoreObj.forEach((key, value) {
       if (value is Timestamp) {
-        convertedObj[key] = {
-          '_seconds': value.seconds,
-          '_nanoseconds': value.nanoseconds
-        };
+        convertedObj[key] = {'_seconds': value.seconds, '_nanoseconds': value.nanoseconds};
       } else if (value is DateTime) {
         convertedObj[key] = value.toIso8601String();
       } else if (value is GeoPoint) {
-        convertedObj[key] = {
-          '_latitude': value.latitude,
-          '_longitude': value.longitude
-        };
+        convertedObj[key] = {'latitude': value.latitude, 'longitude': value.longitude};
       } else {
         convertedObj[key] = convertToJson(value);
       }
@@ -299,12 +283,9 @@ dynamic convertToFirestore(dynamic jsonObj) {
     final Map<String, dynamic> convertedObj = {};
     jsonObj.forEach((key, value) {
       if (value is Map && hasTwoKeys(value)) {
-        if (value.containsKey('_seconds') &&
-            value.containsKey('_nanoseconds')) {
-          convertedObj[key] =
-              Timestamp(value['_seconds'], value['_nanoseconds']);
-        } else if (value.containsKey('_latitude') &&
-            value.containsKey('_longitude')) {
+        if (value.containsKey('_seconds') && value.containsKey('_nanoseconds')) {
+          convertedObj[key] = Timestamp(value['_seconds'], value['_nanoseconds']);
+        } else if (value.containsKey('_latitude') && value.containsKey('_longitude')) {
           convertedObj[key] = GeoPoint(value['_latitude'], value['_longitude']);
         } else {
           convertedObj[key] = convertToFirestore(value);

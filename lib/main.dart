@@ -1,34 +1,29 @@
 //! Generate new localisation: flutter gen-l10n
-
+import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:provider/provider.dart';
-import 'package:trace_foodchain_app/firebase_options.dart';
-import 'package:trace_foodchain_app/helpers/digital_signature.dart';
-import 'package:trace_foodchain_app/providers/app_state.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:camera/camera.dart';
 // import 'package:nfc_manager/nfc_manager.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/debug/test_signature.dart';
+import 'package:trace_foodchain_app/firebase_options.dart';
+import 'package:trace_foodchain_app/helpers/digital_signature.dart';
+import 'package:trace_foodchain_app/helpers/key_management.dart';
+import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/repositories/initial_data.dart';
 import 'package:trace_foodchain_app/screens/splash_screen.dart';
 import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 // import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
-import 'package:trace_foodchain_app/helpers/key_management.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-// Bedingte Imports für Web/Mobile
-import 'dart:html' if (dart.library.io) 'dart:io' show Platform;
-
-import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
 // import 'dart:html' as html;
 
@@ -39,7 +34,7 @@ late Map<String, Map<String, dynamic>> cloudConnectors;
 Map<String, dynamic>? appUserDoc;
 ValueNotifier<bool> repaintContainerList = ValueNotifier<bool>(false);
 ValueNotifier<bool> rebuildSpeedDial = ValueNotifier<bool>(false);
-bool  secureCommunicationEnabled = false;
+bool secureCommunicationEnabled = false;
 
 List<Map<String, dynamic>> inbox = [];
 ValueNotifier<int> inboxCount = ValueNotifier<int>(0);
@@ -91,8 +86,7 @@ ThemeData customTheme = ThemeData(
     surfaceTintColor: Colors.white,
 
     elevation: 0.0, // Shadow the AppBar casts
-    iconTheme:
-        IconThemeData(color: Colors.black54), // Color of icons in the AppBar
+    iconTheme: IconThemeData(color: Colors.black54), // Color of icons in the AppBar
   ),
 
   //* SWITCH
@@ -100,12 +94,10 @@ ThemeData customTheme = ThemeData(
     trackOutlineColor: WidgetStateProperty.resolveWith<Color>(
       (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
-          return Colors
-              .white; // Farbe der Umrandung, wenn der Schalter deaktiviert ist
+          return Colors.white; // Farbe der Umrandung, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return const Color(
-              0xFF35DB00); //  Farbe der Umrandung, wenn der Schalter aktiviert ist
+          return const Color(0xFF35DB00); //  Farbe der Umrandung, wenn der Schalter aktiviert ist
         }
         return Colors.white; // Standardfarbe  Farbe der Umrandung
       },
@@ -113,12 +105,10 @@ ThemeData customTheme = ThemeData(
     thumbColor: WidgetStateProperty.resolveWith<Color>(
       (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
-          return Colors
-              .grey; // Farbe des Schaltknopfes, wenn der Schalter deaktiviert ist
+          return Colors.grey; // Farbe des Schaltknopfes, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return const Color(
-              0xFF35DB00); // Farbe des Schaltknopfes, wenn der Schalter aktiviert ist
+          return const Color(0xFF35DB00); // Farbe des Schaltknopfes, wenn der Schalter aktiviert ist
         }
         return Colors.white; // Standardfarbe des Schaltknopfes
       },
@@ -131,8 +121,7 @@ ThemeData customTheme = ThemeData(
           //     0); // Farbe der Schalterspur, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return Colors
-              .white; // Farbe der Schalterspur, wenn der Schalter aktiviert ist
+          return Colors.white; // Farbe der Schalterspur, wenn der Schalter aktiviert ist
         }
         return Colors.black26;
         // Color.fromARGB(94, 55, 219, 0); // Standardfarbe der Schalterspur
@@ -155,8 +144,7 @@ ThemeData customTheme = ThemeData(
   buttonTheme: const ButtonThemeData(
     hoverColor: Colors.white24,
     buttonColor: Color(0xFF35DB00), // Background color (blue in this case)
-    textTheme: ButtonTextTheme
-        .primary, // Use the primary color for text (white by default)
+    textTheme: ButtonTextTheme.primary, // Use the primary color for text (white by default)
   ),
   // Style for text in buttons
 
@@ -255,13 +243,11 @@ void main() async {
   await Hive.initFlutter();
 
   //*Start accessing local data storage
-  localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
-      'localStorage'); //ToDo: 1 Hive DB per logged-in user
+  localStorage = await Hive.openBox<Map<dynamic, dynamic>>('localStorage'); //ToDo: 1 Hive DB per logged-in user
   // await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
 
   //*Start accessing local template storage
-  openRALTemplates =
-      await Hive.openBox<Map<dynamic, dynamic>>('openRALTemplates');
+  openRALTemplates = await Hive.openBox<Map<dynamic, dynamic>>('openRALTemplates');
   // await openRALTemplates.deleteFromDisk(); //DEBUG: DELETE TEMPLATE DATABASE
 
   //FIRST-EVER STARTUP OF APP: Add initial templates if they are not in the local database
@@ -273,8 +259,7 @@ void main() async {
     }
   }
 
-  cloudConnectors =
-      getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
+  cloudConnectors = getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
 
   final appState = AppState();
   await appState.initializeApp(); // Initialize locale
@@ -296,7 +281,6 @@ void main() async {
 Future<void> _initializeAppState(AppState appState) async {
   keyManager = KeyManager();
   digitalSignature = DigitalSignature();
-  
 
   // Check internet connectivity at startup
   debugPrint("checking connectivity on startup...");
@@ -363,8 +347,7 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
 
           // locale: DevicePreview.locale(context),
-          locale: appState
-              .locale, // Re-enable this line to use the locale from the appState
+          locale: appState.locale, // Re-enable this line to use the locale from the appState
           builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [
