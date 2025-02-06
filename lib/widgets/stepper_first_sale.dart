@@ -626,6 +626,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   receivingContainer = await getObjectOrGenerateNew(
       saleInfo.receivingContainerUID!, [containerType], "alternateUid");
   if (getObjectMethodUID(receivingContainer) == "") {
+    setObjectMethodUID(receivingContainer, const Uuid().v4());
     receivingContainer["identity"]["alternateIDs"]
         .add({"UID": saleInfo.receivingContainerUID, "issuedBy": "owner"});
     receivingContainer["currentOwners"] = [
@@ -659,6 +660,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       await getObjectOrGenerateNew(saleInfo.geoId!, ["field"], "alternateUid");
 
   if (getObjectMethodUID(field) == "") {
+     setObjectMethodUID(field, const Uuid().v4());
     field["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
 
@@ -687,6 +689,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       saleInfo.geoId!, ["company"], "alternateUid");
   //ToDo: Would be better to have company information
   if (getObjectMethodUID(seller) == "") {
+    setObjectMethodUID(seller, const Uuid().v4());
     seller["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
 
@@ -712,6 +715,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   // 3. Generate process "coffee" and put information of the coffee into
   coffee = {};
   coffee = await getOpenRALTemplate("coffee");
+  setObjectMethodUID(coffee, const Uuid().v4());
   coffee = setSpecificPropertyJSON(
       coffee, "species", saleInfo.coffeeInfo!.species, "String");
   coffee = setSpecificPropertyJSON(

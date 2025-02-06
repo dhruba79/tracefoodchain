@@ -369,6 +369,11 @@
   "errorGatewayTimeout": "Erreur serveur : Délai d'attente de la passerelle",
   "errorUnknown": "Erreur inconnue",
   "errorNoCloudConnectionProperties": "Aucune propriété de connexion au cloud trouvée",
-  "syncToCloudSuccessful": "Synchronisation vers le cloud réussie"
+  "syncToCloudSuccessful": "Synchronisation vers le cloud réussie",
+    "testModeActive": "Mode test activé",
+    "dataMode": "Mode de données",
+    "testMode": "Mode test",
+    "realMode": "Mode de production",
+    "nologoutpossible": "Déconnexion possible uniquement lorsqu'une connexion Internet est établie"
   
 }

@@ -369,5 +369,10 @@
   "errorGatewayTimeout": "Error del servidor: Tiempo de espera en la puerta de enlace",
   "errorUnknown": "Error desconocido",
   "errorNoCloudConnectionProperties": "No se encontraron propiedades de conexión a la nube",
-  "syncToCloudSuccessful": "Sincronización con la nube exitosa"
+  "syncToCloudSuccessful": "Sincronización con la nube exitosa",
+    "testModeActive": "Modo de prueba activo",
+    "dataMode": "Modo de datos",
+    "testMode": "Modo de prueba",
+    "realMode": "Modo de producción",
+    "nologoutpossible": "Cerrar sesión solo es posible cuando está conectado a internet"
 }

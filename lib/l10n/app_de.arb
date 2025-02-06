@@ -361,5 +361,10 @@
   "errorGatewayTimeout": "Serverfehler: Gateway-Timeout",
   "errorUnknown": "Unbekannter Fehler",
   "errorNoCloudConnectionProperties": "Keine Cloud-Verbindungsdaten gefunden",
-  "syncToCloudSuccessful": "Synchronisierung mit der Cloud erfolgreich"
+  "syncToCloudSuccessful": "Synchronisierung mit der Cloud erfolgreich",
+    "testModeActive": "Testmodus aktiv",
+    "dataMode": "Datenmodus",
+    "testMode": "Testmodus",
+    "realMode": "Produktionsmodus",
+    "nologoutpossible": "Abmelden ist nur möglich, wenn eine Internetverbindung besteht"
 }

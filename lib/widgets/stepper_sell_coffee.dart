@@ -7,6 +7,7 @@ import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
+import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
 import 'package:uuid/uuid.dart';
@@ -268,8 +269,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         //no executor change here - is prefilled from buyer
 
 //Step 1: get method an uuid (for method history entries)
-                        setObjectMethodUID(
-                            change_container, const Uuid().v4());
+                        setObjectMethodUID(change_container, const Uuid().v4());
                         //Step 2: save the objectsto get it the method history change
                         await setObjectMethod(coffee, false, false);
                         //Step 3: add the output objects with updated method history to the method
@@ -754,12 +754,15 @@ Future<Map<String, dynamic>> getObjectOrGenerateNew(
       .toList();
   for (dynamic candidate in candidates) {
     Map<String, dynamic> candidate2 = Map<String, dynamic>.from(candidate);
+    bool allow = false;
+    if ((isTestmode && candidate2.containsKey("isTestmode")) ||
+        (!isTestmode && !candidate2.containsKey("isTestmode"))) allow = true;
     switch (field) {
       case "uid":
-        if (candidate2["identity"]["UID"] == uid) rDoc = candidate2;
+        if (candidate2["identity"]["UID"] == uid && allow) rDoc = candidate2;
         break;
       case "alternateUid":
-        if (candidate2["identity"]["alternateIDs"].length != 0) {
+        if (candidate2["identity"]["alternateIDs"].length != 0 && allow) {
           if (candidate2["identity"]["alternateIDs"][0]["UID"] == uid) {
             rDoc = candidate2;
           }

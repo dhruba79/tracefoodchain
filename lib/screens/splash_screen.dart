@@ -229,14 +229,14 @@ class _SplashScreenState extends State<SplashScreen>
       if (!success) {
         debugPrint("WARNING: Failed to initialize key management!");
         secureCommunicationEnabled = false;
-      }
+      } else {secureCommunicationEnabled = true;}
     } else {
       debugPrint("Found existing private key");
       secureCommunicationEnabled = true;
     }
 
-    if (1 == 1) {//! DEBUG ONLY, REMOVE!!!
-    // if (appUserDoc == null) {
+    // if (1 == 1) {//! DEBUG ONLY, REMOVE!!!
+    if (appUserDoc == null) {
       //User profile does not yet exist
       debugPrint(
           "user profile not found in local database - creating new one...");

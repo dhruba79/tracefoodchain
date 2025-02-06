@@ -10,6 +10,7 @@ import 'package:json_path/json_path.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/repositories/initial_data.dart';
+import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:uuid/uuid.dart';
 
 var uuid = const Uuid();
@@ -229,6 +230,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod, 
     //Remove unwanted role declaration of objects
   }
 
+
   //!tag for syncing with cloud
   if (markForSyncToCloud) objectMethod["needsSync"] = true;
 
@@ -249,6 +251,11 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod, 
 Map<String, dynamic> setObjectMethodUID(Map<String, dynamic> objectMethod, String uid) {
   Map<String, dynamic> rMap = objectMethod;
   objectMethod["identity"]["UID"] = uid;
+
+    // Tag dependent on isTestmode
+  if (isTestmode){objectMethod["isTestmode"] = true;} 
+  //once marked as testdata, it will always stay test data
+  
   return rMap;
 }
 

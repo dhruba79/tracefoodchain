@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/models/harvest_model.dart';
+import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 
 class DatabaseHelper {
@@ -115,6 +116,7 @@ class DatabaseHelper {
             if ((doc["currentGeolocation"]["container"]["UID"] == "") || (doc["currentGeolocation"]["container"]["UID"] == "unknown")) {
               debugPrint("found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
               Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
+              if ((isTestmode && doc2.containsKey("isTestmode")) || (!isTestmode  && !doc2.containsKey("isTestmode")))
               rList.add(doc2);
               break;
             }
@@ -142,6 +144,7 @@ class DatabaseHelper {
           //if user is owner and container is empty => inbox
           debugPrint("found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
           Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
+          if ((isTestmode && doc2.containsKey("isTestmode")) || (!isTestmode  && !doc2.containsKey("isTestmode")))
           rList.add(doc2);
           break;
         }
@@ -163,6 +166,7 @@ class DatabaseHelper {
 
       List<Map<String, dynamic>> items = await getContainedItems(uid);
       for (var item in items) {
+        if ((isTestmode && item.containsKey("isTestmode")) || (!isTestmode  && !item.containsKey("isTestmode")))
         allItems.add(item);
 
         String nestedContainerUID = item['identity']['UID'];
@@ -182,6 +186,7 @@ class DatabaseHelper {
 
         if (containerUID2 == containerUID) {
           Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
+          if ((isTestmode && doc2.containsKey("isTestmode")) || (!isTestmode  && !doc2.containsKey("isTestmode")))
           rList.add(doc2);
         }
       } catch (e) {}

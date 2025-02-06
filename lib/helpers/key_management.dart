@@ -42,7 +42,7 @@ class KeyManager {
     final encodedKey = base64Encode(privateKeyBytes);
     await _storage.write(key: 'private_key', value: encodedKey);
     debugPrint("Private key stored securely!");
-    print("Privater Schlüssel sicher gespeichert!");
+    // print("Privater Schlüssel sicher gespeichert!");
   }
 
   /// Ruft den privaten Schlüssel sicher aus dem Secure Storage ab

@@ -29,10 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Starte den Sync-Timer basierend auf cloudSyncFrequency
     _syncTimer = Timer.periodic(Duration(seconds: cloudSyncFrequency), (_) async {
       final appState = Provider.of<AppState>(context, listen: false);
-      if (appState.isConnected) {
+      if (appState.isConnected && appState.isAuthenticated) {
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
@@ -67,7 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context, int value, child) {
                   return Stack(
                     children: [
-                      Tooltip(message:l10n.inbox,//"Inbox",
+                      Tooltip(
+                        message: l10n.inbox, //"Inbox",
                         child: IconButton(
                           icon: const Icon(Icons.inbox),
                           onPressed: () => _navigateToInbox(context),
@@ -100,13 +100,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   );
                 }),
-           Tooltip(message:l10n.sendFeedback,//"Send Feedback",
+            Tooltip(
+              message: l10n.sendFeedback, //"Send Feedback",
               child: IconButton(
                 icon: const Icon(Icons.feedback),
                 onPressed: () => _launchFeedbackEmail(context),
               ),
             ),
-            Tooltip(message:l10n.settings,//"Settings",
+            Tooltip(
+              message: l10n.settings, //"Settings",
               child: IconButton(
                 icon: const Icon(Icons.settings),
                 onPressed: () => _navigateToSettings(context),
@@ -116,6 +118,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: Column(
           children: [
+            if (isTestmode)
+              Container(
+                width: double.infinity,
+                color: Colors.redAccent,
+                padding: const EdgeInsets.all(12),
+                child: Center(
+                  child: Text(
+                    l10n.testModeActive, // Lokalisierter Text, z. B. "Testmodus aktiv"
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
             const StatusBar(isSmallScreen: true),
             Expanded(
               child: Row(
@@ -277,7 +295,9 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    );
+    ).then((_) {
+      repaintContainerList.value = true;
+    });
   }
 
   void _navigateToInbox(BuildContext context) {

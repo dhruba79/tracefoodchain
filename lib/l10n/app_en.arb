@@ -368,6 +368,11 @@
   "errorGatewayTimeout": "Server Error: Gateway Timeout",
   "errorUnknown":"Unknown error",
   "errorNoCloudConnectionProperties":"No cloud connection properties found",
-  "syncToCloudSuccessful":"Sync to cloud successful" 
+  "syncToCloudSuccessful":"Sync to cloud successful",
+  "testModeActive": "Test mode active",
+  "dataMode" : "Data mode",
+  "testMode": "Test mode",
+  "realMode": "Production mode",
+  "nologoutpossible":"Logout only possible when connected to the internet"
 
 }

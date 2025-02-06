@@ -6,6 +6,10 @@ import 'package:trace_foodchain_app/helpers/fade_route.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
+import 'package:trace_foodchain_app/services/service_functions.dart';
+
+// Globale Variable zum Speichern des Modus
+bool isTestmode = false;
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -22,33 +26,50 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.settings)),
       body: ListView(
         children: [
-          // ListTile(
-          //     contentPadding: EdgeInsets.all(12),
-          //     leading: Icon(Icons.arrow_circle_right),
-          //     title: Text(l10n.changeRole),
-          //     onTap: () => Navigator.of(context).pushReplacement(
-          //           FadeRoute(builder: (_) => const RoleSelectionScreen()),
-          //         )),
-
+          // Neuer Switch zur Auswahl des Datenmodus (Test-/Echt-Modus)
+          StatefulBuilder(
+            builder: (context, setState) {
+              return SwitchListTile(
+                title: Text(
+                    l10n.dataMode), // Lokalisierter Titel, z. B. "Datenmodus"
+                subtitle: Text(isTestmode
+                    ? l10n.testMode
+                    : l10n.realMode), // z. B. "Testmodus" bzw. "Echtmodus"
+                value: isTestmode,
+                onChanged: (bool value) {
+                  setState(() {
+                    isTestmode = value;
+                  });
+                },
+              );
+            },
+          ),
           ListTile(
-              contentPadding: const EdgeInsets.all(12),
-              leading: const Icon(Icons.arrow_circle_right),
-              title: const Text("Log out"),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
+            contentPadding: const EdgeInsets.all(12),
+            leading: const Icon(Icons.arrow_circle_right),
+            title: const Text("Log out"),
+            onTap: appState.isConnected
+                ? () async {
+                    await FirebaseAuth.instance.signOut();
 
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('userId');
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('userId');
 
-                final appState = Provider.of<AppState>(context, listen: false);
-                appState.setAuthenticated(false);
-                appState.setEmailVerified(false);
+                    final appState =
+                        Provider.of<AppState>(context, listen: false);
+                    appState.setAuthenticated(false);
+                    appState.setEmailVerified(false);
 
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const AuthScreen()),
-                  (Route<dynamic> route) => false,
-                );
-              })
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const AuthScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  }
+                : () async {
+                    fshowInfoDialog(context, l10n.nologoutpossible);
+                  },
+          )
           // if (appState.userRole == 'Farmer') ...[
           //   ListTile(
           //     title: Text(l10n.changeFarmerId,
