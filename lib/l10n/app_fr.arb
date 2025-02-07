@@ -381,6 +381,8 @@
       "failedToInitializeKeyManagement": "ATTENTION : Échec de l'initialisation de la gestion des clés !",
       "newUserProfileNeeded": "Profil utilisateur non trouvé dans la base de données locale - création d'un nouveau...",
       "coffeeIsBought": "Le café est acheté",
-      "coffeeIsSold": "Le café est vendu"
+      "coffeeIsSold": "Le café est vendu",
+      "generatingItem": "Génération de l'article...",
+      "processing": "Traitement des données..."
   
 }

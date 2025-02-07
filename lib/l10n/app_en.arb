@@ -380,6 +380,7 @@
       "failedToInitializeKeyManagement": "WARNING: Failed to initialize key management!",
       "newUserProfileNeeded": "User profile not found in local database - creating new one...",
       "coffeeIsBought": "Coffee is bought",
-      "coffeeIsSold": "Coffee is sold"
-
+      "coffeeIsSold": "Coffee is sold",
+      "generatingItem": "Generating item...",
+      "processing": "Processing data..."
 }

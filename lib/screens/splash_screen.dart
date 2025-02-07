@@ -50,13 +50,14 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
     _initializeApp();
-    _initDeviceId();
   }
 
   @override
   void dispose() {
     _disposed = true;
     _controller.dispose();
+    super
+        .dispose(); 
   }
 
   Future<void> _initializeApp() async {
@@ -188,13 +189,13 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-Future<void> _navigateToNextScreen() async {
-  AppLocalizations? l10n;
-  while (l10n == null) {
-    await Future.delayed(const Duration(milliseconds: 100));
-    l10n = AppLocalizations.of(context);
-  }
-  // At this stage, we have to sync first with the cloud, e.g. to download an existing user doc!
+  Future<void> _navigateToNextScreen() async {
+    AppLocalizations? l10n;
+    while (l10n == null) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      l10n = AppLocalizations.of(context);
+    }
+    // At this stage, we have to sync first with the cloud, e.g. to download an existing user doc!
 
     final appState = Provider.of<AppState>(context, listen: false);
 
@@ -202,14 +203,14 @@ Future<void> _navigateToNextScreen() async {
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
-      snackbarMessageNotifier.value = l10n.syncingWith+ " open-ral.io";
+      snackbarMessageNotifier.value = l10n.syncingWith + " open-ral.io";
       await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
       // sync all non-open-ral methods with it's clouds on startup
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
-          snackbarMessageNotifier.value = l10n.syncingWith+ " $cloudKey";
+          snackbarMessageNotifier.value = l10n.syncingWith + " $cloudKey";
           await cloudSyncService.syncMethods(cloudKey);
         }
       }
@@ -234,12 +235,11 @@ Future<void> _navigateToNextScreen() async {
     if (privateKey == null) {
       debugPrint("No private key found - generating new keypair...");
       snackbarMessageNotifier.value = l10n.newKeypairNeeded;
-          "No private key found - generating new keypair...";
+      "No private key found - generating new keypair...";
       final success = await keyManager.generateAndStoreKeys();
       if (!success) {
         debugPrint("WARNING: Failed to initialize key management!");
-        snackbarMessageNotifier.value =
-            l10n.failedToInitializeKeyManagement;
+        snackbarMessageNotifier.value = l10n.failedToInitializeKeyManagement;
         secureCommunicationEnabled = false;
       } else {
         secureCommunicationEnabled = true;
@@ -253,10 +253,26 @@ Future<void> _navigateToNextScreen() async {
     // if (1 == 1) {//! DEBUG ONLY, REMOVE!!!
     if (appUserDoc == null) {
       //User profile does not yet exist
+      if (secureCommunicationEnabled) {
+        //Do we get one from cloud?
+        await cloudSyncService.syncMethods("tracefoodchain.org");
+        for (var doc in localStorage.values) {
+          if (doc['template'] != null &&
+              doc['template']["RALType"] == "human") {
+            final doc2 = Map<String, dynamic>.from(doc);
+
+            if (getObjectMethodUID(doc2) ==
+                FirebaseAuth.instance.currentUser!.uid) {
+              appUserDoc = doc2;
+              break;
+            }
+          }
+        }
+      }
+
       debugPrint(
           "user profile not found in local database - creating new one...");
-      snackbarMessageNotifier.value =
-          l10n.newUserProfileNeeded;
+      snackbarMessageNotifier.value = l10n.newUserProfileNeeded;
       Map<String, dynamic> newUser = await getOpenRALTemplate("human");
       newUser["identity"]["UID"] = FirebaseAuth.instance.currentUser?.uid;
       setSpecificPropertyJSON(
@@ -412,11 +428,13 @@ Future<void> _navigateToNextScreen() async {
             builder: (context, message, child) {
               if (message != null && message.isNotEmpty) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                    final snackBar = SnackBar(
-                    content: Text(message),//ToDo: localise
-                    duration: const Duration(seconds: 1), // Snackbar will auto-dismiss after 3 seconds
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  final snackBar = SnackBar(
+                    content: Text(message), //ToDo: localise
+                    duration: const Duration(
+                        seconds:
+                            1), // Snackbar will auto-dismiss after 3 seconds
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   snackbarMessageNotifier.value = "";
                 });
               }

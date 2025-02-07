@@ -51,12 +51,15 @@ dependencies:
   cryptography: ^2.7.0
   encrypt: ^5.0.3
   json_path: ^0.7.5
+  share_plus: ^10.1.4
+
 
   # flutter_test: any
   # path: any
   # flutter_gen: any
   # crypto: any
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.3
   build_runner: ^2.1.7
   hive_generator: ^2.0.1
   json_serializable: ^6.1.4
@@ -71,3 +74,22 @@ flutter:
     - .env
     - assets/images/
     - assets/flags/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/favicon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/images/favicon.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/images/favicon.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/favicon.png"

@@ -86,7 +86,8 @@ class CoffeeSaleStepper extends StatefulWidget {
 class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   int _currentStep = 0;
   SaleInfo saleInfo = SaleInfo();
-  bool _isProcessing = false; // Hinzugefügt
+  // Ersetze _isProcessing als bool durch einen ValueNotifier<bool>
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
 
   @override
   void initState() {
@@ -147,10 +148,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
         if (coffeeInfo != null) {
           saleInfo.coffeeInfo = coffeeInfo;
           if (widget.receivingContainerUID != null) {
-            // Show overlay before selling coffee
-            setState(() {
-              _isProcessing = true;
-            });
+            // Overlay vor dem Verkauf ohne setState
+            _isProcessing.value = true;
             String containerType = "container";
             dynamic container =
                 await getContainerByAlternateUID(widget.receivingContainerUID!);
@@ -158,9 +157,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
               containerType = container["template"]["RALType"];
             }
             await sellCoffee(saleInfo, containerType);
-            setState(() {
-              _isProcessing = false;
-            });
+            _isProcessing.value = false;
             Navigator.of(context).pop();
           } else {
             setState(() {
@@ -191,13 +188,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
               if (!container.isEmpty) {
                 containerType = container["template"]["RALType"];
               }
-              setState(() {
-                _isProcessing = true;
-              });
+              _isProcessing.value = true;
               await sellCoffee(saleInfo, containerType);
-              setState(() {
-                _isProcessing = false;
-              });
+              _isProcessing.value = false;
               Navigator.of(context).pop();
             }
           } else {
@@ -270,30 +263,36 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
             ),
           ),
         ),
-        // Overlay bei laufender Verarbeitung
-        if (_isProcessing)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(l10n.coffeeIsBought,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+        // Overlay bei laufender Verarbeitung per ValueListenableBuilder.
+        ValueListenableBuilder<bool>(
+          valueListenable: _isProcessing,
+          builder: (context, isProcessing, child) {
+            return isProcessing
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(l10n.coffeeIsBought,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
       ],
     );
   }

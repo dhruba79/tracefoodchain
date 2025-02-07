@@ -379,7 +379,9 @@
       "buttonNext": "WEITER",
       "buttonScan": "SCAN!",
       "buttonStart": "START!",
-      "buttonBack": "ZURÜCK"
+      "buttonBack": "ZURÜCK",
+      "generatingItem": "Artikel wird generiert...",
+      "processing": "Daten werden verarbeitet..."
 
 
 }

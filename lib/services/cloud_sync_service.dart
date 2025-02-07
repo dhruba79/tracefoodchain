@@ -7,6 +7,8 @@ import 'package:crypto/crypto.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
@@ -15,7 +17,7 @@ import 'package:trace_foodchain_app/screens/home_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
 import 'package:uuid/uuid.dart';
-import 'package:trace_foodchain_app/services/get_device_id.dart'; // Hinzugefügt
+import 'package:trace_foodchain_app/services/get_device_id.dart'; 
 
 class CloudApiClient {
   final String domain;
@@ -32,7 +34,7 @@ class CloudApiClient {
     }
 
     final publicKeyBase64 = base64Encode(publicKeyBytes);
-    final deviceId = await getDeviceId(); // Nutzt jetzt die externe Funktion
+    final deviceId = await getDeviceId(); 
     final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
 
     if (urlString != null && apiKey != null) {
@@ -290,6 +292,7 @@ class CloudSyncService {
                   // errorMessage
                   debugPrint("Error syncing method {$methodUid}: 400: " +
                       syncresult["responseDetails"].toString());
+                    // await Share.share(doc2.toString());
                   if (syncresult["responseDetails"]
                       .containsKey("invalidSignature")) {
                     Map<String, dynamic> conflictMethod =
