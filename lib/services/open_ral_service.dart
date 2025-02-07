@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_path/json_path.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
+import 'package:trace_foodchain_app/helpers/json_full_double_to_int.dart';
+import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/repositories/initial_data.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
@@ -230,7 +232,6 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod, 
     //Remove unwanted role declaration of objects
   }
 
-
   //!tag for syncing with cloud
   if (markForSyncToCloud) objectMethod["needsSync"] = true;
 
@@ -252,10 +253,12 @@ Map<String, dynamic> setObjectMethodUID(Map<String, dynamic> objectMethod, Strin
   Map<String, dynamic> rMap = objectMethod;
   objectMethod["identity"]["UID"] = uid;
 
-    // Tag dependent on isTestmode
-  if (isTestmode){objectMethod["isTestmode"] = true;} 
+  // Tag dependent on isTestmode
+  if (isTestmode) {
+    objectMethod["isTestmode"] = true;
+  }
   //once marked as testdata, it will always stay test data
-  
+
   return rMap;
 }
 
@@ -491,6 +494,10 @@ String createSigningObject(List<String> pathsToSign, Map<String, dynamic> object
       }
     }
   }
+
+  partsToSign = jsonFullDoubleToInt(partsToSign);
+  partsToSign = sortJsonAlphabetically(partsToSign);
+
   try {
     //ToDO: We need to convert DateTime to isostring and geopoint to a map before serializing
     final rstring = jsonEncode(partsToSign);
