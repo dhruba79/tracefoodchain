@@ -18,6 +18,7 @@ import 'package:trace_foodchain_app/widgets/data_loading_indicator.dart';
 import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:trace_foodchain_app/constants.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/scheduler.dart'; // Falls benötigt
 
 bool canResendEmail = true;
 
@@ -196,12 +197,14 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
+      snackbarMessageNotifier.value = "syncing openRAL";
       await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
       // sync all non-open-ral methods with it's clouds on startup
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
+          snackbarMessageNotifier.value = "initially syncing $cloudKey";
           await cloudSyncService.syncMethods(cloudKey);
         }
       }
@@ -221,17 +224,24 @@ class _SplashScreenState extends State<SplashScreen>
       }
     }
 
-       // Check if private key exists, if not generate new keypair
+    // Check if private key exists, if not generate new keypair
     final privateKey = await keyManager.getPrivateKey();
     if (privateKey == null) {
       debugPrint("No private key found - generating new keypair...");
+      snackbarMessageNotifier.value =
+          "No private key found - generating new keypair...";
       final success = await keyManager.generateAndStoreKeys();
       if (!success) {
         debugPrint("WARNING: Failed to initialize key management!");
+        snackbarMessageNotifier.value =
+            "WARNING: Failed to initialize key management!";
         secureCommunicationEnabled = false;
-      } else {secureCommunicationEnabled = true;}
+      } else {
+        secureCommunicationEnabled = true;
+      }
     } else {
       debugPrint("Found existing private key");
+
       secureCommunicationEnabled = true;
     }
 
@@ -240,6 +250,8 @@ class _SplashScreenState extends State<SplashScreen>
       //User profile does not yet exist
       debugPrint(
           "user profile not found in local database - creating new one...");
+      snackbarMessageNotifier.value =
+          "user profile not found in local database - creating new one...";
       Map<String, dynamic> newUser = await getOpenRALTemplate("human");
       newUser["identity"]["UID"] = FirebaseAuth.instance.currentUser?.uid;
       setSpecificPropertyJSON(
@@ -292,7 +304,6 @@ class _SplashScreenState extends State<SplashScreen>
       appUserDoc = await setObjectMethod(appUserDoc!, false, true);
     }
 
- 
     //  else {
 
     if (secureCommunicationEnabled == false) {
@@ -389,6 +400,20 @@ class _SplashScreenState extends State<SplashScreen>
             bottom: 16,
             left: 16,
             child: StatusBar(isSmallScreen: false),
+          ),
+          // Neuer ValueListenableBuilder zur Anzeige des Snackbars:
+          ValueListenableBuilder<String?>(
+            valueListenable: snackbarMessageNotifier,
+            builder: (context, message, child) {
+              if (message != null && message.isNotEmpty) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(SnackBar(content: Text(message)));
+                  snackbarMessageNotifier.value = "";
+                });
+              }
+              return Container();
+            },
           ),
         ],
       ),

@@ -12,7 +12,7 @@ Future<void> aggregateItems(
   // Step 1: Scan for receiving container
   String? receivingContainerUID = await ScanningService.showScanDialog(
     context,
-    Provider.of<AppState>(context, listen: false),
+    Provider.of<AppState>(context, listen: false),true,
   );
 
   if (receivingContainerUID == null) {

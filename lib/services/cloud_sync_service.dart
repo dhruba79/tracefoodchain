@@ -204,7 +204,7 @@ class CloudSyncService {
           if (doc2["needsSync"] != null) {
             doc2.remove(
                 "needsSync"); //!need to avoid needsSync being in the Hash!
-                // setObjectMethod(doc2, false, false); 
+            // setObjectMethod(doc2, false, false);
           }
 
           final String hash = generateStableHash(doc2);
@@ -299,26 +299,30 @@ class CloudSyncService {
               }
             }
             syncSuccess = false;
-            globalSnackBarNotifier.value = {
-              'type': 'error',
-              'text': "error syncing to cloud",
-              'errorCode': syncresult["response"]
-            };
+            snackbarMessageNotifier.value =
+                "error syncing to cloud: ${syncresult["response"].toString()}";
+            // globalSnackBarNotifier.value = {
+            //   'type': 'error',
+            //   'text': "error syncing to cloud",
+            //   'errorCode': syncresult["response"]
+            // };
           }
         } catch (e) {
           syncSuccess = false;
-          globalSnackBarNotifier.value = {
-            'type': 'error',
-            'text': "error syncing to cloud",
-            'errorCode': "unknown error"
-          };
+          snackbarMessageNotifier.value = "unknown error syncing to cloud";
+          // globalSnackBarNotifier.value = {
+          //   'type': 'error',
+          //   'text': "error syncing to cloud",
+          //   'errorCode': "unknown error"
+          // };
           debugPrint('Error syncing method {$methodUid}: $e');
         }
         if (syncSuccess) {
-          globalSnackBarNotifier.value = {
-            'type': 'info',
-            'text': 'sync to cloud successful'
-          };
+          snackbarMessageNotifier.value = "sync to cloud successful";
+          // globalSnackBarNotifier.value = {
+          //   'type': 'info',
+          //   'text': 'sync to cloud successful'
+          // };
         }
       }
       repaintContainerList.value = true;
@@ -348,7 +352,9 @@ class CloudSyncService {
           cloudData["ralObjects"] is List) {
         debugPrint(
             "Got ${cloudData["ralObjects"].length} updated objects from cloud");
-
+        for (final item in cloudData["ralObjects"]) {
+          debugPrint(getObjectMethodUID(item));
+        }
         mergedList.addAll(cloudData["ralObjects"]);
       }
       for (final item in mergedList) {
@@ -408,7 +414,7 @@ String generateStableHash(Map<String, dynamic> docData) {
   valueMap = sortJsonAlphabetically(valueMap);
 
   final jsonString = jsonEncode(valueMap);
-
+  debugPrint(jsonString);
   final String uid = getObjectMethodUID(docData);
 
   //debugPrint("JSON String for Hash: '$jsonString'");

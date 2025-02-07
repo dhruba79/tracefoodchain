@@ -13,9 +13,11 @@ import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:flutter/scheduler.dart'; // Falls benötigt
 
 String displayContext = "action";
 ValueNotifier<bool> rebuildList = ValueNotifier<bool>(false);
+ValueNotifier<String?> snackbarMessageNotifier = ValueNotifier<String?>(null);
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -29,12 +31,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _syncTimer = Timer.periodic(Duration(seconds: cloudSyncFrequency), (_) async {
+    _syncTimer =
+        Timer.periodic(Duration(seconds: cloudSyncFrequency), (_) async {
       final appState = Provider.of<AppState>(context, listen: false);
       if (appState.isConnected && appState.isAuthenticated) {
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
+            snackbarMessageNotifier.value = "Syncing with $cloudKey";
             await cloudSyncService.syncMethods(cloudKey);
           }
         }
@@ -179,6 +183,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
+            ),
+            ValueListenableBuilder<String?>(
+              valueListenable: snackbarMessageNotifier,
+              builder: (context, message, child) {
+                if (message != null && message.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(message)));
+                    snackbarMessageNotifier.value = "";
+                  });
+                }
+                return Container();
+              },
             ),
           ],
         ),

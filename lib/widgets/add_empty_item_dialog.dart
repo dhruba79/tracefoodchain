@@ -294,7 +294,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
 
   Future<void> _scanUID() async {
     final scannedCode = await ScanningService.showScanDialog(
-        context, Provider.of<AppState>(context, listen: false));
+        context, Provider.of<AppState>(context, listen: false),true);
     if (scannedCode != null) {
       final isUIDTaken = await checkAlternateIDExists(scannedCode);
       if (isUIDTaken) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -5,12 +6,9 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 
-
-
 class ScanningService {
   static Future<String?> showScanDialog(
-      BuildContext context, AppState appState) async {
-    
+      BuildContext context, AppState appState, bool allowManualInput) async {
     String scannedCode = '';
     bool isScanning = false;
     ValueNotifier<String?> scannedNFCCode = ValueNotifier<String?>(null);
@@ -46,9 +44,10 @@ class ScanningService {
               );
             }
 
-            tabs.add(  Tab(text:AppLocalizations.of(context)!.manual));
+            if (allowManualInput || kDebugMode)
+              tabs.add(Tab(text: AppLocalizations.of(context)!.manual));
             tabViews.add(
-              _buildManualInput(context,(code) {
+              _buildManualInput(context, (code) {
                 scannedCode = code;
               }),
             );
@@ -222,7 +221,8 @@ class ScanningService {
     }
   }
 
-  static Widget _buildManualInput(BuildContext context, Function(String) onCodeScanned) {
+  static Widget _buildManualInput(
+      BuildContext context, Function(String) onCodeScanned) {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -256,7 +256,7 @@ class ScanningService {
                 onPressed: () {
                   //ToDo: Display all available containers
                 },
-                child:   Text(l10n.selectFromDatabase,//"Select from database",
+                child: Text(l10n.selectFromDatabase, //"Select from database",
                     style: TextStyle(color: Colors.white)),
               ),
             ),

@@ -120,7 +120,7 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
         if (widget.receivingContainerUID == null) {
           // Scan or select container
           var scannedCode = await ScanningService.showScanDialog(
-              context, Provider.of<AppState>(context, listen: false));
+              context, Provider.of<AppState>(context, listen: false),true);
           if (scannedCode != null) {
             saleInfo.receivingContainerUID = scannedCode;
             setState(() {

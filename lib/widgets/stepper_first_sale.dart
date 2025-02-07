@@ -128,7 +128,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     switch (_currentStep) {
       case 0:
         var scannedCode =
-            await ScanningService.showScanDialog(context, appState);
+            await ScanningService.showScanDialog(context, appState,false);
         if (scannedCode != null) {
           saleInfo.geoId = scannedCode.replaceAll(RegExp(r'\s+'), '');
           setState(() {
@@ -167,7 +167,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
       case 2:
         if (widget.receivingContainerUID == null) {
           var scannedCode =
-              await ScanningService.showScanDialog(context, appState);
+              await ScanningService.showScanDialog(context, appState,true);
           if (scannedCode != null) {
             //ToDo: Check if UID is already in use!
             final isUIDTaken = await checkAlternateIDExists(scannedCode);

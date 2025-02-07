@@ -269,9 +269,8 @@ void main() async {
       value: appState,
       child: DevicePreview(
         enabled: !kReleaseMode,
-        builder: (context) => GlobalSnackBarListener(
-          child: MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
-        ),
+        builder: (context) =>   MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
+      
       ),
     ),
   );
