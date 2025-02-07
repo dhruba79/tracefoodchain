@@ -1,11 +1,7 @@
 // This service syncs local hive database to/from the clouds
 import 'dart:convert';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' if (dart.library.io) 'dart:io' as html;
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -14,8 +10,8 @@ import 'package:trace_foodchain_app/helpers/json_full_double_to_int.dart';
 import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/screens/home_screen.dart';
+import 'package:trace_foodchain_app/services/get_device_id.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
-import 'package:uuid/uuid.dart';
 
 class CloudApiClient {
   final String domain;
@@ -191,6 +187,7 @@ class CloudSyncService {
           //This is an object
           if (doc2["needsSync"] != null) {
             doc2.remove("needsSync"); //!need to avoid needsSync being in the Hash!
+
             // setObjectMethod(doc2, false, false);
           }
 
@@ -218,14 +215,17 @@ class CloudSyncService {
         try {
           Map<String, dynamic> syncresult = await apiClient.syncMethodToCloud(domain, doc2);
           if (syncresult["response"] == "success") {
-            setObjectMethod(doc2, false, false); //removes sync flag from method
+            setObjectMethod(doc2, false, false); //persists removal of sync flag from method
             // Look for all outputobjects in doc2 and remove sync flag as well
             if (doc2.containsKey('outputObjects') && doc2['outputObjects'] is List) {
               for (var objectDoc in doc2['outputObjects']) {
                 if (objectDoc is Map<String, dynamic> && objectDoc.containsKey('needsSync')) {
                   objectDoc.remove('needsSync');
-                  await setObjectMethod(objectDoc, false, false);
+                  if (objectDoc.containsKey('role')) objectDoc.remove('role');
+
+                  debugPrint("removed needsSync and role from object  ${objectDoc['identity']['UID']}");
                 }
+                await setObjectMethod(objectDoc, false, false);
               }
             }
           } else {
@@ -260,6 +260,7 @@ class CloudSyncService {
                   // invalidSignature => Flag method as invalid
                   // errorMessage
                   debugPrint("Error syncing method {$methodUid}: 400: " + syncresult["responseDetails"].toString());
+                  // await Share.share(doc2.toString());
                   if (syncresult["responseDetails"].containsKey("invalidSignature")) {
                     Map<String, dynamic> conflictMethod = await getObjectMethod(getObjectMethodUID(doc2));
                     conflictMethod["hasMergeConflict"] = true;
@@ -344,30 +345,6 @@ class CloudSyncService {
   }
 }
 
-Future<String> getDeviceId() async {
-  if (kIsWeb) {
-    // For web, generate a random ID and store it in local storage
-    final storage = html.window.localStorage;
-    var id = storage['deviceId'];
-    if (id == null) {
-      id = const Uuid().v4();
-      storage['deviceId'] = id;
-    }
-    return id;
-  } else if (Platform.isAndroid || Platform.isIOS) {
-    // For mobile, use device_info_plus package
-    final deviceInfo = DeviceInfoPlugin();
-    if (Platform.isAndroid) {
-      final androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.id;
-    } else {
-      final iosInfo = await deviceInfo.iosInfo;
-      return iosInfo.identifierForVendor ?? const Uuid().v4();
-    }
-  }
-  return const Uuid().v4(); // Fallback
-}
-
 ///Returns the SHA-256 hash of a Utf8 encoded JSON string as a hex string
 ///Can be converted to bytes with utf8.encode(hashString)
 String generateStableHash(Map<String, dynamic> docData) {
@@ -382,7 +359,9 @@ String generateStableHash(Map<String, dynamic> docData) {
   valueMap = sortJsonAlphabetically(valueMap);
 
   final jsonString = jsonEncode(valueMap);
-  debugPrint(jsonString);
+  // if (valueMap.keys.contains("methodHistoryRef")) {
+  //   debugPrint(jsonString);
+  // }
   final String uid = getObjectMethodUID(docData);
 
   //debugPrint("JSON String for Hash: '$jsonString'");

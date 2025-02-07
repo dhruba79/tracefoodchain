@@ -10,6 +10,7 @@ import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:ui';
 
 Map<String, dynamic> receivingContainer = {};
 Map<String, dynamic> field = {};
@@ -68,6 +69,7 @@ class BuyCoffeeStepper extends StatefulWidget {
 
 class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   int _currentStep = 0;
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
   SaleInfo saleInfo = SaleInfo();
 
   @override
@@ -120,7 +122,7 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
         if (widget.receivingContainerUID == null) {
           // Scan or select container
           var scannedCode = await ScanningService.showScanDialog(
-              context, Provider.of<AppState>(context, listen: false),true);
+              context, Provider.of<AppState>(context, listen: false), true);
           if (scannedCode != null) {
             saleInfo.receivingContainerUID = scannedCode;
             setState(() {
@@ -148,8 +150,10 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   }
 
   void _presentInformationToSeller() async {
+    _isProcessing.value = true;
     final transmittedList =
         await initBuyCoffee(saleInfo.receivingContainerUID!);
+    _isProcessing.value = false;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -166,6 +170,7 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   }
 
   void _receiveDataFromSeller() {
+   
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -174,8 +179,12 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
           transferredDataOutgoing: [],
         ),
       ),
-    ).then((receivedData) {
-      if (receivedData != null) finishBuyCoffee(receivedData);
+    ).then((receivedData) async {
+      if (receivedData != null) {
+         _isProcessing.value = true;
+        await finishBuyCoffee(receivedData);
+      }
+      _isProcessing.value = false;
       Navigator.of(context).pop();
     });
   }
@@ -183,7 +192,7 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
+    Widget mainContent = AlertDialog(
       title: Text(l10n.buyCoffeeDeviceToDevice,
           style: const TextStyle(color: Colors.black)),
       content: SizedBox(
@@ -253,6 +262,43 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
         ),
       ],
     );
+
+    return Stack(
+      children: [
+        mainContent,
+        ValueListenableBuilder<bool>(
+          valueListenable: _isProcessing,
+          builder: (context, isProcessing, child) {
+            return isProcessing
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.coffeeIsBought,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ],
+    );
   }
 }
 
@@ -310,7 +356,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
   List<String> pathsToSign = [
     //sales process buyer side, only sign parts that are relevant for the buyer
     "\$.identity.UID",
-    "\$.inputObjects[?(@.role=='newContainer')]",//only the new container is known as that time
+    "\$.inputObjects[?(@.role=='newContainer')]", //only the new container is known as that time
     "\$.executor"
   ];
   String signingObject = createSigningObject(pathsToSign, change_container);

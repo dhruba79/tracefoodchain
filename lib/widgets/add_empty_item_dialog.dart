@@ -11,6 +11,7 @@ import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:ui';
 
 //ToDo: Offer to add 1-n additional ID tags like GeoId
 
@@ -35,6 +36,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   String? _latitudeError;
   String? _longitudeError;
   String? _uidError; // Add this line
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
 
   @override
   void initState() {
@@ -53,7 +55,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    return AlertDialog(
+    Widget dialogContent = AlertDialog(
       title: Text(
         l10n.addEmptyItem,
         style: const TextStyle(color: Colors.black),
@@ -147,6 +149,43 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
         ElevatedButton(
           onPressed: _addItem,
           child: Text(l10n.add),
+        ),
+      ],
+    );
+
+    return Stack(
+      children: [
+        dialogContent,
+        ValueListenableBuilder<bool>(
+          valueListenable: _isProcessing,
+          builder: (context, isProcessing, child) {
+            return isProcessing
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.generatingItem, // Stelle sicher, dass ein entsprechender String im AppLocalizations existiert
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
         ),
       ],
     );
@@ -294,7 +333,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
 
   Future<void> _scanUID() async {
     final scannedCode = await ScanningService.showScanDialog(
-        context, Provider.of<AppState>(context, listen: false),true);
+        context, Provider.of<AppState>(context, listen: false), true);
     if (scannedCode != null) {
       final isUIDTaken = await checkAlternateIDExists(scannedCode);
       if (isUIDTaken) {
@@ -335,7 +374,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
       await fshowInfoDialog(context, l10n.pleaseCompleteAllFields);
       return;
     }
-
+_isProcessing.value = true;
     Map<String, dynamic> newItem = await getOpenRALTemplate(_selectedType!);
     setObjectMethodUID(newItem, const Uuid().v4());
     newItem["identity"]["alternateIDs"] = [
@@ -363,7 +402,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
     //Step 2: save the objects a first time to get it the method history change
     await setObjectMethod(newItem, false, false);
     //Step 3: add the output objects with updated method history to the method
-    addOutputobject(addItem, newItem, "item");    
+    addOutputobject(addItem, newItem, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
     //Step 5: persist process
@@ -371,6 +410,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
 
     final savedItem = await getObjectMethod(getObjectMethodUID(
         newItem)); //Reload new item with correct method history
+  _isProcessing.value = false;      
     widget.onItemAdded(savedItem);
     Navigator.of(context).pop();
   }

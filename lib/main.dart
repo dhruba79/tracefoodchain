@@ -24,6 +24,7 @@ import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 // import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
+import 'package:trace_foodchain_app/services/get_device_id.dart'; 
 // import 'dart:html' as html;
 
 int cloudSyncFrequency = 600; //in case internet is connected, this will sync with the cloud every xxx seconds
@@ -238,7 +239,7 @@ void main() async {
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: true,
   );
-
+  // final deviceId = await getDeviceId();
   await Hive.initFlutter();
 
   //*Start accessing local data storage

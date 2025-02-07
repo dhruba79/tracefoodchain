@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,6 +92,7 @@ class CoffeeSaleStepper extends StatefulWidget {
 }
 
 class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
   int _currentStep = 0;
   SaleInfo saleInfo = SaleInfo();
   List<Step> get _steps {
@@ -151,265 +154,308 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
     final DatabaseHelper _databaseHelper = DatabaseHelper();
-    return SizedBox(
-      height: 500,
-      width: 300,
-      child: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: _nextStep,
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() {
-              _currentStep -= 1;
-            });
-          }
-        },
-        steps: _steps,
-        controlsBuilder: (BuildContext context, ControlsDetails details) {
-          String firstButtonText;
-          switch (_currentStep) {
-            case 0:
-              firstButtonText = l10n.scan;
-              break;
-            case 1:
-              firstButtonText = l10n.present;
-              break;
-            default:
-              firstButtonText = l10n.next;
-          }
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () async {
-                    switch (_currentStep) {
-                      case 0:
-                        //Scan Movie or NFC from buyer
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const PeerTransferScreen(
-                                  transferMode: "receive",
-                                  transferredDataOutgoing: [])),
-                        ).then((receivedJobs) async {
-                          try {
-                            transfer_ownership = receivedJobs.firstWhere(
-                                (job) =>
-                                    job["template"]["RALType"] ==
-                                    "changeOwner");
-                            change_container = receivedJobs.firstWhere((job) =>
-                                job["template"]["RALType"] ==
-                                "changeContainer");
-                          } catch (e) {}
-                          if (transfer_ownership == null ||
-                              change_container == null) {
-                            await fshowInfoDialog(context,
-                                l10n.errorIncorrectData //"ERROR: The received data are not valid!"
-                                );
-                          } else {
-                            _nextStep();
-                          } //Present finished job to buyer
-                        });
-                        break;
-                      case 1:
-                        //*********** A. Change Ownership ***************
-                        Map<String, dynamic> buyer =
-                            transfer_ownership["inputObjects"]
-                                .firstWhere((io) => io["role"] == "buyer");
-                        transfer_ownership = addInputobject(
-                            transfer_ownership, coffee, "soldItem");
-                        transfer_ownership = addInputobject(
-                            transfer_ownership, seller, "seller");
+    return Stack(
+      children: [
+        SizedBox(
+          height: 500,
+          width: 300,
+          child: Stepper(
+            currentStep: _currentStep,
+            onStepContinue: _nextStep,
+            onStepCancel: () {
+              if (_currentStep > 0) {
+                setState(() {
+                  _currentStep -= 1;
+                });
+              }
+            },
+            steps: _steps,
+            controlsBuilder: (BuildContext context, ControlsDetails details) {
+              String firstButtonText;
+              switch (_currentStep) {
+                case 0:
+                  firstButtonText = l10n.scan;
+                  break;
+                case 1:
+                  firstButtonText = l10n.present;
+                  break;
+                default:
+                  firstButtonText = l10n.next;
+              }
+              return Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        switch (_currentStep) {
+                          case 0:
+                            //Scan Movie or NFC from buyer
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const PeerTransferScreen(
+                                      transferMode: "receive",
+                                      transferredDataOutgoing: [])),
+                            ).then((receivedJobs) async {
+                              try {
+                                transfer_ownership = receivedJobs.firstWhere(
+                                    (job) =>
+                                        job["template"]["RALType"] ==
+                                        "changeOwner");
+                                change_container = receivedJobs.firstWhere(
+                                    (job) =>
+                                        job["template"]["RALType"] ==
+                                        "changeContainer");
+                              } catch (e) {}
+                              if (transfer_ownership == null ||
+                                  change_container == null) {
+                                await fshowInfoDialog(context,
+                                    l10n.errorIncorrectData //"ERROR: The received data are not valid!"
+                                    );
+                              } else {
+                                _nextStep();
+                              } //Present finished job to buyer
+                            });
+                            break;
+                          case 1:
+                            //*********** A. Change Ownership ***************
+                             _isProcessing.value = true;
+                            Map<String, dynamic> buyer =
+                                transfer_ownership["inputObjects"]
+                                    .firstWhere((io) => io["role"] == "buyer");
+                            transfer_ownership = addInputobject(
+                                transfer_ownership, coffee, "soldItem");
+                            transfer_ownership = addInputobject(
+                                transfer_ownership, seller, "seller");
 
-                        //"execute method changeOwner"
-                        coffee["currentOwners"] = [
-                          {
-                            //use the buyer's UID from the transfer ownership job!
-                            "UID": getObjectMethodUID(buyer),
-                            "role": "owner"
-                          }
-                        ];
-
-                        transfer_ownership["executor"] = seller;
-                        transfer_ownership["methodState"] = "finished";
-
-                        //Step 1: get method an uuid (for method history entries)
-                        setObjectMethodUID(
-                            transfer_ownership, const Uuid().v4());
-                        //Step 2: save the objectsto get it the method history change
-                        await setObjectMethod(coffee, false, false);
-                        //Step 3: add the output objects with updated method history to the method
-                        transfer_ownership = addOutputobject(
-                            transfer_ownership, coffee, "boughtItem");
-                        //Step 4: update method history in all affected objects (will also tag them for syncing)
-                        await updateMethodHistories(transfer_ownership);
-                        //Step 5: persist process
-                        await setObjectMethod(
-                            transfer_ownership, true, true); //sign it!
-
-                        //*********** B. Change Container ***************
-                        change_container = addInputobject(
-                            change_container,
-                            coffee,
-                            "item"); //The item that goes into the new container
-                        if (field.isNotEmpty) {
-                          change_container = addInputobject(
-                              change_container, field, "oldContainer");
-                        }
-
-                        //"execute method changeContainer" => change container of coffee or other containers
-                        receivingContainer = change_container["inputObjects"]
-                            .firstWhere((io) => io["role"] == "newContainer");
-                        final rcuid = getObjectMethodUID(receivingContainer);
-                        coffee["currentGeolocation"]["container"]["UID"] =
-                            rcuid;
-
-                        change_container["methodState"] = "finished";
-                        //no executor change here - is prefilled from buyer
-
-//Step 1: get method an uuid (for method history entries)
-                        setObjectMethodUID(change_container, const Uuid().v4());
-                        //Step 2: save the objectsto get it the method history change
-                        await setObjectMethod(coffee, false, false);
-                        //Step 3: add the output objects with updated method history to the method
-                        addOutputobject(change_container, coffee, "item");
-                        //Step 4: update method history in all affected objects (will also tag them for syncing)
-                        await updateMethodHistories(change_container);
-                        //Step 5: persist process
-                        await setObjectMethod(
-                            change_container, true, true); //sign it!
-
-                        List<Map<String, dynamic>> transmittedList = [];
-                        transmittedList.add(transfer_ownership);
-                        transmittedList.add(change_container);
-                        transmittedList.add(coffee);
-                        //Add first method from method history for coffee objects as it contains the field info
-
-                        //!CAVE all nested objects of the container must be transmitted too
-
-                        final containedItemsList =
-                            await _databaseHelper.getNestedContainedItems(
-                                getObjectMethodUID(coffee));
-                        //ToDo owner of all nestd objects must be receiver
-                        for (final item in containedItemsList) {
-                          if (item["template"]["RALType"] == "coffee" &&
-                              item["methodHistoryRef"] != null &&
-                              item["methodHistoryRef"].isNotEmpty) {
-                            final firstContainerMethod =
-                                item["methodHistoryRef"].firstWhere(
-                              (method) =>
-                                  method["RALType"] == "changeContainer",
-                              orElse: () => null,
-                            );
-                            if (firstContainerMethod != null) {
-                              final firstContainerJobUID =
-                                  firstContainerMethod["UID"];
-                              final firstJob =
-                                  await getObjectMethod(firstContainerJobUID);
-                              transmittedList.add(
-                                  firstJob); //This adds the first container change job of the coffee to the transfer which contains the field info
-                            }
-                          }
-
-                          if (item["currentOwners"] != null) {
-                            item["currentOwners"] = [
+                            //"execute method changeOwner"
+                            coffee["currentOwners"] = [
                               {
+                                //use the buyer's UID from the transfer ownership job!
                                 "UID": getObjectMethodUID(buyer),
                                 "role": "owner"
                               }
                             ];
-                            await setObjectMethod(item, false, true);
-                          }
 
-                          transmittedList.add(item);
-                        }
+                            transfer_ownership["executor"] = seller;
+                            transfer_ownership["methodState"] = "finished";
 
-                        //Present Movie and/or NFC to buyer
+                            //Step 1: get method an uuid (for method history entries)
+                            setObjectMethodUID(
+                                transfer_ownership, const Uuid().v4());
+                            //Step 2: save the objectsto get it the method history change
+                            await setObjectMethod(coffee, false, false);
+                            //Step 3: add the output objects with updated method history to the method
+                            transfer_ownership = addOutputobject(
+                                transfer_ownership, coffee, "boughtItem");
+                            //Step 4: update method history in all affected objects (will also tag them for syncing)
+                            await updateMethodHistories(transfer_ownership);
+                            //Step 5: persist process
+                            await setObjectMethod(
+                                transfer_ownership, true, true); //sign it!
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => PeerTransferScreen(
-                                  transferMode: "send",
-                                  transferredDataOutgoing: transmittedList)),
-                        ).then((result) async {
-                          final transSuccess = await fshowQuestionDialog(
-                              context,
-                              l10n.confirmTransfer, //"Did the buyer receive the information correctly?",
-                              l10n.yes,
-                              l10n.no);
-                          if (transSuccess == true) {
-                            _nextStep();
-                          } else {
-                            //Container and Owner back to old state
-                            for (final item in transmittedList) {
+                            //*********** B. Change Container ***************
+                            change_container = addInputobject(
+                                change_container,
+                                coffee,
+                                "item"); //The item that goes into the new container
+                            if (field.isNotEmpty) {
+                              change_container = addInputobject(
+                                  change_container, field, "oldContainer");
+                            }
+
+                            //"execute method changeContainer" => change container of coffee or other containers
+                            receivingContainer =
+                                change_container["inputObjects"].firstWhere(
+                                    (io) => io["role"] == "newContainer");
+                            final rcuid =
+                                getObjectMethodUID(receivingContainer);
+                            coffee["currentGeolocation"]["container"]["UID"] =
+                                rcuid;
+
+                            change_container["methodState"] = "finished";
+                            //no executor change here - is prefilled from buyer
+
+//Step 1: get method an uuid (for method history entries)
+                            setObjectMethodUID(
+                                change_container, const Uuid().v4());
+                            //Step 2: save the objectsto get it the method history change
+                            await setObjectMethod(coffee, false, false);
+                            //Step 3: add the output objects with updated method history to the method
+                            addOutputobject(change_container, coffee, "item");
+                            //Step 4: update method history in all affected objects (will also tag them for syncing)
+                            await updateMethodHistories(change_container);
+                            //Step 5: persist process
+                            await setObjectMethod(
+                                change_container, true, true); //sign it!
+
+                            List<Map<String, dynamic>> transmittedList = [];
+                            transmittedList.add(transfer_ownership);
+                            transmittedList.add(change_container);
+                            transmittedList.add(coffee);
+                            //Add first method from method history for coffee objects as it contains the field info
+
+                            //!CAVE all nested objects of the container must be transmitted too
+
+                            final containedItemsList =
+                                await _databaseHelper.getNestedContainedItems(
+                                    getObjectMethodUID(coffee));
+                            //ToDo owner of all nestd objects must be receiver
+                            for (final item in containedItemsList) {
+                              if (item["template"]["RALType"] == "coffee" &&
+                                  item["methodHistoryRef"] != null &&
+                                  item["methodHistoryRef"].isNotEmpty) {
+                                final firstContainerMethod =
+                                    item["methodHistoryRef"].firstWhere(
+                                  (method) =>
+                                      method["RALType"] == "changeContainer",
+                                  orElse: () => null,
+                                );
+                                if (firstContainerMethod != null) {
+                                  final firstContainerJobUID =
+                                      firstContainerMethod["UID"];
+                                  final firstJob = await getObjectMethod(
+                                      firstContainerJobUID);
+                                  transmittedList.add(
+                                      firstJob); //This adds the first container change job of the coffee to the transfer which contains the field info
+                                }
+                              }
+
                               if (item["currentOwners"] != null) {
                                 item["currentOwners"] = [
                                   {
-                                    "UID": getObjectMethodUID(appUserDoc!),
+                                    "UID": getObjectMethodUID(buyer),
                                     "role": "owner"
                                   }
                                 ];
+                                await setObjectMethod(item, false, true);
                               }
+
+                              transmittedList.add(item);
                             }
 
-                            if (field.isEmpty) {
-                              coffee["currentGeolocation"]["container"]["UID"] =
-                                  "unknown";
-                            } else {
-                              coffee["currentGeolocation"]["container"]["UID"] =
-                                  getObjectMethodUID(field);
-                            }
+                            //Present Movie and/or NFC to buyer
+                            _isProcessing.value = false;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => PeerTransferScreen(
+                                      transferMode: "send",
+                                      transferredDataOutgoing:
+                                          transmittedList)),
+                            ).then((result) async {
+                              final transSuccess = await fshowQuestionDialog(
+                                  context,
+                                  l10n.confirmTransfer, //"Did the buyer receive the information correctly?",
+                                  l10n.yes,
+                                  l10n.no);
+                              if (transSuccess == true) {
+                                _nextStep();
+                              } else {
+                                //Container and Owner back to old state
+                                for (final item in transmittedList) {
+                                  if (item["currentOwners"] != null) {
+                                    item["currentOwners"] = [
+                                      {
+                                        "UID": getObjectMethodUID(appUserDoc!),
+                                        "role": "owner"
+                                      }
+                                    ];
+                                  }
+                                }
 
-                            await setObjectMethod(coffee, false, true);
+                                if (field.isEmpty) {
+                                  coffee["currentGeolocation"]["container"]
+                                      ["UID"] = "unknown";
+                                } else {
+                                  coffee["currentGeolocation"]["container"]
+                                      ["UID"] = getObjectMethodUID(field);
+                                }
 
-                            //Jobs als cancelled markieren
-                            transfer_ownership["methodState"] = "cancelled";
+                                await setObjectMethod(coffee, false, true);
 
-                            transfer_ownership = await setObjectMethod(
-                                transfer_ownership, true, true);
-                            Navigator.of(context).pop();
-                          }
-                        });
-                        break;
-                      default:
-                    }
-                  },
-                  child: Text(firstButtonText,
-                      style: const TextStyle(color: Colors.white)),
-                ),
-              ),
-              // const SizedBox(height: 8),
-              // if (_currentStep != 0)
-              //   Padding(
-              //     padding: const EdgeInsets.all(8.0),
-              //     child: TextButton(
-              //       onPressed: details.onStepCancel,
-              //       child: Text('back',
-              //           style: TextStyle(
-              //               color: Colors
-              //                   .black)), // Umbenennen des "Cancel"-Buttons
-              //     ),
-              //   ),
-              // if (_currentStep == 2) const SizedBox(height: 8),
-              // if (_currentStep == 2)
-              //   Padding(
-              //     padding: const EdgeInsets.all(8.0),
-              //     child: TextButton(
-              //       onPressed: () {
-              //         _nextStep();
-              //       },
-              //       child: Text('skip',
-              //           style: TextStyle(
-              //               color: Colors
-              //                   .black)), // Umbenennen des "Cancel"-Buttons
-              //     ),
-              //   ),
-            ],
-          );
-        },
-      ),
+                                //Jobs als cancelled markieren
+                                transfer_ownership["methodState"] = "cancelled";
+
+                                transfer_ownership = await setObjectMethod(
+                                    transfer_ownership, true, true);
+
+                                Navigator.of(context).pop();
+                              }
+                            });
+                            break;
+                          default:
+                        }
+                      },
+                      child: Text(firstButtonText,
+                          style: const TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  // const SizedBox(height: 8),
+                  // if (_currentStep != 0)
+                  //   Padding(
+                  //     padding: const EdgeInsets.all(8.0),
+                  //     child: TextButton(
+                  //       onPressed: details.onStepCancel,
+                  //       child: Text('back',
+                  //           style: TextStyle(
+                  //               color: Colors
+                  //                   .black)), // Umbenennen des "Cancel"-Buttons
+                  //     ),
+                  //   ),
+                  // if (_currentStep == 2) const SizedBox(height: 8),
+                  // if (_currentStep == 2)
+                  //   Padding(
+                  //     padding: const EdgeInsets.all(8.0),
+                  //     child: TextButton(
+                  //       onPressed: () {
+                  //         _nextStep();
+                  //       },
+                  //       child: Text('skip',
+                  //           style: TextStyle(
+                  //               color: Colors
+                  //                   .black)), // Umbenennen des "Cancel"-Buttons
+                  //     ),
+                  //   ),
+                ],
+              );
+            },
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable:
+              _isProcessing,  
+          builder: (context, isProcessing, child) {
+            return isProcessing
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(
+                                l10n.processing, // Assuming processing is a valid localized string
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ],
     );
   }
 

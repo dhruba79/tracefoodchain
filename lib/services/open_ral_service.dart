@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_path/json_path.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/json_full_double_to_int.dart';
 import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
@@ -208,6 +209,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod, 
           ];
         }
         signingObject = createSigningObject(pathsToSign, objectMethod);
+        await Share.share(signingObject);
 
         // debugPrint("[SIGN] UID: ${objectMethod["identity"]["UID"]}");
         // debugPrint("[SIGN] Paths to sign: $pathsToSign");

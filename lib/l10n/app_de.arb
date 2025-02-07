@@ -366,5 +366,22 @@
     "dataMode": "Datenmodus",
     "testMode": "Testmodus",
     "realMode": "Produktionsmodus",
-    "nologoutpossible": "Abmelden ist nur möglich, wenn eine Internetverbindung besteht"
+    "nologoutpossible": "Abmelden ist nur möglich, wenn eine Internetverbindung besteht",
+    "manuallySyncingWith": "Synchronisiere manuell mit",
+    "syncingWith": "Synchronisiere mit",
+    "newKeypairNeeded": "Kein privater Schlüssel gefunden - Erzeuge neues Schlüsselpaar...",
+    "failedToInitializeKeyManagement": "WARNUNG: Fehler bei der Initialisierung der Schlüsselverwaltung!",
+    "newUserProfileNeeded": "Kein Benutzerprofil in der lokalen Datenbank gefunden - erstelle ein neues Profil...",
+      "coffeeIsBought":"Kaffee wird gekauft",
+      "coffeeIsSold": "Kaffee wird verkauft",
+      "inputOfAdditionalInformation": "Zusätzliche Informationen sind erforderlich!",
+      "provideValidContainer": "Bitte geben Sie einen gültigen Tag für den Empfangsbehälter an.",
+      "buttonNext": "WEITER",
+      "buttonScan": "SCAN!",
+      "buttonStart": "START!",
+      "buttonBack": "ZURÜCK",
+      "generatingItem": "Artikel wird generiert...",
+      "processing": "Daten werden verarbeitet..."
+
+
 }

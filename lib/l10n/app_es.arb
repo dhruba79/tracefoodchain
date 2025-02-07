@@ -374,5 +374,15 @@
     "dataMode": "Modo de datos",
     "testMode": "Modo de prueba",
     "realMode": "Modo de producción",
-    "nologoutpossible": "Cerrar sesión solo es posible cuando está conectado a internet"
+    "nologoutpossible": "Cerrar sesión solo es posible cuando está conectado a internet",
+    "manuallySyncingWith": "Sincronizando manualmente con",
+    "syncingWith": "Sincronizando con",
+    "newKeypairNeeded": "No se encontró clave privada - generando nuevo par de claves...",
+    "failedToInitializeKeyManagement": "ADVERTENCIA: ¡Error al inicializar la gestión de claves!",
+  "newUserProfileNeeded": "Perfil de usuario no encontrado en la base de datos local - creando uno nuevo...",
+      "coffeeIsBought": "El café se compra",
+      "coffeeIsSold": "El café se vende",
+      "generatingItem": "Generando artículo...",
+      "processing": "Procesando datos..."
+
 }

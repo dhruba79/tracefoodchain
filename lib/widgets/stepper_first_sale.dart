@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -84,6 +86,8 @@ class CoffeeSaleStepper extends StatefulWidget {
 class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   int _currentStep = 0;
   SaleInfo saleInfo = SaleInfo();
+  // Ersetze _isProcessing als bool durch einen ValueNotifier<bool>
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
 
   @override
   void initState() {
@@ -128,7 +132,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     switch (_currentStep) {
       case 0:
         var scannedCode =
-            await ScanningService.showScanDialog(context, appState,false);
+            await ScanningService.showScanDialog(context, appState, false);
         if (scannedCode != null) {
           saleInfo.geoId = scannedCode.replaceAll(RegExp(r'\s+'), '');
           setState(() {
@@ -144,7 +148,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
         if (coffeeInfo != null) {
           saleInfo.coffeeInfo = coffeeInfo;
           if (widget.receivingContainerUID != null) {
-            // If we have a receiving container UID, proceed to finish the sale
+            // Overlay vor dem Verkauf ohne setState
+            _isProcessing.value = true;
             String containerType = "container";
             dynamic container =
                 await getContainerByAlternateUID(widget.receivingContainerUID!);
@@ -152,6 +157,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
               containerType = container["template"]["RALType"];
             }
             await sellCoffee(saleInfo, containerType);
+            _isProcessing.value = false;
             Navigator.of(context).pop();
           } else {
             setState(() {
@@ -167,9 +173,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
       case 2:
         if (widget.receivingContainerUID == null) {
           var scannedCode =
-              await ScanningService.showScanDialog(context, appState,true);
+              await ScanningService.showScanDialog(context, appState, true);
           if (scannedCode != null) {
-            //ToDo: Check if UID is already in use!
             final isUIDTaken = await checkAlternateIDExists(scannedCode);
             if (isUIDTaken) {
               await fshowInfoDialog(
@@ -183,7 +188,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
               if (!container.isEmpty) {
                 containerType = container["template"]["RALType"];
               }
+              _isProcessing.value = true;
               await sellCoffee(saleInfo, containerType);
+              _isProcessing.value = false;
               Navigator.of(context).pop();
             }
           } else {
@@ -200,54 +207,93 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 500,
-      width: 300,
-      child: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: _nextStep,
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() {
-              _currentStep -= 1;
-            });
-          }
-        },
-        steps: _steps,
-        controlsBuilder: (BuildContext context, ControlsDetails details) {
-          final l10n = AppLocalizations.of(context)!;
-          String buttonText = l10n.buttonNext;
-          if (_currentStep == 0 ||
-              (_currentStep == 2 && widget.receivingContainerUID == null)) {
-            buttonText = l10n.buttonScan;
-          } else if (_currentStep == 1 &&
-              widget.receivingContainerUID != null) {
-            buttonText = l10n.buttonStart;
-          }
+    final l10n = AppLocalizations.of(context)!;
+    return Stack(
+      children: [
+        // Basis-Widget
+        Center(
+          child: SizedBox(
+            height: 500,
+            width: 300,
+            child: Stepper(
+              currentStep: _currentStep,
+              onStepContinue: _nextStep,
+              onStepCancel: () {
+                if (_currentStep > 0) {
+                  setState(() {
+                    _currentStep -= 1;
+                  });
+                }
+              },
+              steps: _steps,
+              controlsBuilder: (BuildContext context, ControlsDetails details) {
+                final l10n = AppLocalizations.of(context)!;
+                String buttonText = l10n.buttonNext;
+                if (_currentStep == 0 ||
+                    (_currentStep == 2 &&
+                        widget.receivingContainerUID == null)) {
+                  buttonText = l10n.buttonScan;
+                } else if (_currentStep == 1 &&
+                    widget.receivingContainerUID != null) {
+                  buttonText = l10n.buttonStart;
+                }
 
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  child: Text(buttonText,
-                      style: const TextStyle(color: Colors.white)),
-                ),
-              ),
-              if (_currentStep != 0)
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: TextButton(
-                    onPressed: details.onStepCancel,
-                    child: Text(l10n.buttonBack,
-                        style: TextStyle(color: Colors.black)),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
+                return Column(
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: _nextStep,
+                        child: Text(buttonText,
+                            style: const TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                    if (_currentStep != 0)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextButton(
+                          onPressed: details.onStepCancel,
+                          child: Text(l10n.buttonBack,
+                              style: const TextStyle(color: Colors.black)),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+        // Overlay bei laufender Verarbeitung per ValueListenableBuilder.
+        ValueListenableBuilder<bool>(
+          valueListenable: _isProcessing,
+          builder: (context, isProcessing, child) {
+            return isProcessing
+                ? Positioned.fill(
+                    child: Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(),
+                              const SizedBox(height: 16),
+                              Text(l10n.coffeeIsBought,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink();
+          },
+        ),
+      ],
     );
   }
 
@@ -660,7 +706,7 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
       await getObjectOrGenerateNew(saleInfo.geoId!, ["field"], "alternateUid");
 
   if (getObjectMethodUID(field) == "") {
-     setObjectMethodUID(field, const Uuid().v4());
+    setObjectMethodUID(field, const Uuid().v4());
     field["identity"]["alternateIDs"]
         .add({"UID": saleInfo.geoId, "issuedBy": "Asset Registry"});
 
