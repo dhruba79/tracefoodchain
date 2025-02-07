@@ -38,12 +38,29 @@ class _HomeScreenState extends State<HomeScreen> {
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
-            snackbarMessageNotifier.value = "Syncing with $cloudKey";
+            final l10n = AppLocalizations.of(context)!;
+            snackbarMessageNotifier.value =  l10n.syncingWith+" $cloudKey";
             await cloudSyncService.syncMethods(cloudKey);
           }
         }
       }
     });
+  }
+
+  // Neue Methode zum manuellen Synchronisieren der Cloud.
+  void _manualSync() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
+    if (appState.isConnected && appState.isAuthenticated) {
+      for (final cloudKey in cloudConnectors.keys) {
+        if (cloudKey != "open-ral.io") {
+          debugPrint("manually syncing $cloudKey");
+          snackbarMessageNotifier.value = l10n.syncingWith+" $cloudKey";
+          await cloudSyncService.syncMethods(cloudKey);
+          repaintContainerList.value = true;
+        }
+      }
+    }
   }
 
   @override
@@ -109,6 +126,14 @@ class _HomeScreenState extends State<HomeScreen> {
               child: IconButton(
                 icon: const Icon(Icons.feedback),
                 onPressed: () => _launchFeedbackEmail(context),
+              ),
+            ),
+            // Neuer IconButton für manuelle Synchronisierung
+            Tooltip(
+              message: "Manuelle Synchronisierung",
+              child: IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: _manualSync,
               ),
             ),
             Tooltip(
@@ -189,8 +214,12 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, message, child) {
                 if (message != null && message.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(message)));
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(message),
+                      duration: const Duration(
+                          seconds:
+                              1), // Snackbar will auto-dismiss after 3 seconds
+                    ));
                     snackbarMessageNotifier.value = "";
                   });
                 }
@@ -300,7 +329,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 : Colors.white,
             onTap: () {
               selectedContext = "settings";
-              _navigateToSettings(context);
+              rebuildList.value = true;
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ).then((_) {
+                setState(() {});
+              });
             },
           ),
         ],
@@ -314,6 +349,7 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     ).then((_) {
       repaintContainerList.value = true;
+      setState(() {});
     });
   }
 

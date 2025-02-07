@@ -366,5 +366,11 @@
     "dataMode": "Datenmodus",
     "testMode": "Testmodus",
     "realMode": "Produktionsmodus",
-    "nologoutpossible": "Abmelden ist nur möglich, wenn eine Internetverbindung besteht"
+    "nologoutpossible": "Abmelden ist nur möglich, wenn eine Internetverbindung besteht",
+    "manuallySyncingWith": "Synchronisiere manuell mit",
+    "syncingWith": "Synchronisiere mit",
+    "newKeypairNeeded": "Kein privater Schlüssel gefunden - Erzeuge neues Schlüsselpaar...",
+    "failedToInitializeKeyManagement": "WARNUNG: Fehler bei der Initialisierung der Schlüsselverwaltung!",
+    "newUserProfileNeeded": "Kein Benutzerprofil in der lokalen Datenbank gefunden - Erstelle neues Benutzerprofil..."
+
 }

@@ -374,6 +374,12 @@
     "dataMode": "Mode de données",
     "testMode": "Mode test",
     "realMode": "Mode de production",
-    "nologoutpossible": "Déconnexion possible uniquement lorsqu'une connexion Internet est établie"
+      "nologoutpossible": "Déconnexion possible uniquement lorsqu'une connexion Internet est établie",
+      "manuallySyncingWith": "Synchronisation manuelle avec",
+      "syncingWith": "Synchronisation avec",
+      "newKeypairNeeded": "Aucune clé privée trouvée - génération d'une nouvelle paire de clés...",
+      "failedToInitializeKeyManagement": "ATTENTION : Échec de l'initialisation de la gestion des clés !",
+      "newUserProfileNeeded": "Profil utilisateur non trouvé dans la base de données locale - création d'un nouveau..."
+    
   
 }

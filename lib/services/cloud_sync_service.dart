@@ -204,6 +204,7 @@ class CloudSyncService {
           if (doc2["needsSync"] != null) {
             doc2.remove(
                 "needsSync"); //!need to avoid needsSync being in the Hash!
+              
             // setObjectMethod(doc2, false, false);
           }
 
@@ -233,16 +234,19 @@ class CloudSyncService {
           Map<String, dynamic> syncresult =
               await apiClient.syncMethodToCloud(domain, doc2);
           if (syncresult["response"] == "success") {
-            setObjectMethod(doc2, false, false); //removes sync flag from method
+            setObjectMethod(doc2, false, false); //persists removal of sync flag from method
             // Look for all outputobjects in doc2 and remove sync flag as well
             if (doc2.containsKey('outputObjects') &&
                 doc2['outputObjects'] is List) {
               for (var objectDoc in doc2['outputObjects']) {
                 if (objectDoc is Map<String, dynamic> &&
                     objectDoc.containsKey('needsSync')) {
-                  objectDoc.remove('needsSync');
-                  await setObjectMethod(objectDoc, false, false);
+                  objectDoc.remove('needsSync');  
+                  if (objectDoc.containsKey('role')) objectDoc.remove('role');     
+                 
+                debugPrint("removed needsSync and role from object  ${objectDoc['identity']['UID']}");
                 }
+               await setObjectMethod(objectDoc, false, false);  
               }
             }
           } else {
@@ -414,7 +418,9 @@ String generateStableHash(Map<String, dynamic> docData) {
   valueMap = sortJsonAlphabetically(valueMap);
 
   final jsonString = jsonEncode(valueMap);
-  debugPrint(jsonString);
+  // if (valueMap.keys.contains("methodHistoryRef")) {
+  //   debugPrint(jsonString);
+  // }
   final String uid = getObjectMethodUID(docData);
 
   //debugPrint("JSON String for Hash: '$jsonString'");

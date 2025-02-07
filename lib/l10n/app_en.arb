@@ -373,6 +373,11 @@
   "dataMode" : "Data mode",
   "testMode": "Test mode",
   "realMode": "Production mode",
-  "nologoutpossible":"Logout only possible when connected to the internet"
+  "nologoutpossible":"Logout only possible when connected to the internet",
+      "manuallySyncingWith": "Manually syncing with",
+      "syncingWith": "Syncing with",
+      "newKeypairNeeded": "No private key found - generating new keypair...",
+      "failedToInitializeKeyManagement": "WARNING: Failed to initialize key management!",
+      "newUserProfileNeeded": "User profile not found in local database - creating new one..."
 
 }
