@@ -19,6 +19,7 @@ import 'package:trace_foodchain_app/widgets/status_bar.dart';
 import 'package:trace_foodchain_app/constants.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter/scheduler.dart'; // Falls benötigt
+import '../services/get_device_id.dart';
 
 bool canResendEmail = true;
 
@@ -49,14 +50,13 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _controller.forward();
     _initializeApp();
+    _initDeviceId();
   }
 
   @override
   void dispose() {
     _disposed = true;
     _controller.dispose();
-    _verificationTimer?.cancel();
-    super.dispose();
   }
 
   Future<void> _initializeApp() async {

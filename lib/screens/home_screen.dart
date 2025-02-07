@@ -14,6 +14,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:flutter/scheduler.dart'; // Falls benötigt
+import '../services/get_device_id.dart';
 
 String displayContext = "action";
 ValueNotifier<bool> rebuildList = ValueNotifier<bool>(false);
