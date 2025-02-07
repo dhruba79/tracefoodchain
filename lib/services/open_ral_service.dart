@@ -209,7 +209,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod, 
           ];
         }
         signingObject = createSigningObject(pathsToSign, objectMethod);
-        await Share.share(signingObject);
+        // await Share.share(signingObject);
 
         // debugPrint("[SIGN] UID: ${objectMethod["identity"]["UID"]}");
         // debugPrint("[SIGN] Paths to sign: $pathsToSign");

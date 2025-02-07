@@ -243,6 +243,12 @@ class DatabaseHelper {
 
 String formatTimestamp(dynamic timestamp) {
   if (timestamp is! DateTime) {
+    if (timestamp is String) {
+      final parsedDate = DateTime.tryParse(timestamp);
+      if (parsedDate != null) {
+        return DateFormat('yyyy-MM-dd HH:mm').format(parsedDate);
+      }
+    }
     return 'N/A';
   }
   try {

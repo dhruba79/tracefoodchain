@@ -381,15 +381,15 @@ _isProcessing.value = true;
       {"UID": _uidController.text, "issuedBy": "owner"}
     ];
     newItem = setSpecificPropertyJSON(newItem, "max capacity",
-        double.parse(_capacityController.text), _selectedUnit!);
+        double.parse(_capacityController.text.replaceAll(",",".")), _selectedUnit!);
     newItem["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
 
     if (_latitudeController.text != "" && _longitudeController.text != "") {
       newItem["currentGeolocation"]["geoCoordinates"] = {
-        "latitude": double.parse(_latitudeController.text),
-        "longitude": double.parse(_longitudeController.text),
+        "latitude": double.parse(_latitudeController.text.replaceAll(",",".")),
+        "longitude": double.parse(_longitudeController.text.replaceAll(",",".")),
       };
     }
 

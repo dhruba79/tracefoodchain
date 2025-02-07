@@ -1,5 +1,7 @@
 // lib/widgets/shared_dialogs.dart
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/main.dart';
@@ -150,68 +152,118 @@ Future<void> showAggregateItemsDialog(
 Future<void> showChangeContainerDialog(
     BuildContext context, Map<String, dynamic> item,
     {Map<String, dynamic>? preexistingChangeContainer}) async {
+  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
   return showDialog(
     context: context,
     builder: (BuildContext context) {
       final l10n = AppLocalizations.of(context)!;
-      return AlertDialog(
-        title: Text(l10n.changeLocation),
-        content: Text(l10n.scanContainerInstructions),
-        actions: <Widget>[
-          TextButton(
-            child: Text(l10n.cancel),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+      return Stack(
+        children: [
+          AlertDialog(
+            title: Text(
+              l10n.changeLocation,
+              style: TextStyle(color: Colors.black54),
+            ),
+            content: Text(l10n.scanContainerInstructions,
+                style: TextStyle(color: Colors.black54)),
+            actions: <Widget>[
+              TextButton(
+                child: Text(l10n.cancel),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              ElevatedButton(
+                child: Text(l10n.start),
+                onPressed: () async {
+                  Map<String, dynamic>? newContainer;
+                  String? receivingContainerUID =
+                      await ScanningService.showScanDialog(
+                    context,
+                    Provider.of<AppState>(context, listen: false),
+                    true,
+                  );
+
+                  if (receivingContainerUID == null) {
+                    await fshowInfoDialog(context, l10n.noDeliveryHistory);
+                  } else {
+                    _isProcessing.value = true;
+                    newContainer =
+                        await getContainerByAlternateUID(receivingContainerUID);
+
+                    if (newContainer.isEmpty) {
+                      await fshowInfoDialog(context,
+                          l10n.noDeliveryHistory); // Use appropriate translation
+                    } else
+
+                    //4. Change container
+                    {
+                      Map<String, dynamic>? changeContainerMethod;
+                      if (preexistingChangeContainer != null) {
+                        //in case this is a running method now being finished
+                        changeContainerMethod = preexistingChangeContainer;
+                      } else {
+                        changeContainerMethod =
+                            await getOpenRALTemplate("changeContainer");
+                      }
+
+                      changeContainerMethod["executor"] = appUserDoc;
+                      changeContainerMethod["methodState"] = "finished";
+                      changeContainerMethod["inputObjects"] = [
+                        item,
+                        newContainer
+                      ];
+                      item["currentGeolocation"]["container"]["UID"] =
+                          newContainer["identity"]["UID"];
+                      //Step 1: get method an uuid (for method history entries)
+                      setObjectMethodUID(
+                          changeContainerMethod, const Uuid().v4());
+                      //Step 2: save the objects to get it the method history change
+                      await setObjectMethod(item, false, false);
+                      //Step 3: add the output objects with updated method history to the method
+                      addOutputobject(changeContainerMethod, item, "item");
+                      //Step 4: update method history in all affected objects (will also tag them for syncing)
+                      await updateMethodHistories(changeContainerMethod);
+                      //Step 5: persist Method
+                      await setObjectMethod(
+                          changeContainerMethod, true, true); //sign it!
+                      _isProcessing.value = false;
+                    }
+                  }
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
-          ElevatedButton(
-            child: Text(l10n.start),
-            onPressed: () async {
-              Map<String, dynamic>? newContainer;
-              String? receivingContainerUID =
-                  await ScanningService.showScanDialog(
-                context,
-                Provider.of<AppState>(context, listen: false),true,
-              );
-
-              if (receivingContainerUID == null) {
-                await fshowInfoDialog(context, l10n.noDeliveryHistory);
-              } else {
-                newContainer =
-                    await getContainerByAlternateUID(receivingContainerUID);
-
-                if (newContainer.isEmpty) {
-                  await fshowInfoDialog(context,
-                      l10n.noDeliveryHistory); // Use appropriate translation
-                } else
-
-                //4. Change container
-                {
-                  Map<String, dynamic>? changeContainerMethod;
-                  if (preexistingChangeContainer != null) {//in case this is a running method now being finished
-                    changeContainerMethod = preexistingChangeContainer;
-                  } else{  changeContainerMethod =
-                      await getOpenRALTemplate("changeContainer");}
-     
-                  changeContainerMethod["executor"] = appUserDoc;
-                  changeContainerMethod["methodState"] = "finished";
-                  changeContainerMethod["inputObjects"] = [item, newContainer];
-                  item["currentGeolocation"]["container"]["UID"] =
-                      newContainer["identity"]["UID"];
-                  //Step 1: get method an uuid (for method history entries)
-                  setObjectMethodUID(changeContainerMethod, const Uuid().v4());
-                  //Step 2: save the objects to get it the method history change
-                  await setObjectMethod(item, false, false);
-                  //Step 3: add the output objects with updated method history to the method
-                  addOutputobject(changeContainerMethod, item, "item");
-                  //Step 4: update method history in all affected objects (will also tag them for syncing)
-                  await updateMethodHistories(changeContainerMethod);
-                  //Step 5: persist Method
-                  await setObjectMethod(
-                      changeContainerMethod, true, true); //sign it!
-                }
-              }
-              Navigator.of(context).pop();
+          ValueListenableBuilder<bool>(
+            valueListenable: _isProcessing,
+            builder: (context, isProcessing, child) {
+              return isProcessing
+                  ? Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.changeLocation,
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink();
             },
           ),
         ],
@@ -224,7 +276,10 @@ Future<void> showProcessingStateDialog(
     Map<String, dynamic> coffee, BuildContext context) async {
   String currentState = getSpecificPropertyfromJSON(coffee, "processingState");
   List<String> currentQualityCriteria =
-      getSpecificPropertyfromJSON(coffee, "qualityState") ?? [];
+      (getSpecificPropertyfromJSON(coffee, "qualityState") as List<dynamic>?)
+              ?.map((item) => item.toString())
+              .toList() ??
+          <String>[];
 
   Map<String, dynamic>? result = await showDialog<Map<String, dynamic>>(
     context: context,
