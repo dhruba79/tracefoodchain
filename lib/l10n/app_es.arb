@@ -379,5 +379,8 @@
     "syncingWith": "Sincronizando con",
     "newKeypairNeeded": "No se encontró clave privada - generando nuevo par de claves...",
     "failedToInitializeKeyManagement": "ADVERTENCIA: ¡Error al inicializar la gestión de claves!",
-    "newUserProfileNeeded": "No se encontró perfil de usuario en la base de datos local - creando uno nuevo..."
+  "newUserProfileNeeded": "Perfil de usuario no encontrado en la base de datos local - creando uno nuevo...",
+      "coffeeIsBought": "El café se compra",
+      "coffeeIsSold": "El café se vende"
+
 }

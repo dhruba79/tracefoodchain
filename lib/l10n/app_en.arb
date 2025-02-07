@@ -378,6 +378,8 @@
       "syncingWith": "Syncing with",
       "newKeypairNeeded": "No private key found - generating new keypair...",
       "failedToInitializeKeyManagement": "WARNING: Failed to initialize key management!",
-      "newUserProfileNeeded": "User profile not found in local database - creating new one..."
+      "newUserProfileNeeded": "User profile not found in local database - creating new one...",
+      "coffeeIsBought": "Coffee is bought",
+      "coffeeIsSold": "Coffee is sold"
 
 }
