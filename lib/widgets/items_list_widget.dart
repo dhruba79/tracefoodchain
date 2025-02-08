@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
@@ -175,8 +176,9 @@ class _ItemsListState extends State<ItemsList> {
                     //ToDo: Nur Container anzeigen, die nicht genested sind
                     for (final delivery in snapshot.data!) {
                       if (delivery["currentGeolocation"]["container"]["UID"] ==
-                          "unknown" ||delivery["currentGeolocation"]["container"]["UID"] ==
-                          "") {
+                              "unknown" ||
+                          delivery["currentGeolocation"]["container"]["UID"] ==
+                              "") {
                         deliveries.add(delivery);
                       }
                     }
@@ -243,6 +245,7 @@ class _ItemsListState extends State<ItemsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 8),
               _buildCardHeader(container, contents),
               ...contents.map((item) => _buildContentItem(item)),
             ],
@@ -473,7 +476,7 @@ class _ItemsListState extends State<ItemsList> {
     final l10n = AppLocalizations.of(context)!;
     final appState = Provider.of<AppState>(context);
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
@@ -491,11 +494,18 @@ class _ItemsListState extends State<ItemsList> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                    (AppLocalizations.of(context)!.containerIsEmpty(
-                            getContainerTypeName(container["template"]["RALType"], context) ,
-                            container["identity"]["alternateIDs"][0]["UID"])
-                        as String),
-                    style: const TextStyle(color: Colors.black)),
+                  (container["identity"]["name"] != null &&
+                          container["identity"]["name"]
+                              .toString()
+                              .trim()
+                              .isNotEmpty)
+                      ? container["identity"]["name"]
+                      : "unbenanntes Objekt",
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                ),
               ),
               Row(
                 children: [
@@ -532,6 +542,15 @@ class _ItemsListState extends State<ItemsList> {
               )
             ],
           ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text("ID: xxxx", style: TextStyle(color: Colors.black38)),
+              Text("freie Kapazität xxx/xxx latas",
+                  style: TextStyle(color: Colors.black38))
+            ],
+          ),
         ),
       ),
     );
@@ -542,11 +561,14 @@ class _ItemsListState extends State<ItemsList> {
     final l10n = AppLocalizations.of(context)!;
     final appState = Provider.of<AppState>(context);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12.0, 0, 0, 0),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               if (multiselectPossible)
                 Checkbox(
@@ -561,33 +583,58 @@ class _ItemsListState extends State<ItemsList> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
                         child:
                             getContainerIcon(container["template"]["RALType"]),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        getContainerTypeName(
-                            container["template"]["RALType"], context),
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87),
+                      Container(
+                        width: MediaQuery.of(context).size.width * 0.3,
+                        child: AutoSizeText(
+                          (container["identity"]["name"] != null &&
+                                  container["identity"]["name"]
+                                      .toString()
+                                      .trim()
+                                      .isNotEmpty)
+                              ? container["identity"]["name"]
+                              : "unbenanntes Objekt",
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
+
                   Text(
-                    (AppLocalizations.of(context)!.idWithBrackets(truncateUID(
-                            container["identity"]["alternateIDs"][0]["UID"]))
-                        as String),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w100,
-                      color: Colors.black54,
-                    ),
-                  ),
+                      "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
+                      style: TextStyle(
+                        color: Colors.black38,
+                        fontSize: 13,
+                      )),
+                  Text("freie Kapazität xxx/xxx latas",
+                      style: TextStyle(
+                        color: Colors.black38,
+                        fontSize: 13,
+                      ))
+
+                  // Text(
+                  //   (AppLocalizations.of(context)!.idWithBrackets(truncateUID(
+                  //           container["identity"]["alternateIDs"][0]["UID"]))
+                  //       as String),
+                  //   style: const TextStyle(
+                  //     fontSize: 12,
+                  //     fontWeight: FontWeight.w100,
+                  //     color: Colors.black54,
+                  //   ),
+                  // ),
                 ],
               ),
             ],

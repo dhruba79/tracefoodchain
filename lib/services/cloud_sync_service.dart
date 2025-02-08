@@ -287,7 +287,7 @@ class CloudSyncService {
                   // errorMessage
                   debugPrint("Error syncing method {$methodUid}: 400: " +
                       syncresult["responseDetails"].toString());
-                  if (kDebugMode) {
+                  if (kDebugMode && 1==2) {
                     String signingObject = "";
                     List<String> pathsToSign = ["\$"];
                     if ((doc2["methodState"] == "running") &&

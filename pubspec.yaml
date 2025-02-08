@@ -52,6 +52,7 @@ dependencies:
   encrypt: ^5.0.3
   json_path: ^0.7.5
   share_plus: ^10.1.4
+  auto_size_text: ^3.0.0
 
 
   # flutter_test: any

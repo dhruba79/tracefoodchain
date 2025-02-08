@@ -382,5 +382,6 @@
       "coffeeIsBought": "Coffee is bought",
       "coffeeIsSold": "Coffee is sold",
       "generatingItem": "Generating item...",
-      "processing": "Processing data..."
+      "processing": "Processing data...",
+      "setItemName": "Set item name"
 }

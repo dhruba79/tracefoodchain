@@ -381,7 +381,8 @@
       "buttonStart": "START!",
       "buttonBack": "ZURÜCK",
       "generatingItem": "Artikel wird generiert...",
-      "processing": "Daten werden verarbeitet..."
+      "processing": "Daten werden verarbeitet...",
+      "setItemName": "Namen festlegen"
 
 
 }

@@ -27,9 +27,12 @@ class AddEmptyItemDialog extends StatefulWidget {
 class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   String? _capacityError;
   String? _selectedType;
-  final TextEditingController _capacityController = TextEditingController();
   String? _selectedUnit;
+  final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _uidController = TextEditingController();
+  // Neuer Controller für "Name des Container"
+  final TextEditingController _containerNameController =
+      TextEditingController();
   late List<Map<String, dynamic>> _weightUnits;
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
@@ -80,6 +83,12 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
             ),
             const SizedBox(height: 8),
             _buildUnitDropdown(),
+            // Neuer Eingabebereich für "Name des Container"
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: _containerNameController,
+              hintText: l10n.setItemName,
+            ),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -374,22 +383,28 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
       await fshowInfoDialog(context, l10n.pleaseCompleteAllFields);
       return;
     }
-_isProcessing.value = true;
+    _isProcessing.value = true;
+    try{
     Map<String, dynamic> newItem = await getOpenRALTemplate(_selectedType!);
     setObjectMethodUID(newItem, const Uuid().v4());
+    newItem["identity"]["name"] = _containerNameController.text;
     newItem["identity"]["alternateIDs"] = [
       {"UID": _uidController.text, "issuedBy": "owner"}
     ];
-    newItem = setSpecificPropertyJSON(newItem, "max capacity",
-        double.parse(_capacityController.text.replaceAll(",",".")), _selectedUnit!);
+    newItem = setSpecificPropertyJSON(
+        newItem,
+        "max capacity",
+        double.parse(_capacityController.text.replaceAll(",", ".")),
+        _selectedUnit!);
     newItem["currentOwners"] = [
       {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
     ];
 
     if (_latitudeController.text != "" && _longitudeController.text != "") {
       newItem["currentGeolocation"]["geoCoordinates"] = {
-        "latitude": double.parse(_latitudeController.text.replaceAll(",",".")),
-        "longitude": double.parse(_longitudeController.text.replaceAll(",",".")),
+        "latitude": double.parse(_latitudeController.text.replaceAll(",", ".")),
+        "longitude":
+            double.parse(_longitudeController.text.replaceAll(",", ".")),
       };
     }
 
@@ -410,8 +425,10 @@ _isProcessing.value = true;
 
     final savedItem = await getObjectMethod(getObjectMethodUID(
         newItem)); //Reload new item with correct method history
-  _isProcessing.value = false;      
-    widget.onItemAdded(savedItem);
+    widget.onItemAdded(savedItem);    
+    }catch(e){}   
+    _isProcessing.value = false;
+
     Navigator.of(context).pop();
   }
 

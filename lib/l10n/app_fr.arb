@@ -383,6 +383,7 @@
       "coffeeIsBought": "Le café est acheté",
       "coffeeIsSold": "Le café est vendu",
       "generatingItem": "Génération de l'article...",
-      "processing": "Traitement des données..."
+      "processing": "Traitement des données...",
+      "setItemName": "Définir le nom"
   
 }
