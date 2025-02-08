@@ -62,6 +62,7 @@ class _QRCodeSenderState extends State<QRCodeSender> {
       ),
     );
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    _startQRMovie(); // Starte QR Movie automatisch beim Öffnen
   }
 
   List<String> _splitData(String data) {
@@ -307,9 +308,11 @@ class _QRCodeSenderState extends State<QRCodeSender> {
             ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: _timer == null ? _startQRMovie : _stopQRMovie,
-            child: Text(
-                _timer == null ? l10n.startPresenting : l10n.stopPresenting),
+            onPressed: () {
+              _stopQRMovie();
+              Navigator.of(context).pop(); // Fenster sofort schließen
+            },
+            child: Text(l10n.stopPresenting), // Zeige immer "stopPresenting"
           ),
         ],
       ),

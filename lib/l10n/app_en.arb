@@ -186,7 +186,7 @@
       }
     }
   },
-  "processingStep": "Processing step: {step}",
+  "processingStep": "{step}",
   "@processingStep": {
     "placeholders": {
       "step": {
@@ -383,5 +383,8 @@
       "coffeeIsSold": "Coffee is sold",
       "generatingItem": "Generating item...",
       "processing": "Processing data...",
-      "setItemName": "Set item name"
+      "setItemName": "Set item name",
+      "unnamedObject": "Unnamed object",
+      "capacity": "Capacity",
+      "freeCapacity": "Free capacity"
 }

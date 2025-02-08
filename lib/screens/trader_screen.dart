@@ -24,17 +24,22 @@ class _TraderScreenState extends State<TraderScreen> {
       child: Scaffold(
         body: Stack(
           children: [
-            ItemsList(
-              context: context,
-              onSelectionChanged: (selectedItems) {
-                if (selectedItems.length > 1) {
-                  batchSalePossible = true;
-                  rebuildSpeedDial.value = true;
-                } else {
-                  batchSalePossible = false;
-                  rebuildSpeedDial.value = true;
-                }
-              },
+            Padding(
+              padding: const EdgeInsets.only(
+                  bottom:
+                      60), // hinzugefügt, um den unteren Bereich freizuhalten
+              child: ItemsList(
+                context: context,
+                onSelectionChanged: (selectedItems) {
+                  if (selectedItems.length > 1) {
+                    batchSalePossible = true;
+                    rebuildSpeedDial.value = true;
+                  } else {
+                    batchSalePossible = false;
+                    rebuildSpeedDial.value = true;
+                  }
+                },
+              ),
             ),
             const Positioned(
               left: 16,

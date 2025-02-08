@@ -45,9 +45,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   void initState() {
     super.initState();
     final appState = Provider.of<AppState>(context, listen: false);
-    String country = 'Honduras'; // Fallback country
-    // Hier könnten Sie das Land aus dem AppState holen, wenn verfügbar
-    // String country = appState.userCountry ?? 'Honduras';
+   
     _weightUnits = getWeightUnits(country);
     if (_weightUnits.isNotEmpty) {
       _selectedUnit = _weightUnits[0]['name'];

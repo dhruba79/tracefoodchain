@@ -168,20 +168,20 @@ class _InboxScreenState extends State<InboxScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Amount: ${getSpecificPropertyfromJSON(coffee, "amount").toString()} ${getSpecificPropertyUnitfromJSON(coffee, "amount")}',
+                  'Amount: ${getSpecificPropertyfromJSON(coffee, "amount").toString()} ${getSpecificPropertyUnitfromJSON(coffee, "amount")} ${getSpecificPropertyfromJSON(coffee, "processingState")}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Processing step: ${getSpecificPropertyfromJSON(coffee, "processingState")}",
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
-                ),
+                // const SizedBox(height: 4),
+                // Text(
+                //   "Processing step: ${getSpecificPropertyfromJSON(coffee, "processingState")}",
+                //   style: const TextStyle(
+                //     fontSize: 14,
+                //     color: Colors.black54,
+                //   ),
+                // ),
                 const SizedBox(height: 4),
                 FutureBuilder<Map<String, dynamic>>(
                   future: _databaseHelper.getFirstSale(coffee),
@@ -283,8 +283,13 @@ class _InboxScreenState extends State<InboxScreen> {
                   child: getContainerIcon(container["template"]["RALType"]),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                    '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"][0]["UID"]}\nis empty'),
+                Text((container["identity"]["name"] != null &&
+                        container["identity"]["name"]
+                            .toString()
+                            .trim()
+                            .isNotEmpty)
+                    ? container["identity"]["name"]
+                    : '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"][0]["UID"]}\nis empty'),
               ],
             ),
           ),

@@ -29,7 +29,7 @@ class CoffeeInfo {
   List<String> qualityReductionCriteria;
 
   CoffeeInfo({
-    this.country = 'Honduras',
+    this.country = 'Honduras',//ToDo: enable other countries if needed
     this.species = "",
     this.quantity = 0.0,
     this.weightUnit = "t",

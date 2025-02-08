@@ -463,7 +463,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     final l10n = AppLocalizations.of(context)!;
     final countries = ['Honduras', 'Colombia', 'Brazil', 'Ethiopia', 'Vietnam'];
     final coffeeSpecies = loadCoffeeSpecies();
-    String? selectedCountry = 'Honduras';
+    String? selectedCountry = country;
     String? selectedSpecies;
     double quantity = 0.0;
     String? selectedUnit;

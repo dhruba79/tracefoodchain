@@ -291,8 +291,8 @@ dynamic convertToJson(dynamic firestoreObj) {
       } else if (value is DateTime) {
         final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
             (value.millisecondsSinceEpoch ~/ 1000) * 1000);
-        String isoString = dateInSeconds.toIso8601String().split('.').first;
-        // debugPrint("ISOSTRING: " + isoString);
+        String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
+        // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
         convertedObj[key] = isoString;
       } else if (value is GeoPoint) {
         convertedObj[key] = {
@@ -307,8 +307,9 @@ dynamic convertToJson(dynamic firestoreObj) {
   } else if (firestoreObj is DateTime) {
     final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
         (firestoreObj.millisecondsSinceEpoch ~/ 1000) * 1000);
-    String isoString = dateInSeconds.toIso8601String().split('.').first;
-    // debugPrint("ISOSTRING: " + isoString);
+    String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
+        // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
+  
     return isoString;
   } else {
     // Simple datatype like string or number

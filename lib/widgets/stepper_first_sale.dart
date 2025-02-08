@@ -29,7 +29,7 @@ class CoffeeInfo {
   List<String> qualityReductionCriteria;
 
   CoffeeInfo({
-    this.country = 'Honduras',
+    this.country = 'Honduras',//ToDo: enable other countries if needed
     this.species = "",
     this.quantity = 0.0,
     this.weightUnit = "t",
@@ -306,7 +306,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
     final l10n = AppLocalizations.of(context)!;
     final countries = ['Honduras', 'Colombia', 'Brazil', 'Ethiopia', 'Vietnam'];
     final coffeeSpecies = loadCoffeeSpecies();
-    String? selectedCountry = 'Honduras';
+    String? selectedCountry = country;
     String? selectedSpecies;
     double quantity = 0.0;
     String? selectedUnit;

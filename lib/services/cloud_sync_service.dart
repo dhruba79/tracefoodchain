@@ -290,7 +290,8 @@ class CloudSyncService {
                   if (kDebugMode && 1==2) {
                     String signingObject = "";
                     List<String> pathsToSign = ["\$"];
-                    if ((doc2["methodState"] == "running") &&
+                    if (
+                      (doc2["methodState"] == "running") &&
                         (doc2["template"]["RALType"] == "changeContainer")) {
                       pathsToSign = [
                         //sale online process, new container not yet known

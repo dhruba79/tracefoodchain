@@ -185,7 +185,7 @@
       }
     }
   },
-  "processingStep": "Verarbeitungsschritt: {step}",
+  "processingStep": "{step}",
   "@processingStep": {
     "placeholders": {
       "step": {
@@ -382,7 +382,10 @@
       "buttonBack": "ZURÜCK",
       "generatingItem": "Artikel wird generiert...",
       "processing": "Daten werden verarbeitet...",
-      "setItemName": "Namen festlegen"
+      "setItemName": "Namen festlegen",
+      "unnamedObject": "Unbenanntes Objekt",
+      "capacity": "Kapazität",
+      "freeCapacity": "Freie Kapazität"
 
 
 }

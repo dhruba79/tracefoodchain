@@ -7,6 +7,7 @@ import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/models/whisp_result_model.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
+import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/pdf_generator_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
@@ -14,6 +15,91 @@ import 'package:trace_foodchain_app/services/whisp_api_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/coffe_actions_menu.dart';
 import 'package:trace_foodchain_app/widgets/container_actions_menu.dart';
+
+// Helper function: Conversion of quantity based on units
+double convertQuantity(double quantity, String fromUnit, String toUnit) {
+  // Example: Currently no conversion factor is applied. Extend if necessary.
+  if (fromUnit == toUnit) {
+    return quantity;
+  }
+  final weightUnits = getWeightUnits(country);
+  final toKgFactorFrom = weightUnits.firstWhere(
+      (uni) => uni["name"] == fromUnit,
+      orElse: () => {"factor": 1.0})["factor"];
+  final toKgFactorTo = weightUnits.firstWhere(
+      (uni) => uni["name"] == toUnit,
+      orElse: () => {"factor": 1.0})["factor"];
+  // Convert the given quantity from its current unit to kilograms
+  final quantityInKg = quantity * toKgFactorFrom;
+  // Convert the quantity from kilograms to the target unit
+  return quantityInKg / toKgFactorTo;
+
+}
+
+// Calculates the total sum of quantities of coffee items within a container
+double computeCoffeeSum(Map<String, dynamic> container, double max_capacity) {
+  double sum = 0.0;
+  // Assumption: The container may have a "contents" field that contains all nested items.
+  List<Map<String, dynamic>> stack = [];
+
+  // Instead of directly using container["contents"], we recursively scan localStorage
+  // to fetch all contained items using valid geolocation UIDs until no valid UID ("") is found.
+
+  void addContainedItems(
+      Map<String, dynamic> parentContainer, List<Map<String, dynamic>> stack) {
+    if (parentContainer.containsKey("identity") &&
+        parentContainer["identity"]["UID"] != null) {
+      for (var doc in localStorage.values) {
+        try {
+          final childContainerUID =
+              doc["currentGeolocation"]["container"]["UID"];
+          // Check if this doc is a child of the current container and has a valid UID
+          if (childContainerUID == parentContainer["identity"]["UID"] &&
+              childContainerUID != "") {
+            final child = Map<String, dynamic>.from(doc);
+            if (child["template"] != null &&
+                child["template"]["RALType"] == "coffee") {
+              if ((isTestmode && child.containsKey("isTestmode")) ||
+                  (!isTestmode && !child.containsKey("isTestmode")))
+                stack.add(child);
+            }
+            // Recursively add children of this found container
+            addContainedItems(child, stack);
+          }
+        } catch (e) {
+          // Ignore any parsing errors
+        }
+      }
+    }
+  }
+
+  addContainedItems(container, stack);
+
+  while (stack.isNotEmpty) {
+    final item = stack.removeLast();
+
+    if (item["template"] != null && item["template"]["RALType"] == "coffee") {
+      // Determine the quantity of the coffee item
+      var qtyRaw = getSpecificPropertyfromJSON(item, "amount");
+      double qty = double.tryParse(qtyRaw.toString()) ?? 0.0;
+      // Determine units
+      String containerUnit =
+          getSpecificPropertyUnitfromJSON(container, "max capacity") ?? "";
+      String coffeeUnit = getSpecificPropertyUnitfromJSON(item, "amount") ?? "";
+      // Convert quantity (if necessary)
+      double converted = convertQuantity(qty, coffeeUnit, containerUnit);
+      //ToDo: Now we must know which quality the coffee was when initially purchased
+      //ToDo: Based on this we need to know which quality the coffee has now and use the weightCorrectionFactor to calculate the current weight
+      sum += converted;
+    }
+    // If the item contains further nested contents
+    if (item.containsKey("contents") && item["contents"] is List) {
+      stack.addAll(List<Map<String, dynamic>>.from(item["contents"]));
+    }
+  }
+
+  return double.parse((max_capacity - sum).toStringAsFixed(2));
+}
 
 final Set<String> selectedItems = {};
 
@@ -297,6 +383,8 @@ class _ItemsListState extends State<ItemsList> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+
         crossAxisAlignment: CrossAxisAlignment.start, // Align items to the top
         children: [
           // Icon positioned at the top-left
@@ -316,6 +404,8 @@ class _ItemsListState extends State<ItemsList> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,11 +420,10 @@ class _ItemsListState extends State<ItemsList> {
                           ),
                         ),
                         Text(
-                          (l10n.speciesLabel(getSpecificPropertyfromJSON(
-                              coffee, "species")) as String),
+                          getSpecificPropertyfromJSON(coffee, "species"),
                           style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w100,
+                            fontSize: 13,
+                            // fontWeight: FontWeight.w100,
                             color: Colors.black54,
                           ),
                         ),
@@ -370,22 +459,24 @@ class _ItemsListState extends State<ItemsList> {
                 const SizedBox(height: 4),
                 Text(
                   l10n.amount(
-                      getSpecificPropertyfromJSON(coffee, "amount").toString(),
-                      getSpecificPropertyUnitfromJSON(coffee, "amount")),
+                          getSpecificPropertyfromJSON(coffee, "amount")
+                              .toString(),
+                          getSpecificPropertyUnitfromJSON(coffee, "amount")) +
+                      " ${l10n.processingStep(getSpecificPropertyfromJSON(coffee, "processingState")) as String}",
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  (l10n.processingStep(getSpecificPropertyfromJSON(
-                      coffee, "processingState")) as String),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
-                ),
+                // const SizedBox(height: 4),
+                // Text(
+                //   (l10n.processingStep(getSpecificPropertyfromJSON(
+                //       coffee, "processingState")) as String),
+                //   style: const TextStyle(
+                //     fontSize: 14,
+                //     color: Colors.black54,
+                //   ),
+                // ),
                 const SizedBox(height: 4),
                 FutureBuilder<Map<String, dynamic>>(
                   future: _databaseHelper.getFirstSale(coffee),
@@ -480,6 +571,7 @@ class _ItemsListState extends State<ItemsList> {
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
+          titleAlignment: ListTileTitleAlignment.top,
           leading: multiselectPossible
               ? Checkbox(
                   value: selectedItems.contains(container["identity"]["UID"]),
@@ -489,6 +581,8 @@ class _ItemsListState extends State<ItemsList> {
                 )
               : null,
           title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               getContainerIcon(container["template"]["RALType"]),
               const SizedBox(width: 12),
@@ -500,7 +594,8 @@ class _ItemsListState extends State<ItemsList> {
                               .trim()
                               .isNotEmpty)
                       ? container["identity"]["name"]
-                      : "unbenanntes Objekt",
+                      : getContainerTypeName(
+                          container["template"]["RALType"], context),
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -508,6 +603,8 @@ class _ItemsListState extends State<ItemsList> {
                 ),
               ),
               Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   //*Sync state with cloud
 
@@ -546,9 +643,13 @@ class _ItemsListState extends State<ItemsList> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text("ID: xxxx", style: TextStyle(color: Colors.black38)),
-              Text("freie Kapazität xxx/xxx latas",
-                  style: TextStyle(color: Colors.black38))
+              Text(
+                  "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
+                  style: TextStyle(color: Colors.black38)),
+              Text(
+                "${l10n.capacity}: ${getSpecificPropertyfromJSON(container, "max capacity") ?? "???"} ${getSpecificPropertyUnitfromJSON(container, "max capacity")}",
+                style: const TextStyle(color: Colors.black38),
+              )
             ],
           ),
         ),
@@ -562,7 +663,7 @@ class _ItemsListState extends State<ItemsList> {
     final appState = Provider.of<AppState>(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.start, //spaceBetween,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12.0, 0, 0, 0),
@@ -601,7 +702,9 @@ class _ItemsListState extends State<ItemsList> {
                                       .trim()
                                       .isNotEmpty)
                               ? container["identity"]["name"]
-                              : "unbenanntes Objekt",
+                              : getContainerTypeName(
+                                  container["template"]["RALType"],
+                                  context), // l10n.unnamedObject,
                           style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -612,35 +715,74 @@ class _ItemsListState extends State<ItemsList> {
                       ),
                     ],
                   ),
-
                   Text(
                       "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
                       style: TextStyle(
                         color: Colors.black38,
                         fontSize: 13,
                       )),
-                  Text("freie Kapazität xxx/xxx latas",
-                      style: TextStyle(
-                        color: Colors.black38,
-                        fontSize: 13,
-                      ))
-
-                  // Text(
-                  //   (AppLocalizations.of(context)!.idWithBrackets(truncateUID(
-                  //           container["identity"]["alternateIDs"][0]["UID"]))
-                  //       as String),
-                  //   style: const TextStyle(
-                  //     fontSize: 12,
-                  //     fontWeight: FontWeight.w100,
-                  //     color: Colors.black54,
-                  //   ),
-                  // ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${l10n.freeCapacity}:\n${computeCoffeeSum(container, (getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? 0.0))} / ${(getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? "???")} ${getSpecificPropertyUnitfromJSON(container, "max capacity")}",
+                        style: const TextStyle(
+                          color: Colors.black38,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Animated progress bar for fill level
+                      LayoutBuilder(builder: (context, constraints) {
+                        double maxCapacity = getSpecificPropertyfromJSON(
+                                container, "max capacity") is num
+                            ? getSpecificPropertyfromJSON(
+                                    container, "max capacity")
+                                .toDouble()
+                            : double.tryParse(getSpecificPropertyfromJSON(
+                                        container, "max capacity")
+                                    .toString()) ??
+                                0.0;
+                        double computedCapacity = computeCoffeeSum(container, maxCapacity);
+                        double freeCapacity = computedCapacity < 0 ? 0 : computedCapacity;
+                        // Calculate progress as a fraction of the available max capacity.
+                        double progress = (maxCapacity > 0)
+                            ? (freeCapacity / maxCapacity)
+                            : 0.0;
+                        progress = progress.clamp(0.0, 1.0);
+                        return Stack(
+                          children: [
+                            Container(
+                              width: 150,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.grey[300],
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              width: 150 * progress,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              curve: Curves.easeInOut,
+                            ),
+                          ],
+                        );
+                      })
+                    ],
+                  )
                 ],
               ),
             ],
           ),
         ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             //*Sync state with cloud
 

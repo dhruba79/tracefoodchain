@@ -27,6 +27,7 @@ import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
 import 'package:trace_foodchain_app/services/get_device_id.dart';
 // import 'dart:html' as html;
 
+String country = "Honduras"; //TODO: enable other contries if needed;
 int cloudSyncFrequency =
     600; //in case internet is connected, this will sync with the cloud every xxx seconds
 late Box<Map<dynamic, dynamic>> localStorage;

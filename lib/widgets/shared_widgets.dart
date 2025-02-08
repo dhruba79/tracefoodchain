@@ -317,7 +317,7 @@ Future<void> showProcessingStateDialog(
                         });
                       },
                       country: getSpecificPropertyfromJSON(coffee, "country") ??
-                          'Honduras',
+                          country,
                     ),
                   ),
                 ),
