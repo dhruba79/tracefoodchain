@@ -203,13 +203,14 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
       }
       //***************  EXISTING METHOD TO SIGN ***************
       if (signMethod == true) {
-        //!DIGITAL SIGNATURE FOR AN EXISTING METHOD
+        //!DIGITAL SIGNATURE 
         //if state is finished, always sign complete method
         //if is running and change container, it is an "inbox" method missing the container in io and oo
         //if is running and change owner, it is an "inbox" method missing the owner in io and oo
         //
         String signingObject = "";
         List<String> pathsToSign = ["\$"];
+        //Online sale: We do not know the new container yet, but we know the content
         if ((objectMethod["methodState"] == "running") &&
             (objectMethod["template"]["RALType"] == "changeContainer")) {
           pathsToSign = [
@@ -237,7 +238,8 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
         objectMethod["digitalSignatures"].add({
           "signature": signature,
           "signerUID": FirebaseAuth.instance.currentUser?.uid,
-          "signedContent": ["\$"]
+          // "signedContent": ["\$"]
+          "signedContent": pathsToSign
         });
       }
     }

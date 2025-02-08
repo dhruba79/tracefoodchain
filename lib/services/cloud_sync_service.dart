@@ -294,7 +294,7 @@ class CloudSyncService {
                       (doc2["methodState"] == "running") &&
                         (doc2["template"]["RALType"] == "changeContainer")) {
                       pathsToSign = [
-                        //sale online process, new container not yet known
+                        //sale online process, new container not yet known, but content known
                         "\$.identity.UID",
                         "\$.inputObjects[?(@.role=='item')]",
                         //The new state of the item (with new container is not known at that time)

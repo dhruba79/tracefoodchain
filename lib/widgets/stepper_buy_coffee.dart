@@ -354,9 +354,9 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
 
 //Sign both methods before sending them to the seller
   List<String> pathsToSign = [
-    //sales process buyer side, only sign parts that are relevant for the buyer
+    //sales process buyer side, we know the new container but do not know what will be inside
     "\$.identity.UID",
-    "\$.inputObjects[?(@.role=='newContainer')]", //only the new container is known as that time
+    "\$.inputObjects[?(@.role=='newContainer')]",
     "\$.executor"
   ];
   String signingObject = createSigningObject(pathsToSign, change_container);
@@ -373,7 +373,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
 
   pathsToSign = [
     "\$.identity.UID",
-    "\$.inputObjects[?(@.role=='newContainer')]"
+    "\$.inputObjects[?(@.role=='buyer')]"//At this time, we only know the buyer
   ];
   signingObject = createSigningObject(pathsToSign, transfer_ownership);
 

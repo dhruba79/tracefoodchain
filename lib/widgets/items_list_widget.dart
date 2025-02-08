@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/models/whisp_result_model.dart';
@@ -378,6 +379,7 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildCoffeeItem(Map<String, dynamic> coffee) {
+    // Share.share(coffee.toString());
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
     return Padding(

@@ -30,7 +30,10 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(l10n.sellOnline),
+      title: Text(
+        l10n.sellOnline,
+        style: TextStyle(color: Colors.black54),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -127,7 +130,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
       await _changeOwnership(item, getObjectMethodUID(receiverDoc));
     }
 
-    // Perform changeContainer of the primary container, use the USER as container to tag as "INBOX"
+    // Perform changeContainer of the primary container, remove the container ID to tag as "INBOX"
     await _changeContainer(widget.itemsToSell[0], receiverDoc);
 
     //ToDo Send push notification to the new owner
@@ -160,10 +163,11 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
 
   Future<void> _changeContainer(Map<String, dynamic> item, receiverDoc) async {
     final changeContainerMethod = await getOpenRALTemplate("changeContainer");
-    changeContainerMethod["inputObjects"] = [item];
+
     item["currentGeolocation"]["container"]["UID"] =
         ""; //We do not now the receiving container yet
-    //Add Executor
+    addInputobject(changeContainerMethod, item, "item");
+    //Add Executor    
     changeContainerMethod["executor"] = receiverDoc;
     changeContainerMethod["methodState"] = "running";
     //Step 1: get method an uuid (for method history entries)
@@ -171,7 +175,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     //Step 2: save the objects a first time to get it the method history change
     await setObjectMethod(item, false, false);
     //Step 3: add the output objects with updated method history to the method
-    changeContainerMethod["outputObjects"] = [item];
+    addOutputobject(changeContainerMethod, item, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeContainerMethod);
     //Step 5: persist process
