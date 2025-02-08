@@ -293,7 +293,7 @@ dynamic convertToJson(dynamic firestoreObj) {
             (value.millisecondsSinceEpoch ~/ 1000) * 1000);
         String isoString = dateInSeconds.toIso8601String().split('.').first;
         // debugPrint("ISOSTRING: " + isoString);
-        convertedObj[key] = value.toIso8601String();
+        convertedObj[key] = isoString;
       } else if (value is GeoPoint) {
         convertedObj[key] = {
           'latitude': value.latitude,
