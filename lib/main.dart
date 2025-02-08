@@ -24,10 +24,11 @@ import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 // import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/widgets/global_snackbar_listener.dart';
-import 'package:trace_foodchain_app/services/get_device_id.dart'; 
+import 'package:trace_foodchain_app/services/get_device_id.dart';
 // import 'dart:html' as html;
 
-int cloudSyncFrequency = 600; //in case internet is connected, this will sync with the cloud every xxx seconds
+int cloudSyncFrequency =
+    600; //in case internet is connected, this will sync with the cloud every xxx seconds
 late Box<Map<dynamic, dynamic>> localStorage;
 late Box<Map<dynamic, dynamic>> openRALTemplates;
 late Map<String, Map<String, dynamic>> cloudConnectors;
@@ -86,7 +87,8 @@ ThemeData customTheme = ThemeData(
     surfaceTintColor: Colors.white,
 
     elevation: 0.0, // Shadow the AppBar casts
-    iconTheme: IconThemeData(color: Colors.black54), // Color of icons in the AppBar
+    iconTheme:
+        IconThemeData(color: Colors.black54), // Color of icons in the AppBar
   ),
 
   //* SWITCH
@@ -94,10 +96,12 @@ ThemeData customTheme = ThemeData(
     trackOutlineColor: WidgetStateProperty.resolveWith<Color>(
       (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
-          return Colors.white; // Farbe der Umrandung, wenn der Schalter deaktiviert ist
+          return Colors
+              .white; // Farbe der Umrandung, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return const Color(0xFF35DB00); //  Farbe der Umrandung, wenn der Schalter aktiviert ist
+          return const Color(
+              0xFF35DB00); //  Farbe der Umrandung, wenn der Schalter aktiviert ist
         }
         return Colors.white; // Standardfarbe  Farbe der Umrandung
       },
@@ -105,10 +109,12 @@ ThemeData customTheme = ThemeData(
     thumbColor: WidgetStateProperty.resolveWith<Color>(
       (Set<WidgetState> states) {
         if (states.contains(WidgetState.disabled)) {
-          return Colors.grey; // Farbe des Schaltknopfes, wenn der Schalter deaktiviert ist
+          return Colors
+              .grey; // Farbe des Schaltknopfes, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return const Color(0xFF35DB00); // Farbe des Schaltknopfes, wenn der Schalter aktiviert ist
+          return const Color(
+              0xFF35DB00); // Farbe des Schaltknopfes, wenn der Schalter aktiviert ist
         }
         return Colors.white; // Standardfarbe des Schaltknopfes
       },
@@ -121,7 +127,8 @@ ThemeData customTheme = ThemeData(
           //     0); // Farbe der Schalterspur, wenn der Schalter deaktiviert ist
         }
         if (states.contains(WidgetState.selected)) {
-          return Colors.white; // Farbe der Schalterspur, wenn der Schalter aktiviert ist
+          return Colors
+              .white; // Farbe der Schalterspur, wenn der Schalter aktiviert ist
         }
         return Colors.black26;
         // Color.fromARGB(94, 55, 219, 0); // Standardfarbe der Schalterspur
@@ -144,7 +151,8 @@ ThemeData customTheme = ThemeData(
   buttonTheme: const ButtonThemeData(
     hoverColor: Colors.white24,
     buttonColor: Color(0xFF35DB00), // Background color (blue in this case)
-    textTheme: ButtonTextTheme.primary, // Use the primary color for text (white by default)
+    textTheme: ButtonTextTheme
+        .primary, // Use the primary color for text (white by default)
   ),
   // Style for text in buttons
 
@@ -243,11 +251,13 @@ void main() async {
   await Hive.initFlutter();
 
   //*Start accessing local data storage
-  localStorage = await Hive.openBox<Map<dynamic, dynamic>>('localStorage'); //ToDo: 1 Hive DB per logged-in user
-  // await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
+  localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
+      'localStorage'); //ToDo: 1 Hive DB per logged-in user
+  //await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
 
   //*Start accessing local template storage
-  openRALTemplates = await Hive.openBox<Map<dynamic, dynamic>>('openRALTemplates');
+  openRALTemplates =
+      await Hive.openBox<Map<dynamic, dynamic>>('openRALTemplates');
   // await openRALTemplates.deleteFromDisk(); //DEBUG: DELETE TEMPLATE DATABASE
 
   //FIRST-EVER STARTUP OF APP: Add initial templates if they are not in the local database
@@ -259,7 +269,8 @@ void main() async {
     }
   }
 
-  cloudConnectors = getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
+  cloudConnectors =
+      getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
 
   final appState = AppState();
   await appState.initializeApp(); // Initialize locale
@@ -270,8 +281,8 @@ void main() async {
       value: appState,
       child: DevicePreview(
         enabled: !kReleaseMode,
-        builder: (context) =>   MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
-      
+        builder: (context) =>
+            MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
       ),
     ),
   );
@@ -346,7 +357,8 @@ class MyApp extends StatelessWidget {
       return MaterialApp(
 
           // locale: DevicePreview.locale(context),
-          locale: appState.locale, // Re-enable this line to use the locale from the appState
+          locale: appState
+              .locale, // Re-enable this line to use the locale from the appState
           builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
           localizationsDelegates: [

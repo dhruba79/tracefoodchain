@@ -56,8 +56,7 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _disposed = true;
     _controller.dispose();
-    super
-        .dispose(); 
+    super.dispose();
   }
 
   Future<void> _initializeApp() async {
@@ -120,7 +119,8 @@ class _SplashScreenState extends State<SplashScreen>
           content: SizedBox(
               height: 150,
               child: DataLoadingIndicator(
-                  text: l10n.waitingForEmailVerification,
+                  text:
+                      "${FirebaseAuth.instance.currentUser!.email} \n ${l10n.waitingForEmailVerification}",
                   textColor: Colors.black54,
                   spinnerColor: const Color(0xFF35DB00))),
           actions: <Widget>[

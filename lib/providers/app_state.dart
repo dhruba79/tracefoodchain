@@ -117,9 +117,17 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final String? userId = prefs.getString('userId');
     if (userId != null) {
-      _isAuthenticated = true;
-      _isEmailVerified =
-          FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+      if (FirebaseAuth.instance.currentUser == null) {
+        debugPrint(
+            "ERROR: User ID found in shared preferences but user does not exist => CLOUDCHANGE?");
+        // Delete all items from local Hive database
+        signOut();
+        await localStorage.deleteFromDisk();
+      } else {
+        _isAuthenticated = true;
+        _isEmailVerified =
+            FirebaseAuth.instance.currentUser?.emailVerified ?? false;
+      }
     }
     notifyListeners();
   }
