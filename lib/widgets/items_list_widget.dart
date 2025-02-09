@@ -24,11 +24,11 @@ double convertQuantity(double quantity, String fromUnit, String toUnit) {
     return quantity;
   }
   final weightUnits = getWeightUnits(country);
-  final toKgFactorFrom = weightUnits.firstWhere(
+  double toKgFactorFrom = weightUnits.firstWhere(
       (uni) => uni["name"] == fromUnit,
-      orElse: () => {"factor": 1.0})["factor"];
-  final toKgFactorTo = weightUnits.firstWhere((uni) => uni["name"] == toUnit,
-      orElse: () => {"factor": 1.0})["factor"];
+      orElse: () => {"factor": 1.0})["toKgFactor"];
+  double toKgFactorTo = weightUnits.firstWhere((uni) => uni["name"] == toUnit,
+      orElse: () => {"factor": 1.0})["toKgFactor"];
   // Convert the given quantity from its current unit to kilograms
   final quantityInKg = quantity * toKgFactorFrom;
   // Convert the quantity from kilograms to the target unit
