@@ -17,9 +17,6 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
@@ -125,7 +122,7 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n!.associateWithDifferentFarm,
+        title: Text(l10n.associateWithDifferentFarm,
             style: const TextStyle(color: Colors.black54)),
         content: TextField(
           controller: controller,
@@ -134,14 +131,14 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n!.cancel),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               // TODO: Implement associating with a different farm logic
               Navigator.pop(context);
             },
-            child: Text(l10n!.confirm),
+            child: Text(l10n.confirm),
           ),
         ],
       ),

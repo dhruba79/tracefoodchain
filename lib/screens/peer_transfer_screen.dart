@@ -24,9 +24,6 @@ class _PeerTransferScreenState extends State<PeerTransferScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return Scaffold(
       appBar: AppBar(title: Text(l10n.peerTransfer)),
       body: Center(
@@ -35,7 +32,8 @@ class _PeerTransferScreenState extends State<PeerTransferScreen> {
             Expanded(
               child: widget.transferMode == "send"
                   ? QRCodeSender(
-                      data: json.encode(convertToJson(widget.transferredDataOutgoing)))
+                      data: json.encode(
+                          convertToJson(widget.transferredDataOutgoing)))
                   : const QRCodeReceiver(),
             ),
           ],

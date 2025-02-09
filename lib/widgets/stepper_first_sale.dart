@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
@@ -29,7 +31,7 @@ class CoffeeInfo {
   List<String> qualityReductionCriteria;
 
   CoffeeInfo({
-    this.country = 'Honduras',//ToDo: enable other countries if needed
+    this.country = 'Honduras', //ToDo: enable other countries if needed
     this.species = "",
     this.quantity = 0.0,
     this.weightUnit = "t",
@@ -158,6 +160,15 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
             }
             await sellCoffee(saleInfo, containerType);
             _isProcessing.value = false;
+            final databaseHelper = DatabaseHelper();
+            //Repaint Container list
+            repaintContainerList.value = true;
+            //Repaint Inbox count
+            if (FirebaseAuth.instance.currentUser != null) {
+              String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+              inbox = await databaseHelper.getInboxItems(ownerUID);
+              inboxCount.value = inbox.length;
+            }
             Navigator.of(context).pop();
           } else {
             setState(() {
@@ -191,6 +202,15 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
               _isProcessing.value = true;
               await sellCoffee(saleInfo, containerType);
               _isProcessing.value = false;
+              final databaseHelper = DatabaseHelper();
+              //Repaint Container list
+              repaintContainerList.value = true;
+              //Repaint Inbox count
+              if (FirebaseAuth.instance.currentUser != null) {
+                String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+                inbox = await databaseHelper.getInboxItems(ownerUID);
+                inboxCount.value = inbox.length;
+              }
               Navigator.of(context).pop();
             }
           } else {
@@ -280,7 +300,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                               const CircularProgressIndicator(),
                               const SizedBox(height: 16),
                               Text(l10n.coffeeIsBought,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
@@ -581,7 +601,7 @@ Widget _buildQuantityField({
       Text(
         l10n.quantity,
         //  "Quantity",
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.black87,
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -605,7 +625,7 @@ Widget _buildQuantityField({
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: l10n.enterQuantity, //'Enter quantity',
-                        hintStyle: TextStyle(color: Colors.grey),
+                        hintStyle: const TextStyle(color: Colors.grey),
                       ),
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
@@ -627,7 +647,7 @@ Widget _buildQuantityField({
                   child: DropdownButton<String>(
                     value: selectedUnit,
                     hint: Text(l10n.unit, // "Unit",
-                        style: TextStyle(color: Colors.black87)),
+                        style: const TextStyle(color: Colors.black87)),
                     underline: const SizedBox(),
                     items: weightUnits.map((unit) {
                       return DropdownMenuItem<String>(

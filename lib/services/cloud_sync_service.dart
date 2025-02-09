@@ -180,10 +180,10 @@ class CloudSyncService {
 
 //This function syncs all methods and objects to the cloud if tagged as being changed/generated locally only
 
-  Future<void> syncMethods(String domain) async {
+  Future<bool> syncMethods(String domain) async {
     if (_isSyncing) {
       debugPrint("Sync bereits aktiv, überspringe $domain");
-      return;
+      return false;
     }
     _isSyncing = true;
     final databaseHelper = DatabaseHelper();
@@ -285,14 +285,13 @@ class CloudSyncService {
                   // missingParameters:
                   // invalidSignature => Flag method as invalid
                   // errorMessage
-                  debugPrint("Error syncing method {$methodUid}: 400: " +
-                      syncresult["responseDetails"].toString());
-                  if (kDebugMode && 1==2) {
+                  debugPrint(
+                      "Error syncing method {$methodUid}: 400: ${syncresult["responseDetails"]}");
+                  if (kDebugMode && 1 == 2) {
                     String signingObject = "";
                     List<String> pathsToSign = [];
-                    for (final so in doc2["digitalSignatures"] ){
-
-                      for (final sc in so["signedContent"]){
+                    for (final so in doc2["digitalSignatures"]) {
+                      for (final sc in so["signedContent"]) {
                         pathsToSign.add(sc);
                       }
                     }
@@ -342,7 +341,7 @@ class CloudSyncService {
           // };
         }
       }
-      repaintContainerList.value = true;
+
       //******* 2. SYNC METHODS AND OBJECTS FROM CLOUD - independet of new methods on device ********
       //This happens in case a user has logged into a second device (e.g., webapp on PC)
       //1. Generate a hash list from all objects and methods on the device
@@ -353,7 +352,7 @@ class CloudSyncService {
       // this will return an empty object in case there is an error.
       if (cloudData.isEmpty) {
         debugPrint("Unknown error syncing from cloud!");
-        return;
+        return false;
       }
 
       // Fusioniere die beiden Listen "ralMethods" und "ralObjects" zu einer final mergedList
@@ -384,17 +383,11 @@ class CloudSyncService {
       //
     } catch (e) {
       debugPrint("Error during syncing to cloud: $e !");
+      return false;
     } finally {
       _isSyncing = false;
+      return true;
     }
-
-    if (FirebaseAuth.instance.currentUser != null) {
-      String ownerUID = FirebaseAuth.instance.currentUser!.uid;
-      inbox = await databaseHelper.getInboxItems(ownerUID);
-      inboxCount.value = inbox.length;
-    }
-    repaintContainerList.value =
-        true; //Repaint the list of items when sync is done
   }
 }
 

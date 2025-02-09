@@ -4,15 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:trace_foodchain_app/screens/home_screen.dart';
-import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
-import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/add_empty_item_dialog.dart';
 import 'package:trace_foodchain_app/widgets/items_list_widget.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
-import 'package:trace_foodchain_app/widgets/stepper_buy_coffee.dart';
-import 'package:trace_foodchain_app/widgets/stepper_first_sale.dart';
 import 'package:url_launcher/url_launcher.dart'; // Neuer Import
 
 class RoleBasedSpeedDial extends StatefulWidget {

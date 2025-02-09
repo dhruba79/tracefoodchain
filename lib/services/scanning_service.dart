@@ -44,8 +44,9 @@ class ScanningService {
               );
             }
 
-            if (allowManualInput || kDebugMode)
+            if (allowManualInput || kDebugMode) {
               tabs.add(Tab(text: AppLocalizations.of(context)!.manual));
+            }
             tabViews.add(
               _buildManualInput(context, (code) {
                 scannedCode = code;
@@ -257,7 +258,7 @@ class ScanningService {
                   //ToDo: Display all available containers
                 },
                 child: Text(l10n.selectFromDatabase, //"Select from database",
-                    style: TextStyle(color: Colors.white)),
+                    style: const TextStyle(color: Colors.white)),
               ),
             ),
           )

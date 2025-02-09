@@ -44,7 +44,7 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   int _currentChunkIndex = 0;
   Timer? _timer;
   double _currentSpeed = moveSpeed.toDouble();
-  double _qrSize = 400.0;
+  final double _qrSize = 400.0;
   String _cycleTime = '';
   DateTime? _cycleStartTime;
   bool _cycleMeasured = false;
@@ -276,7 +276,7 @@ class _QRCodeSenderState extends State<QRCodeSender> {
                         DropdownButton<QrErrorCorrectLevel>(
                           value: _errorCorrectLevel,
                           dropdownColor: Colors.black87,
-                          items: [
+                          items: const [
                             DropdownMenuItem(
                               value: QrErrorCorrectLevel.L,
                               child: Text('Low (7%)',

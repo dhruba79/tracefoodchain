@@ -5,11 +5,9 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_path/json_path.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/json_full_double_to_int.dart';
 import 'package:trace_foodchain_app/helpers/sort_json_alphabetically.dart';
@@ -32,8 +30,7 @@ Future<Map<String, Map<String, dynamic>>> getCloudConnectors() async {
     rList.addAll({domain: cc});
     //update local storage
     if (!localStorage.isOpen) {
-      localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
-      'localStorage');
+      localStorage = await Hive.openBox<Map<dynamic, dynamic>>('localStorage');
     }
     localStorage.put(getObjectMethodUID(cc), cc);
   }
@@ -208,7 +205,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
       }
       //***************  EXISTING METHOD TO SIGN ***************
       if (signMethod == true) {
-        //!DIGITAL SIGNATURE 
+        //!DIGITAL SIGNATURE
         //if state is finished, always sign complete method
         //if is running and change container, it is an "inbox" method missing the container in io and oo
         //if is running and change owner, it is an "inbox" method missing the owner in io and oo
@@ -549,7 +546,9 @@ String createSigningObject(
             partsToSign.add(valueMap);
           }
         }
-      } else {partsToSign.add(matches.first.value);}//Only value
+      } else {
+        partsToSign.add(matches.first.value);
+      } //Only value
     }
   }
 

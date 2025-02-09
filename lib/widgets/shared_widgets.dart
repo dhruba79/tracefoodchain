@@ -2,8 +2,10 @@
 
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
@@ -127,7 +129,7 @@ Future<void> showAggregateItemsDialog(
       return AlertDialog(
         title: Text(l10n.aggregateItems,
             style: const TextStyle(color: Colors.black)),
-        content: Text('${l10n.scanSelectFutureContainer}',
+        content: Text(l10n.scanSelectFutureContainer,
             style: const TextStyle(color: Colors.black)),
         actions: <Widget>[
           TextButton(
@@ -152,7 +154,7 @@ Future<void> showAggregateItemsDialog(
 Future<void> showChangeContainerDialog(
     BuildContext context, Map<String, dynamic> item,
     {Map<String, dynamic>? preexistingChangeContainer}) async {
-  final ValueNotifier<bool> _isProcessing = ValueNotifier(false);
+  final ValueNotifier<bool> isProcessing = ValueNotifier(false);
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -162,10 +164,10 @@ Future<void> showChangeContainerDialog(
           AlertDialog(
             title: Text(
               l10n.changeLocation,
-              style: TextStyle(color: Colors.black54),
+              style: const TextStyle(color: Colors.black54),
             ),
             content: Text(l10n.scanContainerInstructions,
-                style: TextStyle(color: Colors.black54)),
+                style: const TextStyle(color: Colors.black54)),
             actions: <Widget>[
               TextButton(
                 child: Text(l10n.cancel),
@@ -187,7 +189,7 @@ Future<void> showChangeContainerDialog(
                   if (receivingContainerUID == null) {
                     await fshowInfoDialog(context, l10n.noDeliveryHistory);
                   } else {
-                    _isProcessing.value = true;
+                    isProcessing.value = true;
                     newContainer =
                         await getContainerByAlternateUID(receivingContainerUID);
 
@@ -227,7 +229,17 @@ Future<void> showChangeContainerDialog(
                       //Step 5: persist Method
                       await setObjectMethod(
                           changeContainerMethod, true, true); //sign it!
-                      _isProcessing.value = false;
+                      isProcessing.value = false;
+                      final databaseHelper = DatabaseHelper();
+                      //Repaint Container list
+                      repaintContainerList.value = true;
+                      //Repaint Inbox count
+                      if (FirebaseAuth.instance.currentUser != null) {
+                        String ownerUID =
+                            FirebaseAuth.instance.currentUser!.uid;
+                        inbox = await databaseHelper.getInboxItems(ownerUID);
+                        inboxCount.value = inbox.length;
+                      }
                     }
                   }
                   Navigator.of(context).pop();
@@ -236,7 +248,7 @@ Future<void> showChangeContainerDialog(
             ],
           ),
           ValueListenableBuilder<bool>(
-            valueListenable: _isProcessing,
+            valueListenable: isProcessing,
             builder: (context, isProcessing, child) {
               return isProcessing
                   ? Positioned.fill(

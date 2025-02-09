@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 
 class AppState extends ChangeNotifier {
@@ -88,7 +89,7 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  void _updateConnectionStatus(List<ConnectivityResult> results) {
+  void _updateConnectionStatus(List<ConnectivityResult> results) async {
     if (results.isEmpty) {
       setConnected(false);
     } else {
@@ -102,12 +103,20 @@ class AppState extends ChangeNotifier {
         debugPrint(
             "connection state has changed to online - trying to sync to cloud");
         //If state changes from offline to online, sync data to cloud!
-
+        final databaseHelper = DatabaseHelper();
         for (final cloudKey in cloudConnectors.keys) {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
-            cloudSyncService.syncMethods(cloudKey);
+            await cloudSyncService.syncMethods(cloudKey);
           }
+        }
+        //Repaint Container list
+        repaintContainerList.value = true;
+        //Repaint Inbox count
+        if (FirebaseAuth.instance.currentUser != null) {
+          String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+          inbox = await databaseHelper.getInboxItems(ownerUID);
+          inboxCount.value = inbox.length;
         }
       }
     }

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,7 +66,7 @@ class StepperSellCoffee {
         return AlertDialog(
           title: Text(l10n.sellCoffeeDeviceToDevice,
               style: const TextStyle(color: Colors.black)),
-          content: CoffeeSaleStepper(),
+          content: const CoffeeSaleStepper(),
           actions: <Widget>[
             TextButton(
               child: Text(l10n.cancel,
@@ -153,7 +154,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    final DatabaseHelper _databaseHelper = DatabaseHelper();
+    final DatabaseHelper databaseHelper = DatabaseHelper();
     return Stack(
       children: [
         SizedBox(
@@ -220,7 +221,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             break;
                           case 1:
                             //*********** A. Change Ownership ***************
-                             _isProcessing.value = true;
+                            _isProcessing.value = true;
                             Map<String, dynamic> buyer =
                                 transfer_ownership["inputObjects"]
                                     .firstWhere((io) => io["role"] == "buyer");
@@ -299,7 +300,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             //!CAVE all nested objects of the container must be transmitted too
 
                             final containedItemsList =
-                                await _databaseHelper.getNestedContainedItems(
+                                await databaseHelper.getNestedContainedItems(
                                     getObjectMethodUID(coffee));
                             //ToDo owner of all nestd objects must be receiver
                             for (final item in containedItemsList) {
@@ -337,6 +338,17 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
 
                             //Present Movie and/or NFC to buyer
                             _isProcessing.value = false;
+
+                            //Repaint Container list
+                            repaintContainerList.value = true;
+                            //Repaint Inbox count
+                            if (FirebaseAuth.instance.currentUser != null) {
+                              String ownerUID =
+                                  FirebaseAuth.instance.currentUser!.uid;
+                              inbox =
+                                  await databaseHelper.getInboxItems(ownerUID);
+                              inboxCount.value = inbox.length;
+                            }
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -424,8 +436,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
           ),
         ),
         ValueListenableBuilder<bool>(
-          valueListenable:
-              _isProcessing,  
+          valueListenable: _isProcessing,
           builder: (context, isProcessing, child) {
             return isProcessing
                 ? Positioned.fill(
@@ -508,7 +519,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                         ),
                         child: Text(
                           l10n.coffeeInformation,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -622,7 +633,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                           children: [
                             TextButton(
                               child: Text(l10n.cancel,
-                                  style: TextStyle(color: Colors.black87)),
+                                  style:
+                                      const TextStyle(color: Colors.black87)),
                               onPressed: () => Navigator.of(context).pop(),
                             ),
                             ElevatedButton(

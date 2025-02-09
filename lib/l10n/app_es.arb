@@ -387,6 +387,7 @@
       "setItemName": "Establecer nombre",
       "unnamedObject": "Objeto sin nombre",
       "capacity": "Capacidad",
-      "freeCapacity": "Capacidad libre"
+      "freeCapacity": "Capacidad libre",
+      "selectContainerForItems": "Seleccionar contenedor\npara los artículos"
 
 }

@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,6 +25,7 @@ class OnlineSaleDialog extends StatefulWidget {
 
 class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
   final TextEditingController _emailController = TextEditingController();
+  final ValueNotifier<bool> isProcessing = ValueNotifier(false);
   String? _emailError;
 
   @override
@@ -32,16 +34,49 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     return AlertDialog(
       title: Text(
         l10n.sellOnline,
-        style: TextStyle(color: Colors.black54),
+        style: const TextStyle(color: Colors.black54),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+      content: Stack(
         children: [
-          CustomTextField(
-            controller: _emailController,
-            hintText: l10n.recipientEmail,
-            keyboardType: TextInputType.emailAddress,
-            errorText: _emailError,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomTextField(
+                controller: _emailController,
+                hintText: l10n.recipientEmail,
+                keyboardType: TextInputType.emailAddress,
+                errorText: _emailError,
+              ),
+            ],
+          ), // Overlay bei laufender Verarbeitung per ValueListenableBuilder.
+          ValueListenableBuilder<bool>(
+            valueListenable: isProcessing,
+            builder: (context, isProcessing, child) {
+              return isProcessing
+                  ? Positioned.fill(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.3),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(),
+                                const SizedBox(height: 16),
+                                Text(l10n.coffeeIsBought,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : const SizedBox.shrink();
+            },
           ),
         ],
       ),
@@ -75,7 +110,10 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
       Map<String, dynamic>? receiverDoc =
           await _findUserByEmail(_emailController.text);
       if (receiverDoc != null) {
+        isProcessing.value = true;
         await _performSale(receiverDoc);
+        isProcessing.value = false;
+
         Navigator.of(context).pop();
         await fshowInfoDialog(context, l10n.saleCompleted);
       } else {
@@ -167,7 +205,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     item["currentGeolocation"]["container"]["UID"] =
         ""; //We do not now the receiving container yet
     addInputobject(changeContainerMethod, item, "item");
-    //Add Executor    
+    //Add Executor
     changeContainerMethod["executor"] = receiverDoc;
     changeContainerMethod["methodState"] = "running";
     //Step 1: get method an uuid (for method history entries)

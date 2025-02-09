@@ -27,18 +27,16 @@ double convertQuantity(double quantity, String fromUnit, String toUnit) {
   final toKgFactorFrom = weightUnits.firstWhere(
       (uni) => uni["name"] == fromUnit,
       orElse: () => {"factor": 1.0})["factor"];
-  final toKgFactorTo = weightUnits.firstWhere(
-      (uni) => uni["name"] == toUnit,
+  final toKgFactorTo = weightUnits.firstWhere((uni) => uni["name"] == toUnit,
       orElse: () => {"factor": 1.0})["factor"];
   // Convert the given quantity from its current unit to kilograms
   final quantityInKg = quantity * toKgFactorFrom;
   // Convert the quantity from kilograms to the target unit
   return quantityInKg / toKgFactorTo;
-
 }
 
 // Calculates the total sum of quantities of coffee items within a container
-double computeCoffeeSum(Map<String, dynamic> container, double max_capacity) {
+double computeCoffeeSum(Map<String, dynamic> container, double maxCapacity) {
   double sum = 0.0;
   // Assumption: The container may have a "contents" field that contains all nested items.
   List<Map<String, dynamic>> stack = [];
@@ -61,8 +59,9 @@ double computeCoffeeSum(Map<String, dynamic> container, double max_capacity) {
             if (child["template"] != null &&
                 child["template"]["RALType"] == "coffee") {
               if ((isTestmode && child.containsKey("isTestmode")) ||
-                  (!isTestmode && !child.containsKey("isTestmode")))
+                  (!isTestmode && !child.containsKey("isTestmode"))) {
                 stack.add(child);
+              }
             }
             // Recursively add children of this found container
             addContainedItems(child, stack);
@@ -99,7 +98,7 @@ double computeCoffeeSum(Map<String, dynamic> container, double max_capacity) {
     }
   }
 
-  return double.parse((max_capacity - sum).toStringAsFixed(2));
+  return double.parse((maxCapacity - sum).toStringAsFixed(2));
 }
 
 final Set<String> selectedItems = {};
@@ -218,8 +217,7 @@ class _ItemsListState extends State<ItemsList> {
       print('Error generating or sharing PDF: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-              (AppLocalizations.of(context)!.pdfError(e.toString()) as String)),
+          content: Text(AppLocalizations.of(context)!.pdfError(e.toString())),
         ),
       );
     } finally {
@@ -233,9 +231,6 @@ class _ItemsListState extends State<ItemsList> {
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return ValueListenableBuilder(
         valueListenable: repaintContainerList,
         builder: (context, bool value, child) {
@@ -332,7 +327,7 @@ class _ItemsListState extends State<ItemsList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               _buildCardHeader(container, contents),
               ...contents.map((item) => _buildContentItem(item)),
             ],
@@ -435,11 +430,12 @@ class _ItemsListState extends State<ItemsList> {
                     coffee["needsSync"] != null
                         ? Tooltip(
                             message: l10n.notSynced, //"Not synced to cloud",
-                            child: Icon(Icons.cloud_off, color: Colors.black54))
+                            child: const Icon(Icons.cloud_off,
+                                color: Colors.black54))
                         : Tooltip(
                             message: l10n.synced, //"Synced with cloud",
-                            child:
-                                Icon(Icons.cloud_done, color: Colors.black54)),
+                            child: const Icon(Icons.cloud_done,
+                                color: Colors.black54)),
                     CoffeeActionsMenu(
                       isConnected: appState.isConnected,
                       coffee: coffee,
@@ -460,11 +456,7 @@ class _ItemsListState extends State<ItemsList> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  l10n.amount(
-                          getSpecificPropertyfromJSON(coffee, "amount")
-                              .toString(),
-                          getSpecificPropertyUnitfromJSON(coffee, "amount")) +
-                      " ${l10n.processingStep(getSpecificPropertyfromJSON(coffee, "processingState")) as String}",
+                  "${l10n.amount(getSpecificPropertyfromJSON(coffee, "amount").toString(), getSpecificPropertyUnitfromJSON(coffee, "amount"))} ${l10n.processingStep(getSpecificPropertyfromJSON(coffee, "processingState")) as String}",
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black54,
@@ -481,7 +473,7 @@ class _ItemsListState extends State<ItemsList> {
                 // ),
                 const SizedBox(height: 4),
                 FutureBuilder<Map<String, dynamic>>(
-                  future: _databaseHelper.getFirstSale(coffee),
+                  future: _databaseHelper.getFirstSale(context, coffee),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const SizedBox(
@@ -510,15 +502,14 @@ class _ItemsListState extends State<ItemsList> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                            (l10n.boughtOn(
+                            l10n.boughtOn(
                                 formatTimestamp(content["existenceStarts"]) ??
-                                    "unknown") as String),
+                                    "unknown"),
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black54)),
                         Text(
-                          (l10n.fromPlot(truncateUID(
-                                  field["identity"]["alternateIDs"][0]["UID"]))
-                              as String),
+                          l10n.fromPlot(truncateUID(
+                              field["identity"]["alternateIDs"][0]["UID"])),
                           style: const TextStyle(
                               fontSize: 12, color: Colors.black54),
                         ),
@@ -535,11 +526,11 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   Widget _buildLoadingCard() {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    return const Card(
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: SizedBox(
         height: 100,
-        child: const Center(
+        child: Center(
           child: SizedBox(
             width: 30,
             height: 30,
@@ -613,10 +604,11 @@ class _ItemsListState extends State<ItemsList> {
                   container["needsSync"] != null
                       ? Tooltip(
                           message: l10n.notSynced, // "Not synced to cloud",
-                          child: Icon(Icons.cloud_off, color: Colors.black54))
+                          child: const Icon(Icons.cloud_off,
+                              color: Colors.black54))
                       : Tooltip(
                           message: l10n.synced, //"Synced with cloud",
-                          child: Icon(Icons.cloud_done,
+                          child: const Icon(Icons.cloud_done,
                               color: Colors.black54)), //cloud_done
 
                   const SizedBox(width: 12),
@@ -647,7 +639,7 @@ class _ItemsListState extends State<ItemsList> {
             children: [
               Text(
                   "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
-                  style: TextStyle(color: Colors.black38)),
+                  style: const TextStyle(color: Colors.black38)),
               Text(
                 "${l10n.capacity}: ${getSpecificPropertyfromJSON(container, "max capacity") ?? "???"} ${getSpecificPropertyUnitfromJSON(container, "max capacity")}",
                 style: const TextStyle(color: Colors.black38),
@@ -695,7 +687,7 @@ class _ItemsListState extends State<ItemsList> {
                             getContainerIcon(container["template"]["RALType"]),
                       ),
                       const SizedBox(width: 12),
-                      Container(
+                      SizedBox(
                         width: MediaQuery.of(context).size.width * 0.3,
                         child: AutoSizeText(
                           (container["identity"]["name"] != null &&
@@ -719,7 +711,7 @@ class _ItemsListState extends State<ItemsList> {
                   ),
                   Text(
                       "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.black38,
                         fontSize: 13,
                       )),
@@ -745,8 +737,10 @@ class _ItemsListState extends State<ItemsList> {
                                         container, "max capacity")
                                     .toString()) ??
                                 0.0;
-                        double computedCapacity = computeCoffeeSum(container, maxCapacity);
-                        double freeCapacity = computedCapacity < 0 ? 0 : computedCapacity;
+                        double computedCapacity =
+                            computeCoffeeSum(container, maxCapacity);
+                        double freeCapacity =
+                            computedCapacity < 0 ? 0 : computedCapacity;
                         // Calculate progress as a fraction of the available max capacity.
                         double progress = (maxCapacity > 0)
                             ? (freeCapacity / maxCapacity)
@@ -791,10 +785,10 @@ class _ItemsListState extends State<ItemsList> {
             container["needsSync"] != null
                 ? Tooltip(
                     message: l10n.notSynced, // "Not synced to cloud",
-                    child: Icon(Icons.cloud_off, color: Colors.black54))
+                    child: const Icon(Icons.cloud_off, color: Colors.black54))
                 : Tooltip(
                     message: l10n.synced, //"Synced with cloud",
-                    child: Icon(Icons.cloud_done,
+                    child: const Icon(Icons.cloud_done,
                         color: Colors.black54)), //cloud_done
 
             const SizedBox(width: 12),

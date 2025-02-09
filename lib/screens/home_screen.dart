@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/repositories/roles.dart';
@@ -40,9 +42,18 @@ class _HomeScreenState extends State<HomeScreen> {
           if (cloudKey != "open-ral.io") {
             debugPrint("syncing $cloudKey");
             final l10n = AppLocalizations.of(context)!;
-            snackbarMessageNotifier.value =  l10n.syncingWith+" $cloudKey";
+            snackbarMessageNotifier.value = "${l10n.syncingWith} $cloudKey";
             await cloudSyncService.syncMethods(cloudKey);
           }
+        }
+        final databaseHelper = DatabaseHelper();
+        //Repaint Container list
+        repaintContainerList.value = true;
+        //Repaint Inbox count
+        if (FirebaseAuth.instance.currentUser != null) {
+          String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+          inbox = await databaseHelper.getInboxItems(ownerUID);
+          inboxCount.value = inbox.length;
         }
       }
     });
@@ -56,10 +67,18 @@ class _HomeScreenState extends State<HomeScreen> {
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("manually syncing $cloudKey");
-          snackbarMessageNotifier.value = l10n.syncingWith+" $cloudKey";
+          snackbarMessageNotifier.value = "${l10n.syncingWith} $cloudKey";
           await cloudSyncService.syncMethods(cloudKey);
-          repaintContainerList.value = true;
         }
+      }
+      final databaseHelper = DatabaseHelper();
+      //Repaint Container list
+      repaintContainerList.value = true;
+      //Repaint Inbox count
+      if (FirebaseAuth.instance.currentUser != null) {
+        String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+        inbox = await databaseHelper.getInboxItems(ownerUID);
+        inboxCount.value = inbox.length;
       }
     }
   }
@@ -86,40 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ValueListenableBuilder(
                 valueListenable: inboxCount,
                 builder: (context, int value, child) {
-                  return Stack(
-                    children: [
-                      Tooltip(
-                        message: l10n.inbox, //"Inbox",
-                        child: IconButton(
-                          icon: const Icon(Icons.inbox),
-                          onPressed: () => _navigateToInbox(context),
-                        ),
+                  return Badge(
+                    offset: const Offset(-3, 5),
+                    isLabelVisible: inboxCount.value > 0,
+                    label: Text('${inboxCount.value}'),
+                    child: Tooltip(
+                      message: l10n.inbox,
+                      child: IconButton(
+                        icon: const Icon(Icons.inbox),
+                        onPressed: () => _navigateToInbox(context),
                       ),
-                      if (inboxCount.value > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              '${inboxCount.value}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   );
                 }),
             Tooltip(
@@ -285,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMenuItems(BuildContext context) {
+    final databaseHelper = DatabaseHelper();
     final l10n = AppLocalizations.of(context)!;
     String selectedContext = "action";
     return StatefulBuilder(builder: (context, setState) {
@@ -334,8 +331,16 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ).then((_) {
-                setState(() {});
+              ).then((_) async {
+                //Repaint Container list
+                repaintContainerList.value = true;
+                //Repaint Inbox count
+                if (FirebaseAuth.instance.currentUser != null) {
+                  String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+                  inbox = await databaseHelper.getInboxItems(ownerUID);
+                  inboxCount.value = inbox.length;
+                }
+                //setState(() {});
               });
             },
           ),
@@ -348,16 +353,23 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    ).then((_) {
+    ).then((_) async {
+      final databaseHelper = DatabaseHelper();
+      //Repaint Container list
       repaintContainerList.value = true;
-      setState(() {});
+      //Repaint Inbox count
+      if (FirebaseAuth.instance.currentUser != null) {
+        String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+        inbox = await databaseHelper.getInboxItems(ownerUID);
+        inboxCount.value = inbox.length;
+      }
     });
   }
 
   void _navigateToInbox(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => InboxScreen()),
+      MaterialPageRoute(builder: (_) => const InboxScreen()),
     );
   }
 

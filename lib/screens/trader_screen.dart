@@ -16,9 +16,6 @@ class _TraderScreenState extends State<TraderScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return Theme(
       data: customTheme,
       child: Scaffold(

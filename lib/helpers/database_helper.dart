@@ -2,9 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/models/harvest_model.dart';
+import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
+import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 
 class DatabaseHelper {
@@ -121,8 +124,9 @@ class DatabaseHelper {
                   "found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
               Map<String, dynamic> doc2 = Map<String, dynamic>.from(doc);
               if ((isTestmode && doc2.containsKey("isTestmode")) ||
-                  (!isTestmode && !doc2.containsKey("isTestmode")))
+                  (!isTestmode && !doc2.containsKey("isTestmode"))) {
                 rList.add(doc2);
+              }
               break;
             }
           }
@@ -176,8 +180,9 @@ class DatabaseHelper {
       List<Map<String, dynamic>> items = await getContainedItems(uid);
       for (var item in items) {
         if ((isTestmode && item.containsKey("isTestmode")) ||
-            (!isTestmode && !item.containsKey("isTestmode")))
+            (!isTestmode && !item.containsKey("isTestmode"))) {
           allItems.add(item);
+        }
 
         String nestedContainerUID = item['identity']['UID'];
         await processContainer(nestedContainerUID);
@@ -205,11 +210,35 @@ class DatabaseHelper {
     return rList;
   }
 
-  Future<Map<String, dynamic>> getFirstSale(Map<String, dynamic> coffee) async {
+  Future<Map<String, dynamic>> getFirstSale(
+      BuildContext context, Map<String, dynamic> coffee) async {
+    final appState = Provider.of<AppState>(context, listen: false);
     Map<String, dynamic> rstring = {};
     final firstSaleUID = coffee["methodHistoryRef"]
         .firstWhere((method) => method["RALType"] == "changeContainer")["UID"];
-    final firstSale = await getObjectMethod(firstSaleUID);
+    Map<String, dynamic> firstSale = await getObjectMethod(firstSaleUID);
+    //if this method has not been synced from cloud, we need to force downsync!
+    if (firstSale.isEmpty && appState.isConnected) {
+      Map<String, dynamic> deviceHashes = {
+        "objectHashTable": [],
+        "methodHashTable": [],
+      };
+      deviceHashes["methodHashTable"].add({"UID": firstSaleUID, "hash": "xxx"});
+      Map<String, dynamic> firstSaleDoc = await cloudSyncService.apiClient
+          .syncObjectsMethodsFromCloud("tracefoodchain.org", deviceHashes);
+      if (firstSaleDoc.isNotEmpty) {
+        final firstMethod = firstSaleDoc["ralMethods"].firstWhere(
+          (method) => method["identity"]["UID"] == firstSaleUID,
+          orElse: () => {},
+        );
+        if (firstMethod.isNotEmpty) {
+          await setObjectMethod(
+              firstMethod, false, false); //ToDo: Check if this is working
+        }
+        firstSale = await getObjectMethod(firstSaleUID);
+      }
+    }
+
     Map<String, dynamic> doc2 = Map<String, dynamic>.from(firstSale);
     rstring = firstSale;
     return rstring;
@@ -291,7 +320,8 @@ dynamic convertToJson(dynamic firestoreObj) {
       } else if (value is DateTime) {
         final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
             (value.millisecondsSinceEpoch ~/ 1000) * 1000);
-        String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
+        String isoString =
+            dateInSeconds.toIso8601String().split('.').first.trim();
         // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
         convertedObj[key] = isoString;
       } else if (value is GeoPoint) {
@@ -308,8 +338,8 @@ dynamic convertToJson(dynamic firestoreObj) {
     final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
         (firestoreObj.millisecondsSinceEpoch ~/ 1000) * 1000);
     String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
-        // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
-  
+    // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
+
     return isoString;
   } else {
     // Simple datatype like string or number

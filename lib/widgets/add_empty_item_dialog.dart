@@ -1,13 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/widgets/custom_text_field.dart';
 import 'package:trace_foodchain_app/services/scanning_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
-import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
@@ -45,7 +46,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
   void initState() {
     super.initState();
     final appState = Provider.of<AppState>(context, listen: false);
-   
+
     _weightUnits = getWeightUnits(country);
     if (_weightUnits.isNotEmpty) {
       _selectedUnit = _weightUnits[0]['name'];
@@ -382,51 +383,60 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
       return;
     }
     _isProcessing.value = true;
-    try{
-    Map<String, dynamic> newItem = await getOpenRALTemplate(_selectedType!);
-    setObjectMethodUID(newItem, const Uuid().v4());
-    newItem["identity"]["name"] = _containerNameController.text;
-    newItem["identity"]["alternateIDs"] = [
-      {"UID": _uidController.text, "issuedBy": "owner"}
-    ];
-    newItem = setSpecificPropertyJSON(
-        newItem,
-        "max capacity",
-        double.parse(_capacityController.text.replaceAll(",", ".")),
-        _selectedUnit!);
-    newItem["currentOwners"] = [
-      {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
-    ];
+    try {
+      Map<String, dynamic> newItem = await getOpenRALTemplate(_selectedType!);
+      setObjectMethodUID(newItem, const Uuid().v4());
+      newItem["identity"]["name"] = _containerNameController.text;
+      newItem["identity"]["alternateIDs"] = [
+        {"UID": _uidController.text, "issuedBy": "owner"}
+      ];
+      newItem = setSpecificPropertyJSON(
+          newItem,
+          "max capacity",
+          double.parse(_capacityController.text.replaceAll(",", ".")),
+          _selectedUnit!);
+      newItem["currentOwners"] = [
+        {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
+      ];
 
-    if (_latitudeController.text != "" && _longitudeController.text != "") {
-      newItem["currentGeolocation"]["geoCoordinates"] = {
-        "latitude": double.parse(_latitudeController.text.replaceAll(",", ".")),
-        "longitude":
-            double.parse(_longitudeController.text.replaceAll(",", ".")),
-      };
-    }
+      if (_latitudeController.text != "" && _longitudeController.text != "") {
+        newItem["currentGeolocation"]["geoCoordinates"] = {
+          "latitude":
+              double.parse(_latitudeController.text.replaceAll(",", ".")),
+          "longitude":
+              double.parse(_longitudeController.text.replaceAll(",", ".")),
+        };
+      }
 
-    final addItem = await getOpenRALTemplate("generateDigitalSibling");
-    //Add Executor
-    addItem["executor"] = appUserDoc;
-    addItem["methodState"] = "finished";
-    //Step 1: get method an uuid (for method history entries)
-    setObjectMethodUID(addItem, const Uuid().v4());
-    //Step 2: save the objects a first time to get it the method history change
-    await setObjectMethod(newItem, false, false);
-    //Step 3: add the output objects with updated method history to the method
-    addOutputobject(addItem, newItem, "item");
-    //Step 4: update method history in all affected objects (will also tag them for syncing)
-    await updateMethodHistories(addItem);
-    //Step 5: persist process
-    await setObjectMethod(addItem, true, true); //sign it!
+      final addItem = await getOpenRALTemplate("generateDigitalSibling");
+      //Add Executor
+      addItem["executor"] = appUserDoc;
+      addItem["methodState"] = "finished";
+      //Step 1: get method an uuid (for method history entries)
+      setObjectMethodUID(addItem, const Uuid().v4());
+      //Step 2: save the objects a first time to get it the method history change
+      await setObjectMethod(newItem, false, false);
+      //Step 3: add the output objects with updated method history to the method
+      addOutputobject(addItem, newItem, "item");
+      //Step 4: update method history in all affected objects (will also tag them for syncing)
+      await updateMethodHistories(addItem);
+      //Step 5: persist process
+      await setObjectMethod(addItem, true, true); //sign it!
 
-    final savedItem = await getObjectMethod(getObjectMethodUID(
-        newItem)); //Reload new item with correct method history
-    widget.onItemAdded(savedItem);    
-    }catch(e){}   
+      final savedItem = await getObjectMethod(getObjectMethodUID(
+          newItem)); //Reload new item with correct method history
+      widget.onItemAdded(savedItem);
+    } catch (e) {}
     _isProcessing.value = false;
-
+    final databaseHelper = DatabaseHelper();
+    //Repaint Container list
+    repaintContainerList.value = true;
+    //Repaint Inbox count
+    if (FirebaseAuth.instance.currentUser != null) {
+      String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+      inbox = await databaseHelper.getInboxItems(ownerUID);
+      inboxCount.value = inbox.length;
+    }
     Navigator.of(context).pop();
   }
 
@@ -463,7 +473,7 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
                   value: value,
                   hint: Text(hintText),
                   isExpanded: true,
-                  underline: SizedBox(),
+                  underline: const SizedBox(),
                   items: items.map((String item) {
                     return DropdownMenuItem<String>(
                       value: item,

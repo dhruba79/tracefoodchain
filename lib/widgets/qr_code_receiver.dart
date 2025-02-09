@@ -100,7 +100,8 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Processing complete',style: const TextStyle(color: Colors.black)),
+              title: const Text('Processing complete',
+                  style: TextStyle(color: Colors.black)),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,8 +164,8 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
                     ),
                     CustomPaint(
                       painter: QRFramePainter(),
-                      child: Container(),
                       size: Size.infinite,
+                      child: Container(),
                     ),
                   ],
                 )

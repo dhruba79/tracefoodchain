@@ -271,7 +271,7 @@ void main() async {
   }
 
   cloudConnectors =
-    await  getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
+      await getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
 
   final appState = AppState();
   await appState.initializeApp(); // Initialize locale
@@ -283,7 +283,7 @@ void main() async {
       child: DevicePreview(
         enabled: !kReleaseMode,
         builder: (context) =>
-            MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
+            const MyApp(), // MyApp wird nun vom GlobalSnackBarListener umschlossen
       ),
     ),
   );
@@ -362,7 +362,7 @@ class MyApp extends StatelessWidget {
               .locale, // Re-enable this line to use the locale from the appState
           builder: DevicePreview.appBuilder,
           debugShowCheckedModeBanner: false,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

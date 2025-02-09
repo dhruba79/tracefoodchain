@@ -167,7 +167,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
 
     List<String> plotList = [];
     for (final coffee in widget.contents) {
-      final firstSale = await _databaseHelper.getFirstSale(coffee);
+      final firstSale = await _databaseHelper.getFirstSale(context, coffee);
       final field = firstSale["inputObjects"][1];
       plotList.add(field["identity"]["alternateIDs"][0]["UID"]
           .replaceAll(RegExp(r'\s+'), ''));

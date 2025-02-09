@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/helpers/fade_route.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
@@ -184,8 +185,8 @@ class _SplashScreenState extends State<SplashScreen>
         canResendEmail = true;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(l10n.errorSendingEmailWithError + " " + e.toString())));
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("${l10n.errorSendingEmailWithError} $e")));
     }
   }
 
@@ -203,19 +204,28 @@ class _SplashScreenState extends State<SplashScreen>
       //ToDo: Display screenblocker "syncing data with cloud - please wait"
       // openRAL: Update Templates
       debugPrint("syncing openRAL");
-      snackbarMessageNotifier.value = l10n.syncingWith + " open-ral.io";
+      snackbarMessageNotifier.value = "${l10n.syncingWith} open-ral.io";
       await cloudSyncService.syncOpenRALTemplates('open-ral.io');
 
       // sync all non-open-ral methods with it's clouds on startup
       for (final cloudKey in cloudConnectors.keys) {
         if (cloudKey != "open-ral.io") {
           debugPrint("syncing $cloudKey");
-          snackbarMessageNotifier.value = l10n.syncingWith + " $cloudKey";
+          snackbarMessageNotifier.value = "${l10n.syncingWith} $cloudKey";
           await cloudSyncService.syncMethods(cloudKey);
         }
       }
+      final databaseHelper = DatabaseHelper();
+      //Repaint Container list
+      repaintContainerList.value = true;
+      //Repaint Inbox count
+      if (FirebaseAuth.instance.currentUser != null) {
+        String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+        inbox = await databaseHelper.getInboxItems(ownerUID);
+        inboxCount.value = inbox.length;
+      }
       cloudConnectors =
-        await  getCloudConnectors(); //refresh cloud connectors (if updates where downloaded)
+          await getCloudConnectors(); //refresh cloud connectors (if updates where downloaded)
     }
 
     for (var doc in localStorage.values) {
@@ -357,9 +367,6 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    if (l10n == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
     return Scaffold(
       body: Stack(
         children: [

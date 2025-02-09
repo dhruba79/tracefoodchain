@@ -1,8 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:trace_foodchain_app/screens/peer_transfer_screen.dart';
@@ -29,7 +28,7 @@ class CoffeeInfo {
   List<String> qualityReductionCriteria;
 
   CoffeeInfo({
-    this.country = 'Honduras',//ToDo: enable other countries if needed
+    this.country = 'Honduras', //ToDo: enable other countries if needed
     this.species = "",
     this.quantity = 0.0,
     this.weightUnit = "t",
@@ -170,7 +169,6 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
   }
 
   void _receiveDataFromSeller() {
-   
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -181,10 +179,19 @@ class _BuyCoffeeStepperState extends State<BuyCoffeeStepper> {
       ),
     ).then((receivedData) async {
       if (receivedData != null) {
-         _isProcessing.value = true;
+        _isProcessing.value = true;
         await finishBuyCoffee(receivedData);
       }
       _isProcessing.value = false;
+      final databaseHelper = DatabaseHelper();
+      //Repaint Container list
+      repaintContainerList.value = true;
+      //Repaint Inbox count
+      if (FirebaseAuth.instance.currentUser != null) {
+        String ownerUID = FirebaseAuth.instance.currentUser!.uid;
+        inbox = await databaseHelper.getInboxItems(ownerUID);
+        inboxCount.value = inbox.length;
+      }
       Navigator.of(context).pop();
     });
   }
@@ -373,7 +380,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
 
   pathsToSign = [
     "\$.identity.UID",
-    "\$.inputObjects[?(@.role=='buyer')]"//At this time, we only know the buyer
+    "\$.inputObjects[?(@.role=='buyer')]" //At this time, we only know the buyer
   ];
   signingObject = createSigningObject(pathsToSign, transfer_ownership);
 

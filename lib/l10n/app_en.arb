@@ -386,5 +386,6 @@
       "setItemName": "Set item name",
       "unnamedObject": "Unnamed object",
       "capacity": "Capacity",
-      "freeCapacity": "Free capacity"
+      "freeCapacity": "Free capacity",
+      "selectContainerForItems": "Select container for items"
 }
