@@ -203,10 +203,10 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
 
   Future<void> _changeContainer(Map<String, dynamic> item, receiverDoc) async {
     final changeContainerMethod = await getOpenRALTemplate("changeContainer");
-
-    item["currentGeolocation"]["container"]["UID"] =
-        ""; //We do not now the receiving container yet
     addInputobject(changeContainerMethod, item, "item");
+    item["currentGeolocation"]["container"]["UID"] =
+        "inTransfer"; //We do not now the receiving container yet
+
     //Add Executor
     changeContainerMethod["executor"] = receiverDoc;
     changeContainerMethod["methodState"] = "running";

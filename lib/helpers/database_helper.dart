@@ -142,7 +142,7 @@ class DatabaseHelper {
     debugPrint("getting inbox items for $ownerUID");
     for (var doc in localStorage.values) {
       if (doc["currentGeolocation"] != null) {
-        final currentOwnerIncomingUID =
+        final currentGeolocationIncomingUID =
             doc["currentGeolocation"]["container"]["UID"];
 
         bool isOwner = false;
@@ -151,7 +151,7 @@ class DatabaseHelper {
               .any((owner) => owner["UID"] == ownerUID);
         }
 
-        if (isOwner && currentOwnerIncomingUID == "") {
+        if (isOwner && currentGeolocationIncomingUID == "inTransfer") {
           //if user is owner and container is empty => inbox
           debugPrint(
               "found ${doc["template"]["RALType"]} ${doc["identity"]["UID"]}");
