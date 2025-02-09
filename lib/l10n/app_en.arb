@@ -388,5 +388,6 @@
       "capacity": "Capacity",
       "freeCapacity": "Free capacity",
       "selectContainerForItems": "Select container for items",
-      "selectContainer": "Select container"
+      "selectContainer": "Select container",
+      "enterUIDhere": "Enter UID here"
 }

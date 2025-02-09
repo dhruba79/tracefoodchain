@@ -389,6 +389,7 @@
       "capacity": "Capacité",
       "freeCapacity": "Capacité libre",
       "selectContainerForItems": "Sélectionner conteneurs\npour les articles",
-      "selectContainer": "Sélectionner un conteneur"
+      "selectContainer": "Sélectionner un conteneur",
+      "enterUIDhere": "Entrez l'UID ici"
   
 }

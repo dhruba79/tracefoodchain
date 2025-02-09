@@ -291,13 +291,14 @@ class CloudSyncService {
                     String signingObject = "";
                     List<String> pathsToSign = [];
                     for (final so in doc2["digitalSignatures"]) {
+                      List<String> pathsToSign = [];
                       for (final sc in so["signedContent"]) {
                         pathsToSign.add(sc);
                       }
+                      signingObject = createSigningObject(pathsToSign, doc2);
+                      await Share.share(signingObject);
                     }
-                    signingObject = createSigningObject(pathsToSign, doc2);
 
-                    await Share.share(signingObject);
                     //  await Share.share(doc2.toString());
                   }
                   if (syncresult["responseDetails"]

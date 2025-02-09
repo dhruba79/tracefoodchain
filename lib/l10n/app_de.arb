@@ -387,7 +387,9 @@
       "capacity": "Kapazität",
       "freeCapacity": "Freie Kapazität",
       "selectContainerForItems": "Bitte wählen Sie Behälter\nfür die Artikel aus",
-      "selectContainer": "Behälter auswählen"
+      "selectContainer": "Behälter auswählen",
+   "enterUIDhere": "UID hier eingeben"
+    
 
 
 }

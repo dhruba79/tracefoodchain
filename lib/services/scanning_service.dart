@@ -4,9 +4,14 @@ import 'package:flutter_nfc_kit/flutter_nfc_kit.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
+import 'package:trace_foodchain_app/screens/container_selection_screen.dart';
+import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 
 class ScanningService {
+  static final TextEditingController externalController =
+      TextEditingController();
+
   static Future<String?> showScanDialog(
       BuildContext context, AppState appState, bool allowManualInput) async {
     String scannedCode = '';
@@ -231,21 +236,21 @@ class ScanningService {
         children: [
           Expanded(
             child: TextField(
+              controller: externalController, // externer TextController
               style: const TextStyle(color: Colors.black),
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
-              decoration: const InputDecoration(
-                hintStyle: TextStyle(color: Colors.black54),
-                hintText: 'Enter UID here',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintStyle: const TextStyle(color: Colors.black54),
+                hintText: l10n.enterUIDhere,
+                border: const OutlineInputBorder(),
               ),
               onChanged: (value) {
                 onCodeScanned(value);
               },
             ),
           ),
-          //ToDo: Check if containers are availabe to show
           SizedBox(
             height: 60,
             child: Padding(
@@ -255,10 +260,24 @@ class ScanningService {
                     backgroundColor:
                         WidgetStateProperty.all<Color>(Colors.grey)),
                 onPressed: () {
-                  //ToDo: Display all available containers
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(
+                          builder: (_) => ContainerSelectionScreen(item: {})))
+                      .then((container) {
+                    //A container has been selected
+                    // debugPrint(getObjectMethodUID(container));
+                    if (container != null) {
+                      final uid = getObjectMethodUID(container);
+                      externalController.text = uid;
+                      onCodeScanned(uid);
+                    }
+                  });
                 },
-                child: Text(l10n.selectFromDatabase, //"Select from database",
-                    style: const TextStyle(color: Colors.white)),
+                child: Text(
+                  l10n.selectFromDatabase,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ),
           )

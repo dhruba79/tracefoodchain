@@ -115,42 +115,46 @@ class _ContainerSelectionScreenState extends State<ContainerSelectionScreen> {
                           ),
                         ),
                         onTap: () async {
-                          isProcessing.value = true;
-                          Map<String, dynamic> changeContainerMethod =
-                              await getOpenRALTemplate("changeContainer");
+                          if (widget.item.isNotEmpty) {
+                            // an item has been passed to this screen, change it's container
+                            isProcessing.value = true;
+                            Map<String, dynamic> changeContainerMethod =
+                                await getOpenRALTemplate("changeContainer");
 
-                          changeContainerMethod["executor"] = appUserDoc;
-                          changeContainerMethod["methodState"] = "finished";
-                          changeContainerMethod["inputObjects"] = [
-                            widget.item,
-                            container
-                          ];
-                          widget.item["currentGeolocation"]["container"]
-                              ["UID"] = container["identity"]["UID"];
-                          //Step 1: get method an uuid (for method history entries)
-                          setObjectMethodUID(
-                              changeContainerMethod, const Uuid().v4());
-                          //Step 2: save the objects to get it the method history change
-                          await setObjectMethod(widget.item, false, false);
-                          //Step 3: add the output objects with updated method history to the method
-                          addOutputobject(
-                              changeContainerMethod, widget.item, "item");
-                          //Step 4: update method history in all affected objects (will also tag them for syncing)
-                          await updateMethodHistories(changeContainerMethod);
-                          //Step 5: persist Method
-                          await setObjectMethod(
-                              changeContainerMethod, true, true); //sign it!
-                          isProcessing.value = false;
-                          final databaseHelper = DatabaseHelper();
-                          //Repaint Container list
-                          repaintContainerList.value = true;
-                          //Repaint Inbox count
-                          if (FirebaseAuth.instance.currentUser != null) {
-                            String ownerUID =
-                                FirebaseAuth.instance.currentUser!.uid;
-                            inbox =
-                                await databaseHelper.getInboxItems(ownerUID);
-                            inboxCount.value = inbox.length;
+                            changeContainerMethod["executor"] = appUserDoc;
+                            changeContainerMethod["methodState"] = "finished";
+                            addInputobject(
+                                changeContainerMethod, widget.item, "item");
+                             addInputobject(
+                                changeContainerMethod, widget.item, "newContainer");    
+                          
+                            widget.item["currentGeolocation"]["container"]
+                                ["UID"] = container["identity"]["UID"];
+                            //Step 1: get method an uuid (for method history entries)
+                            setObjectMethodUID(
+                                changeContainerMethod, const Uuid().v4());
+                            //Step 2: save the objects to get it the method history change
+                            await setObjectMethod(widget.item, false, false);
+                            //Step 3: add the output objects with updated method history to the method
+                            addOutputobject(
+                                changeContainerMethod, widget.item, "item");
+                            //Step 4: update method history in all affected objects (will also tag them for syncing)
+                            await updateMethodHistories(changeContainerMethod);
+                            //Step 5: persist Method
+                            await setObjectMethod(
+                                changeContainerMethod, true, true); //sign it!
+                            isProcessing.value = false;
+                            final databaseHelper = DatabaseHelper();
+                            //Repaint Container list
+                            repaintContainerList.value = true;
+                            //Repaint Inbox count
+                            if (FirebaseAuth.instance.currentUser != null) {
+                              String ownerUID =
+                                  FirebaseAuth.instance.currentUser!.uid;
+                              inbox =
+                                  await databaseHelper.getInboxItems(ownerUID);
+                              inboxCount.value = inbox.length;
+                            }
                           }
 
                           Navigator.of(context).pop(container);
@@ -178,7 +182,7 @@ class _ContainerSelectionScreenState extends State<ContainerSelectionScreen> {
                                 const CircularProgressIndicator(),
                                 const SizedBox(height: 16),
                                 Text(
-                                  l10n.changeLocation, 
+                                  l10n.changeLocation,
                                   style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
