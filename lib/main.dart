@@ -271,7 +271,7 @@ void main() async {
   }
 
   cloudConnectors =
-      getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
+    await  getCloudConnectors(); //get available cloudConnectors to talk to clouds if available from localStorage
 
   final appState = AppState();
   await appState.initializeApp(); // Initialize locale

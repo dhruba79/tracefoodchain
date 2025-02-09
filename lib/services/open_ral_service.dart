@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:json_path/json_path.dart';
 import 'package:share_plus/share_plus.dart';
@@ -21,7 +22,7 @@ var uuid = const Uuid();
 
 //! 1. CloudConnectors
 
-Map<String, Map<String, dynamic>> getCloudConnectors() {
+Future<Map<String, Map<String, dynamic>>> getCloudConnectors() async {
   debugPrint("loading cloud connectors from initial repo");
   Map<String, Map<String, dynamic>> rList = {};
 
@@ -30,6 +31,10 @@ Map<String, Map<String, dynamic>> getCloudConnectors() {
     final domain = getSpecificPropertyfromJSON(cc, "cloudDomain");
     rList.addAll({domain: cc});
     //update local storage
+    if (!localStorage.isOpen) {
+      localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
+      'localStorage');
+    }
     localStorage.put(getObjectMethodUID(cc), cc);
   }
 
@@ -544,7 +549,7 @@ String createSigningObject(
             partsToSign.add(valueMap);
           }
         }
-      }
+      } else {partsToSign.add(matches.first.value);}//Only value
     }
   }
 

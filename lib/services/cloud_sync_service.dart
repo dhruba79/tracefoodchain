@@ -289,16 +289,12 @@ class CloudSyncService {
                       syncresult["responseDetails"].toString());
                   if (kDebugMode && 1==2) {
                     String signingObject = "";
-                    List<String> pathsToSign = ["\$"];
-                    if (
-                      (doc2["methodState"] == "running") &&
-                        (doc2["template"]["RALType"] == "changeContainer")) {
-                      pathsToSign = [
-                        //sale online process, new container not yet known, but content known
-                        "\$.identity.UID",
-                        "\$.inputObjects[?(@.role=='item')]",
-                        //The new state of the item (with new container is not known at that time)
-                      ];
+                    List<String> pathsToSign = [];
+                    for (final so in doc2["digitalSignatures"] ){
+
+                      for (final sc in so["signedContent"]){
+                        pathsToSign.add(sc);
+                      }
                     }
                     signingObject = createSigningObject(pathsToSign, doc2);
 

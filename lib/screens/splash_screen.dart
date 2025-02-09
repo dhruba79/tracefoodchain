@@ -215,7 +215,7 @@ class _SplashScreenState extends State<SplashScreen>
         }
       }
       cloudConnectors =
-          getCloudConnectors(); //refresh cloud connectors (if updates where downloaded)
+        await  getCloudConnectors(); //refresh cloud connectors (if updates where downloaded)
     }
 
     for (var doc in localStorage.values) {
