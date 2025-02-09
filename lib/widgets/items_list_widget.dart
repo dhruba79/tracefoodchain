@@ -5,6 +5,7 @@ import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
+import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/models/whisp_result_model.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
@@ -238,68 +239,53 @@ class _ItemsListState extends State<ItemsList> {
           return ValueListenableBuilder(
               valueListenable: _selectionChanged,
               builder: (context, _, __) {
-                return FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _databaseHelper
-                      .getContainers(appUserDoc!["identity"]["UID"]),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                          child: CircularProgressIndicator(
-                              color: Color(0xFF35DB00)));
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
-                          child: Text('Error: ${snapshot.error}',
-                              style: const TextStyle(color: Colors.black)));
-                    }
-                    // final deliveries = snapshot.data ?? [];
-                    dynamic deliveries = [];
+                final List<Map<String, dynamic>> containers = _databaseHelper
+                    .getContainers(appUserDoc!["identity"]["UID"]);
 
-                    //ToDo: Nur Container anzeigen, die nicht genested sind
-                    for (final delivery in snapshot.data!) {
-                      if (delivery["currentGeolocation"]["container"]["UID"] ==
-                              "unknown" ||
-                          delivery["currentGeolocation"]["container"]["UID"] ==
-                              "") {
-                        deliveries.add(delivery);
-                      }
-                    }
+                dynamic deliveries = [];
 
-                    if (deliveries.isEmpty) {
-                      return Center(
-                          child: Text(
-                              AppLocalizations.of(context)!.noActiveItems,
-                              style: const TextStyle(color: Colors.black)));
-                    }
+                //ToDo: Nur Container anzeigen, die nicht genested sind
+                for (final delivery in containers) {
+                  if (delivery["currentGeolocation"]["container"]["UID"] ==
+                          "unknown" ||
+                      delivery["currentGeolocation"]["container"]["UID"] ==
+                          "") {
+                    deliveries.add(delivery);
+                  }
+                }
 
-                    if (deliveries.length > 1) {
-                      multiselectPossible = true;
-                    } else {
-                      multiselectPossible = false;
-                    }
+                if (deliveries.isEmpty) {
+                  return Center(
+                      child: Text(AppLocalizations.of(context)!.noActiveItems,
+                          style: const TextStyle(color: Colors.black)));
+                }
 
-                    _allContainerUids.clear();
-                    for (var container in deliveries) {
-                      _allContainerUids.add(container["identity"]["UID"]);
-                    }
-                    return CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: _buildSelectAllCheckbox(deliveries.length),
-                        ),
-                        SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final container = deliveries[index];
-                              dynamic results;
-                              return _buildContainerItem(container); //!results
-                            },
-                            childCount: deliveries.length,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                if (deliveries.length > 1) {
+                  multiselectPossible = true;
+                } else {
+                  multiselectPossible = false;
+                }
+
+                _allContainerUids.clear();
+                for (var container in deliveries) {
+                  _allContainerUids.add(container["identity"]["UID"]);
+                }
+                return CustomScrollView(
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: _buildSelectAllCheckbox(deliveries.length),
+                    ),
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final container = deliveries[index];
+                          dynamic results;
+                          return _buildContainerItem(container); //!results
+                        },
+                        childCount: deliveries.length,
+                      ),
+                    ),
+                  ],
                 );
               });
         });
@@ -328,7 +314,10 @@ class _ItemsListState extends State<ItemsList> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 8),
-              _buildCardHeader(container, contents),
+              LayoutBuilder(builder: (context, constraints) {
+                final tileWidth = constraints.maxWidth;
+                return _buildCardHeader(container, contents, tileWidth);
+              }),
               ...contents.map((item) => _buildContentItem(item)),
             ],
           ),
@@ -359,16 +348,23 @@ class _ItemsListState extends State<ItemsList> {
             return Text(snapshot.error.toString());
           }
           final nestedContents = snapshot.data ?? [];
-          return ExpansionTile(
-            // leading: Icon(Icons.inbox, color: Colors.black54),
-            title: _buildCardHeader(container, nestedContents),
-            children: [
-              Column(
-                children: nestedContents
-                    .map((item) => _buildContentItem(item))
-                    .toList(),
-              )
-            ],
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final tileWidth = constraints.maxWidth;
+              // Now you can use tileWidth as needed
+              // print("ExpansionTile width: $tileWidth");
+
+              return ExpansionTile(
+                title: _buildCardHeader(container, nestedContents, tileWidth),
+                children: [
+                  Column(
+                    children: nestedContents
+                        .map((item) => _buildContentItem(item))
+                        .toList(),
+                  )
+                ],
+              );
+            },
           );
         });
   }
@@ -431,11 +427,12 @@ class _ItemsListState extends State<ItemsList> {
                         ? Tooltip(
                             message: l10n.notSynced, //"Not synced to cloud",
                             child: const Icon(Icons.cloud_off,
-                                color: Colors.black54))
+                                color: Colors.black54, size: 20))
                         : Tooltip(
                             message: l10n.synced, //"Synced with cloud",
                             child: const Icon(Icons.cloud_done,
-                                color: Colors.black54)),
+                                color: Colors.black54, size: 20)),
+                    const SizedBox(width: 12),
                     CoffeeActionsMenu(
                       isConnected: appState.isConnected,
                       coffee: coffee,
@@ -562,21 +559,21 @@ class _ItemsListState extends State<ItemsList> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
+        // margin: const EdgeInsets.symmetric(horizontal: 16),
         child: ListTile(
           titleAlignment: ListTileTitleAlignment.top,
-          leading: multiselectPossible
-              ? Checkbox(
+          // leading:
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (multiselectPossible)
+                Checkbox(
                   value: selectedItems.contains(container["identity"]["UID"]),
                   onChanged: (bool? value) {
                     _toggleItemSelection(container["identity"]["UID"]);
                   },
-                )
-              : null,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+                ),
               getContainerIcon(container["template"]["RALType"]),
               const SizedBox(width: 12),
               Expanded(
@@ -590,47 +587,38 @@ class _ItemsListState extends State<ItemsList> {
                       : getContainerTypeName(
                           container["template"]["RALType"], context),
                   style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.black),
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  //*Sync state with cloud
+              container["needsSync"] != null
+                  ? Tooltip(
+                      message: l10n.notSynced, // "Not synced to cloud",
+                      child: const Icon(Icons.cloud_off,
+                          color: Colors.black54, size: 20))
+                  : Tooltip(
+                      message: l10n.synced, //"Synced with cloud",
+                      child: const Icon(Icons.cloud_done,
+                          color: Colors.black54, size: 20)), //cloud_done
 
-                  container["needsSync"] != null
-                      ? Tooltip(
-                          message: l10n.notSynced, // "Not synced to cloud",
-                          child: const Icon(Icons.cloud_off,
-                              color: Colors.black54))
-                      : Tooltip(
-                          message: l10n.synced, //"Synced with cloud",
-                          child: const Icon(Icons.cloud_done,
-                              color: Colors.black54)), //cloud_done
-
-                  const SizedBox(width: 12),
-                  ContainerActionsMenu(
-                    container: container,
-                    contents: const [],
-                    onPerformAnalysis: _performAnalysis,
-                    onGenerateAndSharePdf: _generateAndSharePdf,
-                    onRepaint: () {
-                      setState(() {
-                        repaintContainerList.value = true;
-                      });
-                    },
-                    isConnected: appState.isConnected,
-                    onDeleteContainer: (String uid) async {
-                      await _databaseHelper
-                          .deleteFromBox<Map<dynamic, dynamic>>(
-                              'localStorage', uid);
-                    },
-                  ),
-                ],
-              )
+              const SizedBox(width: 12),
+              ContainerActionsMenu(
+                container: container,
+                contents: const [],
+                onPerformAnalysis: _performAnalysis,
+                onGenerateAndSharePdf: _generateAndSharePdf,
+                onRepaint: () {
+                  setState(() {
+                    repaintContainerList.value = true;
+                  });
+                },
+                isConnected: appState.isConnected,
+                onDeleteContainer: (String uid) async {
+                  await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
+                      'localStorage', uid);
+                },
+              ),
             ],
           ),
           subtitle: Column(
@@ -651,167 +639,164 @@ class _ItemsListState extends State<ItemsList> {
     );
   }
 
-  Widget _buildCardHeader(
-      Map<String, dynamic> container, List<Map<String, dynamic>> contents) {
+  Widget _buildCardHeader(Map<String, dynamic> container,
+      List<Map<String, dynamic>> contents, double tileWidth) {
     final l10n = AppLocalizations.of(context)!;
     final appState = Provider.of<AppState>(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.start, //spaceBetween,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(12.0, 0, 0, 0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              if (multiselectPossible)
-                Checkbox(
-                  value: selectedItems.contains(container["identity"]["UID"]),
-                  onChanged: (bool? value) {
-                    _toggleItemSelection(container["identity"]["UID"]);
-                  },
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            if (multiselectPossible)
+              Checkbox(
+                value: selectedItems.contains(container["identity"]["UID"]),
+                onChanged: (bool? value) {
+                  _toggleItemSelection(container["identity"]["UID"]);
+                },
+              ),
+            const SizedBox(width: 6),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+                      child: getContainerIcon(container["template"]["RALType"]),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: tileWidth * 0.3,
+                      child: AutoSizeText(
+                        (container["identity"]["name"] != null &&
+                                container["identity"]["name"]
+                                    .toString()
+                                    .trim()
+                                    .isNotEmpty)
+                            ? container["identity"]["name"]
+                            : getContainerTypeName(
+                                container["template"]["RALType"],
+                                context), // l10n.unnamedObject,
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 6),
+                    container["needsSync"] != null
+                        ? Tooltip(
+                            message: l10n.notSynced, // "Not synced to cloud",
+                            child: const Icon(Icons.cloud_off,
+                                color: Colors.black54, size: 20))
+                        : Tooltip(
+                            message: l10n.synced, //"Synced with cloud",
+                            child: const Icon(Icons.cloud_done,
+                                color: Colors.black54, size: 20)), //cloud_done
+
+                    const SizedBox(width: 12),
+                    // Popupmenu
+
+                    Transform.translate(
+                      offset: const Offset(
+                          0, -12), // adjust the y offset to move it up
+                      child: ContainerActionsMenu(
+                        container: container,
+                        contents: contents,
+                        onPerformAnalysis: _performAnalysis,
+                        onGenerateAndSharePdf: _generateAndSharePdf,
+                        onRepaint: () {
+                          setState(() {
+                            repaintContainerList.value = true;
+                          });
+                        },
+                        isConnected: appState.isConnected,
+                        onDeleteContainer: (String uid) async {
+                          await _databaseHelper
+                              .deleteFromBox<Map<dynamic, dynamic>>(
+                                  'localStorage', uid);
+                        },
+                      ),
+                    )
+                  ],
                 ),
-              const SizedBox(width: 6),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-                        child:
-                            getContainerIcon(container["template"]["RALType"]),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.3,
-                        child: AutoSizeText(
-                          (container["identity"]["name"] != null &&
-                                  container["identity"]["name"]
-                                      .toString()
-                                      .trim()
-                                      .isNotEmpty)
-                              ? container["identity"]["name"]
-                              : getContainerTypeName(
-                                  container["template"]["RALType"],
-                                  context), // l10n.unnamedObject,
-                          style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                      "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
+                Text(
+                    "ID: ${truncateUID(container["identity"]["alternateIDs"][0]["UID"])}",
+                    style: const TextStyle(
+                      color: Colors.black38,
+                      fontSize: 13,
+                    )),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "${l10n.freeCapacity}:\n${computeCoffeeSum(container, (getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? 0.0))} / ${(getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? "???")} ${getSpecificPropertyUnitfromJSON(container, "max capacity")}",
                       style: const TextStyle(
                         color: Colors.black38,
                         fontSize: 13,
-                      )),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "${l10n.freeCapacity}:\n${computeCoffeeSum(container, (getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? 0.0))} / ${(getSpecificPropertyfromJSON(container, "max capacity") is num ? getSpecificPropertyfromJSON(container, "max capacity").toDouble() : double.tryParse(getSpecificPropertyfromJSON(container, "max capacity").toString()) ?? "???")} ${getSpecificPropertyUnitfromJSON(container, "max capacity")}",
-                        style: const TextStyle(
-                          color: Colors.black38,
-                          fontSize: 13,
-                        ),
                       ),
-                      const SizedBox(height: 8),
-                      // Animated progress bar for fill level
-                      LayoutBuilder(builder: (context, constraints) {
-                        double maxCapacity = getSpecificPropertyfromJSON(
-                                container, "max capacity") is num
-                            ? getSpecificPropertyfromJSON(
-                                    container, "max capacity")
-                                .toDouble()
-                            : double.tryParse(getSpecificPropertyfromJSON(
-                                        container, "max capacity")
-                                    .toString()) ??
-                                0.0;
-                        double computedCapacity =
-                            computeCoffeeSum(container, maxCapacity);
-                        double freeCapacity =
-                            computedCapacity < 0 ? 0 : computedCapacity;
-                        // Calculate progress as a fraction of the available max capacity.
-                        double progress = (maxCapacity > 0)
-                            ? (freeCapacity / maxCapacity)
-                            : 0.0;
-                        progress = progress.clamp(0.0, 1.0);
-                        return Stack(
-                          children: [
-                            Container(
-                              width: 150,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(5),
-                              ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Animated progress bar for fill level
+                    LayoutBuilder(builder: (context, constraints) {
+                      double maxCapacity =
+                          getSpecificPropertyfromJSON(container, "max capacity")
+                                  is num
+                              ? getSpecificPropertyfromJSON(
+                                      container, "max capacity")
+                                  .toDouble()
+                              : double.tryParse(getSpecificPropertyfromJSON(
+                                          container, "max capacity")
+                                      .toString()) ??
+                                  0.0;
+                      double computedCapacity =
+                          computeCoffeeSum(container, maxCapacity);
+                      double freeCapacity =
+                          computedCapacity < 0 ? 0 : computedCapacity;
+                      // Calculate progress as a fraction of the available max capacity.
+                      double progress = (maxCapacity > 0)
+                          ? (freeCapacity / maxCapacity)
+                          : 0.0;
+                      progress = progress.clamp(0.0, 1.0);
+                      return Stack(
+                        children: [
+                          Container(
+                            width: 150,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              width: 150 * progress,
-                              height: 10,
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(5),
-                              ),
-                              curve: Curves.easeInOut,
+                          ),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            width: 150 * progress,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(5),
                             ),
-                          ],
-                        );
-                      })
-                    ],
-                  )
-                ],
-              ),
-            ],
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            //*Sync state with cloud
-
-            container["needsSync"] != null
-                ? Tooltip(
-                    message: l10n.notSynced, // "Not synced to cloud",
-                    child: const Icon(Icons.cloud_off, color: Colors.black54))
-                : Tooltip(
-                    message: l10n.synced, //"Synced with cloud",
-                    child: const Icon(Icons.cloud_done,
-                        color: Colors.black54)), //cloud_done
-
-            const SizedBox(width: 12),
-            // Popupmenu
-
-            ContainerActionsMenu(
-              container: container,
-              contents: contents,
-              onPerformAnalysis: _performAnalysis,
-              onGenerateAndSharePdf: _generateAndSharePdf,
-              onRepaint: () {
-                setState(() {
-                  repaintContainerList.value = true;
-                });
-              },
-              isConnected: appState.isConnected,
-              onDeleteContainer: (String uid) async {
-                await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
-                    'localStorage', uid);
-              },
-            )
+                            curve: Curves.easeInOut,
+                          ),
+                        ],
+                      );
+                    })
+                  ],
+                )
+              ],
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -848,38 +833,5 @@ class _ItemsListState extends State<ItemsList> {
       },
       controlAffinity: ListTileControlAffinity.leading,
     );
-  }
-
-  Widget getContainerIcon(String containerType) {
-    switch (containerType) {
-      case "bag":
-        return const Icon(Icons.shopping_bag);
-      case "container":
-        return const Icon(Icons.inventory_2);
-      case "building":
-        return const Icon(Icons.business);
-      case "transportVehicle":
-        return const Icon(Icons.local_shipping);
-
-      default:
-        return const Icon(Icons.help);
-    }
-  }
-
-  String getContainerTypeName(String containerType, BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (containerType) {
-      case "bag":
-        return l10n.bag;
-      case "container":
-        return l10n.container;
-      case "building":
-        return l10n.building;
-      case "transportVehicle":
-        return l10n.transportVehicle;
-
-      default:
-        return l10n.container;
-    }
   }
 }

@@ -1,16 +1,16 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
+import 'package:trace_foodchain_app/helpers/helpers.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:trace_foodchain_app/screens/settings_screen.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/items_list_widget.dart';
-
-import '../widgets/shared_widgets.dart';
+import 'package:trace_foodchain_app/screens/container_selection_screen.dart'; // Neuer Import
 
 ValueNotifier<bool> rebuildInbox = ValueNotifier<bool>(false);
 
@@ -24,6 +24,14 @@ class InboxScreen extends StatefulWidget {
 class _InboxScreenState extends State<InboxScreen> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
+  // Neue Methode innerhalb der State-Klasse
+  void _selectNewContainer(Map<String, dynamic> item) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+            builder: (_) => ContainerSelectionScreen(item: item)))
+        .then((_) => setState(() {}));
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -31,23 +39,23 @@ class _InboxScreenState extends State<InboxScreen> {
     return Scaffold(
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(
-              100), // Increase this value to make the AppBar taller
+              80), // Increase this value to make the AppBar taller
           child: AppBar(
             centerTitle: true,
             title: Column(
               children: [
-                const Row(
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.inbox),
-                    SizedBox(width: 8),
-                    Text("INBOX"),
+                    const Icon(Icons.inbox),
+                    const SizedBox(width: 8),
+                    Text(l10n.inbox), // lokalisiert
                   ],
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  AppLocalizations.of(context)!.selectContainerForItems,
+                  l10n.selectContainerForItems,
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.black54, fontSize: 14),
                 ),
@@ -55,25 +63,51 @@ class _InboxScreenState extends State<InboxScreen> {
             ),
           ),
         ),
-        body: ValueListenableBuilder(
-            valueListenable: rebuildInbox,
-            builder: (context, bool value, child) {
-              rebuildInbox.value = false;
-              return CustomScrollView(
-                slivers: [
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final container = inbox[index];
-                        dynamic results;
-                        return _buildContainerItem(container); //!results
-                      },
-                      childCount: inbox.length,
+        body: Column(
+          children: [
+            if (isTestmode)
+              Container(
+                width: double.infinity,
+                height: 50,
+                color: Colors.redAccent,
+                padding: const EdgeInsets.all(12),
+                child: Center(
+                  child: Text(
+                    l10n.testModeActive, // Lokalisierter Text, z. B. "Testmodus aktiv"
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
-                ],
-              );
-            }));
+                ),
+              ),
+            Expanded(
+              child: ValueListenableBuilder(
+                  valueListenable: rebuildInbox,
+                  builder: (context, bool value, child) {
+                    rebuildInbox.value = false;
+                    return CustomScrollView(
+                      slivers: [
+                        SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final container = inbox[index];
+                              dynamic results;
+                              return InkWell(
+                                  onTap: () => _selectNewContainer(container),
+                                  child: _buildContainerItem(
+                                      container)); // !results entfernt
+                            },
+                            childCount: inbox.length,
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+            ),
+          ],
+        ));
   }
 
   Widget _buildContainerItem(Map<String, dynamic> container) {
@@ -89,21 +123,26 @@ class _InboxScreenState extends State<InboxScreen> {
         }
 //T coffee can also be sold without a container
         if (container["template"]["RALType"] == "coffee") {
-          return Card(child: _buildCoffeeItem(container));
+          return InkWell(
+              onTap: () => _selectNewContainer(container),
+              child: Card(child: _buildCoffeeItem(container)));
         }
         final contents = snapshot.data ?? [];
         if (contents.isEmpty) {
           return _buildEmptyCard(container);
         }
 
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCardHeader(container, contents),
-              ...contents.map((item) => _buildContentItem(item)),
-            ],
+        return InkWell(
+          onTap: () => _selectNewContainer(container),
+          child: Card(
+            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCardHeader(container, contents),
+                ...contents.map((item) => _buildContentItem(item)),
+              ],
+            ),
           ),
         );
       },
@@ -300,12 +339,15 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Widget _buildErrorCard(String error) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: ListTile(
-        leading: const Icon(Icons.error, color: Colors.red),
-        title: const Text('Error'),
-        subtitle: Text(error),
+    final l10n = AppLocalizations.of(context)!;
+    return InkWell(
+      child: Card(
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: ListTile(
+          leading: const Icon(Icons.error, color: Colors.red),
+          title: Text(l10n.error), // lokalisiert
+          subtitle: Text(error),
+        ),
       ),
     );
   }
@@ -314,30 +356,33 @@ class _InboxScreenState extends State<InboxScreen> {
     final appState = Provider.of<AppState>(context);
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        child: ListTile(
-          // leading:
-          title: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
-                  child: getContainerIcon(container["template"]["RALType"]),
-                ),
-                const SizedBox(width: 12),
-                Text((container["identity"]["name"] != null &&
-                        container["identity"]["name"]
-                            .toString()
-                            .trim()
-                            .isNotEmpty)
-                    ? container["identity"]["name"]
-                    : '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"]?.isNotEmpty == true ? container["identity"]["alternateIDs"][0]["UID"] : "No ID"}\nis empty'),
-              ],
+      child: InkWell(
+        onTap: () => _selectNewContainer(container),
+        child: Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: ListTile(
+            // leading:
+            title: Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 6),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+                    child: getContainerIcon(container["template"]["RALType"]),
+                  ),
+                  const SizedBox(width: 12),
+                  Text((container["identity"]["name"] != null &&
+                          container["identity"]["name"]
+                              .toString()
+                              .trim()
+                              .isNotEmpty)
+                      ? container["identity"]["name"]
+                      : '${getContainerTypeName(container["template"]["RALType"], context)} ${container["identity"]["alternateIDs"]?.isNotEmpty == true ? container["identity"]["alternateIDs"][0]["UID"] : "No ID"}\nis empty'),
+                ],
+              ),
             ),
           ),
         ),
@@ -497,38 +542,5 @@ class _InboxScreenState extends State<InboxScreen> {
         ),
       ),
     );
-  }
-
-  Widget getContainerIcon(String containerType) {
-    switch (containerType) {
-      case "bag":
-        return const Icon(Icons.shopping_bag);
-      case "container":
-        return const Icon(Icons.inventory_2);
-      case "building":
-        return const Icon(Icons.business);
-      case "transportVehicle":
-        return const Icon(Icons.local_shipping);
-
-      default:
-        return const Icon(Icons.help);
-    }
-  }
-
-  String getContainerTypeName(String containerType, BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (containerType) {
-      case "bag":
-        return l10n.bag;
-      case "container":
-        return l10n.container;
-      case "building":
-        return l10n.building;
-      case "transportVehicle":
-        return l10n.transportVehicle;
-
-      default:
-        return l10n.container;
-    }
   }
 }

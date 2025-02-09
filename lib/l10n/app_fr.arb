@@ -388,6 +388,7 @@
       "unnamedObject": "Objet sans nom",
       "capacity": "Capacité",
       "freeCapacity": "Capacité libre",
-      "selectContainerForItems": "Sélectionner conteneurs\npour les articles"
+      "selectContainerForItems": "Sélectionner conteneurs\npour les articles",
+      "selectContainer": "Sélectionner un conteneur"
   
 }

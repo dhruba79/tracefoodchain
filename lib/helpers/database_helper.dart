@@ -107,7 +107,7 @@ class DatabaseHelper {
   }
 
 //This function looks for all containers (of all kinds) that are owned by the user and are not nested within other containers
-  Future<List<Map<String, dynamic>>> getContainers(String ownerUID) async {
+   List<Map<String, dynamic>> getContainers(String ownerUID)  {
     List<Map<String, dynamic>> rList = [];
     debugPrint("getting containers owned by $ownerUID");
     for (var doc in localStorage.values) {

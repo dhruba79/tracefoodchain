@@ -387,5 +387,6 @@
       "unnamedObject": "Unnamed object",
       "capacity": "Capacity",
       "freeCapacity": "Free capacity",
-      "selectContainerForItems": "Select container for items"
+      "selectContainerForItems": "Select container for items",
+      "selectContainer": "Select container"
 }

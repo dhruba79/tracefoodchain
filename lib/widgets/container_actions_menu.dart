@@ -41,120 +41,117 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
-      child: PopupMenuButton(
-        icon: const Icon(Icons.more_vert, color: Colors.black54),
-        surfaceTintColor: Colors.white,
-        tooltip: "",
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            child: ListTile(
-              leading: Image.asset(
-                'assets/images/cappuccino.png',
-                width: 24,
-                height: 24,
-              ),
-              title: Text(l10n.buyCoffee,
-                  style: const TextStyle(color: Colors.black)),
-              onTap: () => _buyCoffeeForContainer(context),
+    return PopupMenuButton(
+      icon: const Icon(Icons.more_vert, color: Colors.black54),
+      surfaceTintColor: Colors.white,
+      tooltip: "",
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          child: ListTile(
+            leading: Image.asset(
+              'assets/images/cappuccino.png',
+              width: 24,
+              height: 24,
             ),
+            title: Text(l10n.buyCoffee,
+                style: const TextStyle(color: Colors.black)),
+            onTap: () => _buyCoffeeForContainer(context),
           ),
+        ),
+        PopupMenuItem(
+          child: ListTile(
+            leading: const Icon(Icons.shopping_cart, size: 20),
+            title: Text(l10n.sellOffline,
+                style: const TextStyle(color: Colors.black)),
+            onTap: () => _sellContainerOffline(context, widget.container),
+          ),
+        ),
+        if (widget.isConnected && widget.container["needsSync"] == null)
+          // if (widget.isConnected ) //! DEBUG ONLY
           PopupMenuItem(
             child: ListTile(
               leading: const Icon(Icons.shopping_cart, size: 20),
-              title: Text(l10n.sellOffline,
+              title: Text(l10n.sellOnline,
                   style: const TextStyle(color: Colors.black)),
-              onTap: () => _sellContainerOffline(context, widget.container),
-            ),
-          ),
-          if (widget.isConnected && widget.container["needsSync"] == null)
-            // if (widget.isConnected ) //! DEBUG ONLY
-            PopupMenuItem(
-              child: ListTile(
-                leading: const Icon(Icons.shopping_cart, size: 20),
-                title: Text(l10n.sellOnline,
-                    style: const TextStyle(color: Colors.black)),
-                onTap: () async {
-                  Navigator.pop(context, "close menu");
-                  //1. Add selected item to the outgoing items list
-                  List<Map<String, dynamic>> outgoingItems = [widget.container];
-                  //2. Add nested Items
-                  final nestedItems =
-                      await _databaseHelper.getNestedContainedItems(
-                          getObjectMethodUID(widget.container));
-                  for (final item in nestedItems) {
-                    outgoingItems.add(item);
-                  }
+              onTap: () async {
+                Navigator.pop(context, "close menu");
+                //1. Add selected item to the outgoing items list
+                List<Map<String, dynamic>> outgoingItems = [widget.container];
+                //2. Add nested Items
+                final nestedItems =
+                    await _databaseHelper.getNestedContainedItems(
+                        getObjectMethodUID(widget.container));
+                for (final item in nestedItems) {
+                  outgoingItems.add(item);
+                }
 
-                  for (final item in outgoingItems) {
-                    if (item["needsSync"] != null) {
-                      await fshowInfoDialog(context, l10n.syncError);
-                      return;
-                    }
+                for (final item in outgoingItems) {
+                  if (item["needsSync"] != null) {
+                    await fshowInfoDialog(context, l10n.syncError);
+                    return;
                   }
+                }
 
-                  if (outgoingItems.isNotEmpty) {
-                    await showDialog(
-                      context: context,
-                      builder: (context) =>
-                          OnlineSaleDialog(itemsToSell: outgoingItems),
-                    );
-                  } else {
-                    await fshowInfoDialog(context, l10n.selectItemToSell);
-                  }
+                if (outgoingItems.isNotEmpty) {
+                  await showDialog(
+                    context: context,
+                    builder: (context) =>
+                        OnlineSaleDialog(itemsToSell: outgoingItems),
+                  );
+                } else {
+                  await fshowInfoDialog(context, l10n.selectItemToSell);
+                }
 
-                  widget.onRepaint();
-                },
-              ),
-            ),
-          PopupMenuItem(
-            child: ListTile(
-                leading: const Icon(Icons.swap_horiz, size: 20),
-                title: Text(l10n.changeLocation,
-                    style: const TextStyle(color: Colors.black)),
-                onTap: () {
-                  Navigator.pop(context, "close menu");
-                  showChangeContainerDialog(context, widget.container);
-                  widget.onRepaint();
-                }),
-          ),
-          PopupMenuItem(
-            child: Builder(
-              builder: (context) {
-                return ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, size: 20),
-                  title: ValueListenableBuilder(
-                    valueListenable: rebuildDDS,
-                    builder: (context, bool value, child) {
-                      rebuildDDS.value = false;
-                      return _isBuilding
-                          ? const SizedBox(
-                              width: 10,
-                              child: CircularProgressIndicator(
-                                color: Color(0xFF35DB00),
-                              ),
-                            )
-                          : Text(l10n.generateDDS,
-                              style: const TextStyle(color: Colors.black));
-                    },
-                  ),
-                  onTap: () => _generateDDS(context),
-                );
+                widget.onRepaint();
               },
             ),
           ),
-          if (kDebugMode)
-            PopupMenuItem(
-              child: ListTile(
-                leading: const Icon(Icons.delete_forever, size: 20),
-                title: Text(l10n.debugDeleteContainer,
-                    style: const TextStyle(color: Colors.black)),
-                onTap: () => _deleteContainer(context),
-              ),
+        PopupMenuItem(
+          child: ListTile(
+              leading: const Icon(Icons.swap_horiz, size: 20),
+              title: Text(l10n.changeLocation,
+                  style: const TextStyle(color: Colors.black)),
+              onTap: () {
+                Navigator.pop(context, "close menu");
+                showChangeContainerDialog(context, widget.container);
+                widget.onRepaint();
+              }),
+        ),
+        PopupMenuItem(
+          child: Builder(
+            builder: (context) {
+              return ListTile(
+                leading: const Icon(Icons.picture_as_pdf, size: 20),
+                title: ValueListenableBuilder(
+                  valueListenable: rebuildDDS,
+                  builder: (context, bool value, child) {
+                    rebuildDDS.value = false;
+                    return _isBuilding
+                        ? const SizedBox(
+                            width: 10,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF35DB00),
+                            ),
+                          )
+                        : Text(l10n.generateDDS,
+                            style: const TextStyle(color: Colors.black));
+                  },
+                ),
+                onTap: () => _generateDDS(context),
+              );
+            },
+          ),
+        ),
+        if (kDebugMode)
+          PopupMenuItem(
+            child: ListTile(
+              leading: const Icon(Icons.delete_forever, size: 20),
+              title: Text(l10n.debugDeleteContainer,
+                  style: const TextStyle(color: Colors.black)),
+              onTap: () => _deleteContainer(context),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 

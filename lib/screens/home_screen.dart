@@ -332,6 +332,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 context,
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
               ).then((_) async {
+                setState(() {});
                 //Repaint Container list
                 repaintContainerList.value = true;
                 //Repaint Inbox count
@@ -340,7 +341,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   inbox = await databaseHelper.getInboxItems(ownerUID);
                   inboxCount.value = inbox.length;
                 }
-                //setState(() {});
               });
             },
           ),
@@ -354,6 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     ).then((_) async {
+      setState(() {});
       final databaseHelper = DatabaseHelper();
       //Repaint Container list
       repaintContainerList.value = true;

@@ -107,19 +107,21 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     }
 
     try {
+      isProcessing.value = true;
       Map<String, dynamic>? receiverDoc =
           await _findUserByEmail(_emailController.text);
       if (receiverDoc != null) {
-        isProcessing.value = true;
         await _performSale(receiverDoc);
         isProcessing.value = false;
 
         Navigator.of(context).pop();
         await fshowInfoDialog(context, l10n.saleCompleted);
       } else {
+        isProcessing.value = false;
         await fshowInfoDialog(context, l10n.userNotFound);
       }
     } catch (e) {
+      isProcessing.value = false;
       await fshowInfoDialog(context, l10n.saleError);
     }
   }
