@@ -423,7 +423,7 @@ Future<void> finishBuyCoffee(dynamic receivedData) async {
           {"UID": getObjectMethodUID(appUserDoc!), "role": "owner"}
         ];
       }
-      await setObjectMethod(jobOrObject, false, true);
+      await setObjectMethod(jobOrObject, false, false);
     } else {
       jobItems.add(jobOrObject);
     }

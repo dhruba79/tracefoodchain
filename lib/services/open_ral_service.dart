@@ -227,7 +227,7 @@ Future<Map<String, dynamic>> setObjectMethod(Map<String, dynamic> objectMethod,
         signingObject = createSigningObject(pathsToSign, objectMethod);
         // await Share.share(signingObject);
         if (kDebugMode) {
-          //   await Share.share(signingObject);
+          await Share.share(signingObject);
         }
         // debugPrint("[SIGN] UID: ${objectMethod["identity"]["UID"]}");
         // debugPrint("[SIGN] Paths to sign: $pathsToSign");
@@ -340,17 +340,33 @@ Map<String, dynamic> addInputobject(
 // Extract UID from the object copy to be added
   var newObjectUID = objectCopy['identity']?['UID'];
 
-// Check if 'inputObjects' already contains an object with the same UID
-  bool exists =
-      method['inputObjects'].any((o) => o['identity']?['UID'] == newObjectUID);
+  // Find the index of the object with the same UID, if it exists
+  int index = method['inputObjects']
+      .indexWhere((o) => o['identity']?['UID'] == newObjectUID);
 
-  if (!exists) {
+  if (index == -1) {
+    // If the object does not exist, add it to the list
     objectCopy["role"] = role;
     method['inputObjects'].add(objectCopy);
   } else {
+    // If the object exists, replace it
     debugPrint(
-        'An object with UID $newObjectUID already exists in inputObjects.');
+        'An object with UID $newObjectUID already exists in inputObjects, replacing...');
+    objectCopy["role"] = role; // Ensure the role is updated
+    method['inputObjects'][index] = objectCopy;
   }
+
+// // Check if 'inputObjects' already contains an object with the same UID
+//   bool exists =
+//       method['inputObjects'].any((o) => o['identity']?['UID'] == newObjectUID);
+
+//   if (!exists) {
+//     objectCopy["role"] = role;
+//     method['inputObjects'].add(objectCopy);
+//   } else {
+//     debugPrint(
+//         'An object with UID $newObjectUID already exists in inputObjects.');
+//   }
 
   return method;
 }
