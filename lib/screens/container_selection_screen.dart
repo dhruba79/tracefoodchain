@@ -141,8 +141,10 @@ class _ContainerSelectionScreenState extends State<ContainerSelectionScreen> {
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(changeContainerMethod);
                             //Step 5: again add Outputobjects to generate valid representation in the method
+                            final item = await getObjectMethod(
+                                getObjectMethodUID(widget.item));
                             addOutputobject(
-                                changeContainerMethod, widget.item, "item");
+                                changeContainerMethod, item, "item");
                             //Step 6: persist process
                             await setObjectMethod(
                                 changeContainerMethod, true, true); //sign it!
