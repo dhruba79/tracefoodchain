@@ -336,7 +336,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                     "role": "owner"
                                   }
                                 ];
-                                await setObjectMethod(item, false, true);
+                                await setObjectMethod(item, false, false);
                               }
 
                               transmittedList.add(item);
