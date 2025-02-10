@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
@@ -367,7 +369,9 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     "\$.executor"
   ];
   String signingObject = createSigningObject(pathsToSign, change_container);
-
+  if (kDebugMode) {
+    await Share.share(signingObject);
+  }
   final signature = await digitalSignature.generateSignature(signingObject);
   if (change_container["digitalSignatures"] == null) {
     change_container["digitalSignatures"] = [];
@@ -383,7 +387,9 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     "\$.inputObjects[?(@.role=='buyer')]" //At this time, we only know the buyer
   ];
   signingObject = createSigningObject(pathsToSign, transfer_ownership);
-
+  if (kDebugMode) {
+    await Share.share(signingObject);
+  }
   final signature2 = await digitalSignature.generateSignature(signingObject);
   if (transfer_ownership["digitalSignatures"] == null) {
     transfer_ownership["digitalSignatures"] = [];
