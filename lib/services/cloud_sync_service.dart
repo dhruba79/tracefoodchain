@@ -237,15 +237,32 @@ class CloudSyncService {
             if (doc2.containsKey('outputObjects') &&
                 doc2['outputObjects'] is List) {
               for (var objectDoc in doc2['outputObjects']) {
-                if (objectDoc is Map<String, dynamic> &&
-                    objectDoc.containsKey('needsSync')) {
-                  objectDoc.remove('needsSync');
-                  if (objectDoc.containsKey('role')) objectDoc.remove('role');
+                final objectDocCopy = safeDeepCopy(objectDoc);
 
-                  debugPrint(
-                      "removed needsSync and role from object  ${objectDoc['identity']['UID']}");
+                // Check if the cloud object's methodHistoryRef is longer than the local object's version.
+                if (objectDocCopy.containsKey('methodHistoryRef')) {
+                  final localObject =
+                      await getObjectMethod(objectDocCopy['identity']['UID']);
+                  if (localObject.containsKey('methodHistoryRef')) {
+                    final localHistory =
+                        localObject['methodHistoryRef'] as List;
+                    final cloudHistory =
+                        objectDocCopy['methodHistoryRef'] as List;
+                    if (cloudHistory.length > localHistory.length) {
+                      if (objectDocCopy.containsKey('needsSync')) {
+                        objectDocCopy.remove('needsSync');
+                        debugPrint(
+                            "removed needsSync from object  ${objectDocCopy['identity']['UID']}");
+                      }
+                      if (objectDocCopy.containsKey('role')) {
+                        objectDocCopy.remove('role');
+                        debugPrint(
+                            "removed role from object  ${objectDocCopy['identity']['UID']}");
+                      }
+                      await setObjectMethod(objectDocCopy, false, false);
+                    }
+                  }
                 }
-                await setObjectMethod(objectDoc, false, false);
               }
             }
           } else {
