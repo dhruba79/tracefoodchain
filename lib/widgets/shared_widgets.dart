@@ -226,7 +226,9 @@ Future<void> showChangeContainerDialog(
                       addOutputobject(changeContainerMethod, item, "item");
                       //Step 4: update method history in all affected objects (will also tag them for syncing)
                       await updateMethodHistories(changeContainerMethod);
-                      //Step 5: persist Method
+                      //Step 5: again add Outputobjects to generate valid representation in the method
+                      addOutputobject(changeContainerMethod, item, "item");
+                      //Step 6: persist process
                       await setObjectMethod(
                           changeContainerMethod, true, true); //sign it!
                       isProcessing.value = false;
@@ -377,7 +379,9 @@ Future<void> showProcessingStateDialog(
     addOutputobject(changeProcessingState, coffee, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeProcessingState);
-    //Step 5: persist Method
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(changeProcessingState, coffee, "item");
+    //Step 6: persist process
     await setObjectMethod(changeProcessingState, true, true); //sign it!
   }
 }

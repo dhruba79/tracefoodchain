@@ -711,7 +711,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
     addOutputobject(addItem, receivingContainer, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
-    //Step 5: persist process
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(addItem, receivingContainer, "item");
+    //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     receivingContainer =
@@ -742,7 +744,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
     addOutputobject(addItem, field, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
-    //Step 5: persist process
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(addItem, field, "item");
+    //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     field = await getObjectMethod(getObjectMethodUID(field));
@@ -771,7 +775,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
     addOutputobject(addItem, seller, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
-    //Step 5: persist process
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(addItem, seller, "item");
+    //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     seller = await getObjectMethod(getObjectMethodUID(seller));
@@ -810,7 +816,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   addOutputobject(addItem, coffee, "item");
   //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(addItem);
-  //Step 5: persist process
+  //Step 5: again add Outputobjects to generate valid representation in the method
+  addOutputobject(addItem, coffee, "item");
+  //Step 6: persist process
   await setObjectMethod(addItem, true, true); //sign it!
 
   debugPrint("generated harvest ${getObjectMethodUID(coffee)}");
@@ -840,7 +848,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   addOutputobject(transfer_ownership, coffee, "boughtItem");
   //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(transfer_ownership);
-  //Step 5: persist process
+  //Step 5: again add Outputobjects to generate valid representation in the method
+  addOutputobject(transfer_ownership, coffee, "boughtItem");
+  //Step 6: persist process
   await setObjectMethod(transfer_ownership, true, true); //sign it!
 
   //******* C. Generate process "change_container" (put harvest into container) *********
@@ -868,7 +878,9 @@ Future<void> sellCoffee(SaleInfo saleInfo, String containerType) async {
   addOutputobject(change_container, coffee, "item");
   //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(change_container);
-  //Step 5: persist process
+//Step 5: again add Outputobjects to generate valid representation in the method
+  addOutputobject(change_container, coffee, "item");
+  //Step 6: persist process
   await setObjectMethod(change_container, true, true); //sign it!
   debugPrint("Transfer of ownership finished");
 }

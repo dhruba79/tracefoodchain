@@ -12,7 +12,8 @@ Future<void> aggregateItems(
   // Step 1: Scan for receiving container
   String? receivingContainerUID = await ScanningService.showScanDialog(
     context,
-    Provider.of<AppState>(context, listen: false),true,
+    Provider.of<AppState>(context, listen: false),
+    true,
   );
 
   if (receivingContainerUID == null) {
@@ -49,7 +50,9 @@ Future<void> aggregateItems(
     addOutputobject(addItem, receivingContainer, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
-    //Step 5: persist process
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(addItem, receivingContainer, "item");
+    //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     receivingContainer = await getObjectMethod(getObjectMethodUID(
@@ -85,7 +88,9 @@ Future<void> aggregateItems(
       addOutputobject(changeContainerProcess, item, "item");
       //Step 4: update method history in all affected objects (will also tag them for syncing)
       await updateMethodHistories(changeContainerProcess);
-      //Step 5: persist process
+      //Step 5: again add Outputobjects to generate valid representation in the method
+      addOutputobject(changeContainerProcess, item, "item");
+      //Step 6: persist process
       await setObjectMethod(changeContainerProcess, true, true); //sign it!
     }
   }

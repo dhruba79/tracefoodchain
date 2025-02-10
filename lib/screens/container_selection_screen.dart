@@ -125,9 +125,9 @@ class _ContainerSelectionScreenState extends State<ContainerSelectionScreen> {
                             changeContainerMethod["methodState"] = "finished";
                             addInputobject(
                                 changeContainerMethod, widget.item, "item");
-                             addInputobject(
-                                changeContainerMethod, widget.item, "newContainer");    
-                          
+                            addInputobject(changeContainerMethod, widget.item,
+                                "newContainer");
+
                             widget.item["currentGeolocation"]["container"]
                                 ["UID"] = container["identity"]["UID"];
                             //Step 1: get method an uuid (for method history entries)
@@ -140,7 +140,10 @@ class _ContainerSelectionScreenState extends State<ContainerSelectionScreen> {
                                 changeContainerMethod, widget.item, "item");
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(changeContainerMethod);
-                            //Step 5: persist Method
+                            //Step 5: again add Outputobjects to generate valid representation in the method
+                            addOutputobject(
+                                changeContainerMethod, widget.item, "item");
+                            //Step 6: persist process
                             await setObjectMethod(
                                 changeContainerMethod, true, true); //sign it!
                             isProcessing.value = false;

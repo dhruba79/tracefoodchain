@@ -251,7 +251,10 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 transfer_ownership, coffee, "boughtItem");
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(transfer_ownership);
-                            //Step 5: persist process
+                            //Step 5: again add Outputobjects to generate valid representation in the method
+                            transfer_ownership = addOutputobject(
+                                transfer_ownership, coffee, "boughtItem");
+                            //Step 6: persist process
                             await setObjectMethod(
                                 transfer_ownership, true, true); //sign it!
 
@@ -284,7 +287,9 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             addOutputobject(change_container, coffee, "item");
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(change_container);
-                            //Step 5: persist process
+                            //Step 5: again add Outputobjects to generate valid representation in the method
+                            addOutputobject(change_container, coffee, "item");
+                            //Step 6: persist process
                             await setObjectMethod(
                                 change_container, true, true); //sign it!
 

@@ -337,7 +337,9 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     addOutputobject(addItem, receivingContainer, "item");
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(addItem);
-    //Step 5: persist process
+    //Step 5: again add Outputobjects to generate valid representation in the method
+    addOutputobject(addItem, receivingContainer, "item");
+    //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     receivingContainer =
@@ -370,7 +372,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
   ];
   String signingObject = createSigningObject(pathsToSign, change_container);
   if (kDebugMode) {
-    await Share.share(signingObject);
+    //await Share.share(signingObject);
   }
   final signature = await digitalSignature.generateSignature(signingObject);
   if (change_container["digitalSignatures"] == null) {
@@ -388,7 +390,7 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
   ];
   signingObject = createSigningObject(pathsToSign, transfer_ownership);
   if (kDebugMode) {
-    await Share.share(signingObject);
+    //await Share.share(signingObject);
   }
   final signature2 = await digitalSignature.generateSignature(signingObject);
   if (transfer_ownership["digitalSignatures"] == null) {
