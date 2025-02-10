@@ -267,7 +267,8 @@ class ScanningService {
                     //A container has been selected
                     // debugPrint(getObjectMethodUID(container));
                     if (container != null) {
-                      final uid = getObjectMethodUID(container);
+                      final uid = container["identity"]["alternateIDs"][0]
+                          ["UID"]; // getObjectMethodUID(container);
                       externalController.text = uid;
                       onCodeScanned(uid);
                     }

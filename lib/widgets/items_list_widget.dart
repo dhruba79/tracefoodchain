@@ -25,14 +25,23 @@ double convertQuantity(double quantity, String fromUnit, String toUnit) {
     return quantity;
   }
   final weightUnits = getWeightUnits(country);
-  double toKgFactorFrom = weightUnits.firstWhere(
-      (uni) => uni["name"] == fromUnit,
-      orElse: () => {"factor": 1.0})["toKgFactor"];
-  double toKgFactorTo = weightUnits.firstWhere((uni) => uni["name"] == toUnit,
-      orElse: () => {"factor": 1.0})["toKgFactor"];
+  double? toKgFactorFrom;
+  double? toKgFactorTo;
+  try {
+    toKgFactorFrom = weightUnits.firstWhere((uni) => uni["name"] == fromUnit,
+        orElse: () => {"factor": 1.0})["toKgFactor"];
+    toKgFactorTo = weightUnits.firstWhere((uni) => uni["name"] == toUnit,
+        orElse: () => {"factor": 1.0})["toKgFactor"];
+  } catch (e) {
+    print("Error: $e");
+    toKgFactorFrom = 1.0;
+    toKgFactorTo = 1.0;
+  }
   // Convert the given quantity from its current unit to kilograms
+  if (toKgFactorFrom == null) toKgFactorFrom = 1.0;
   final quantityInKg = quantity * toKgFactorFrom;
   // Convert the quantity from kilograms to the target unit
+  if (toKgFactorTo == null) toKgFactorTo = 1.0;
   return quantityInKg / toKgFactorTo;
 }
 
