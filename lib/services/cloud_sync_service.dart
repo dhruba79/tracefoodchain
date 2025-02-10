@@ -238,7 +238,6 @@ class CloudSyncService {
                 doc2['outputObjects'] is List) {
               for (var objectDoc in doc2['outputObjects']) {
                 final objectDocCopy = safeDeepCopy(objectDoc);
-
                 // Check if the cloud object's methodHistoryRef is longer than the local object's version.
                 if (objectDocCopy.containsKey('methodHistoryRef')) {
                   final localObject =

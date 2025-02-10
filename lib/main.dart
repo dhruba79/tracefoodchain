@@ -254,7 +254,7 @@ void main() async {
   //*Start accessing local data storage
   localStorage = await Hive.openBox<Map<dynamic, dynamic>>(
       'localStorage'); //ToDo: 1 Hive DB per logged-in user
-  //await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
+  // await localStorage.deleteFromDisk(); //DEBUG: DELETE DATABASE
 
   //*Start accessing local template storage
   openRALTemplates =
