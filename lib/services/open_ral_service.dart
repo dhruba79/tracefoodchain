@@ -2,6 +2,7 @@
 //It has to work online and offline, so we have to use Hive to store templates
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -333,17 +334,19 @@ Map<String, dynamic> addInputobject(
   if (method['inputObjects'] == null) {
     method['inputObjects'] = [];
   }
+// Create a deep copy of the object using json encode/decode
+  Map<String, dynamic> objectCopy = safeDeepCopy(object);
 
-  // Extract UID from the object to be added
-  var newObjectUID = object['identity']?['UID'];
+// Extract UID from the object copy to be added
+  var newObjectUID = objectCopy['identity']?['UID'];
 
-  // Check if 'inputObjects' already contains an object with the same UID
+// Check if 'inputObjects' already contains an object with the same UID
   bool exists =
       method['inputObjects'].any((o) => o['identity']?['UID'] == newObjectUID);
 
   if (!exists) {
-    object["role"] = role;
-    method['inputObjects'].add(object);
+    objectCopy["role"] = role;
+    method['inputObjects'].add(objectCopy);
   } else {
     debugPrint(
         'An object with UID $newObjectUID already exists in inputObjects.');
@@ -358,9 +361,11 @@ Map<String, dynamic> addOutputobject(
   if (method['outputObjects'] == null) {
     method['outputObjects'] = [];
   }
+// Create a deep copy of the object using json encode/decode
+  Map<String, dynamic> objectCopy = safeDeepCopy(object);
 
   // Extract UID from the object to be added
-  var newObjectUID = object['identity']?['UID'];
+  var newObjectUID = objectCopy['identity']?['UID'];
 
   // Find the index of the object with the same UID, if it exists
   int index = method['outputObjects']
@@ -368,14 +373,14 @@ Map<String, dynamic> addOutputobject(
 
   if (index == -1) {
     // If the object does not exist, add it to the list
-    object["role"] = role;
-    method['outputObjects'].add(object);
+    objectCopy["role"] = role;
+    method['outputObjects'].add(objectCopy);
   } else {
     // If the object exists, replace it
     debugPrint(
         'An object with UID $newObjectUID already exists in outputObjects, replacing...');
-    object["role"] = role; // Ensure the role is updated
-    method['outputObjects'][index] = object;
+    objectCopy["role"] = role; // Ensure the role is updated
+    method['outputObjects'][index] = objectCopy;
   }
 
   return method;
@@ -563,4 +568,59 @@ String createSigningObject(
     debugPrint(e.toString());
   }
   return jsonEncode(partsToSign);
+}
+
+Map<String, dynamic> safeDeepCopy(Map<String, dynamic> object) {
+  Map<String, dynamic> objectCopy =
+      json.decode(json.encode(object, toEncodable: (obj) {
+    if (obj is DateTime) {
+      return {'__type': 'DateTime', 'value': obj.toIso8601String()};
+    }
+    if (obj is Timestamp) {
+      return {
+        '__type': 'Timestamp',
+        'seconds': obj.seconds,
+        'nanoseconds': obj.nanoseconds
+      };
+    }
+    if (obj is GeoPoint) {
+      return {
+        '__type': 'GeoPoint',
+        'latitude': obj.latitude,
+        'longitude': obj.longitude
+      };
+    }
+    return obj;
+  }));
+
+  // Convert back special types
+  _convertSpecialTypes(objectCopy);
+  return objectCopy;
+}
+
+void _convertSpecialTypes(dynamic obj) {
+  if (obj is Map<String, dynamic>) {
+    for (var key in obj.keys.toList()) {
+      var value = obj[key];
+      if (value is Map<String, dynamic> && value['__type'] != null) {
+        switch (value['__type']) {
+          case 'DateTime':
+            obj[key] = DateTime.parse(value['value']);
+            break;
+          case 'Timestamp':
+            obj[key] = Timestamp(value['seconds'], value['nanoseconds']);
+            break;
+          case 'GeoPoint':
+            obj[key] = GeoPoint(value['latitude'], value['longitude']);
+            break;
+        }
+      } else if (value is Map || value is List) {
+        _convertSpecialTypes(value);
+      }
+    }
+  } else if (obj is List) {
+    for (var i = 0; i < obj.length; i++) {
+      _convertSpecialTypes(obj[i]);
+    }
+  }
 }

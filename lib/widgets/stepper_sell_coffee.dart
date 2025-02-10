@@ -226,7 +226,8 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 transfer_ownership["inputObjects"]
                                     .firstWhere((io) => io["role"] == "buyer");
                             transfer_ownership = addInputobject(
-                                transfer_ownership, coffee, "soldItem");
+                                transfer_ownership, coffee, "soldItem"); //!!!!
+
                             transfer_ownership = addInputobject(
                                 transfer_ownership, seller, "seller");
 
@@ -242,9 +243,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             transfer_ownership["executor"] = seller;
                             transfer_ownership["methodState"] = "finished";
 
-                            //Step 1: get method an uuid (for method history entries)
-                            setObjectMethodUID(
-                                transfer_ownership, const Uuid().v4());
+                            //Step 1: NO UUID, since we take over from seller
                             //Step 2: save the objectsto get it the method history change
                             await setObjectMethod(coffee, false, false);
                             //Step 3: add the output objects with updated method history to the method
@@ -278,9 +277,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             change_container["methodState"] = "finished";
                             //no executor change here - is prefilled from buyer
 
-//Step 1: get method an uuid (for method history entries)
-                            setObjectMethodUID(
-                                change_container, const Uuid().v4());
+                            //Step 1:  NO UUID, since we take over from seller
                             //Step 2: save the objectsto get it the method history change
                             await setObjectMethod(coffee, false, false);
                             //Step 3: add the output objects with updated method history to the method
