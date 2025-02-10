@@ -181,6 +181,7 @@ class CloudSyncService {
 //This function syncs all methods and objects to the cloud if tagged as being changed/generated locally only
 
   Future<bool> syncMethods(String domain) async {
+    List<String> failedSyncedOutputObjects = [];
     if (_isSyncing) {
       debugPrint("Sync bereits aktiv, überspringe $domain");
       return false;
@@ -233,39 +234,15 @@ class CloudSyncService {
           if (syncresult["response"] == "success") {
             setObjectMethod(
                 doc2, false, false); //persists removal of sync flag from method
-            // Look for all outputobjects in doc2 and remove sync flag as well
-            if (doc2.containsKey('outputObjects') &&
-                doc2['outputObjects'] is List) {
-              for (var objectDoc in doc2['outputObjects']) {
-                final objectDocCopy = safeDeepCopy(objectDoc);
-                // Check if the cloud object's methodHistoryRef is longer than the local object's version.
-                if (objectDocCopy.containsKey('methodHistoryRef')) {
-                  final localObject =
-                      await getObjectMethod(objectDocCopy['identity']['UID']);
-                  if (localObject.containsKey('methodHistoryRef')) {
-                    final localHistory =
-                        localObject['methodHistoryRef'] as List;
-                    final cloudHistory =
-                        objectDocCopy['methodHistoryRef'] as List;
-                    if (cloudHistory.length > localHistory.length) {
-                      if (objectDocCopy.containsKey('needsSync')) {
-                        objectDocCopy.remove('needsSync');
-                        debugPrint(
-                            "removed needsSync from object  ${objectDocCopy['identity']['UID']}");
-                      }
-                      if (objectDocCopy.containsKey('role')) {
-                        objectDocCopy.remove('role');
-                        debugPrint(
-                            "removed role from object  ${objectDocCopy['identity']['UID']}");
-                      }
-                      await setObjectMethod(objectDocCopy, false, false);
-                    }
-                  }
-                }
-              }
-            }
           } else {
             if (syncresult["responseDetails"] != null) {
+                if (doc2.containsKey("outputObjects") && doc2["outputObjects"] is List) {
+                for (final output in doc2["outputObjects"]) {
+                  if (output is Map<String, dynamic>) {
+                  failedSyncedOutputObjects.add(output["identity"]["UID"]);
+                  }
+                }
+                }
               switch (syncresult["response"]) {
                 case "409":
                   //ToDo: Flag methods or objects with merge conflicts
@@ -387,15 +364,37 @@ class CloudSyncService {
             "Got ${cloudData["ralObjects"].length} updated objects from cloud");
         for (final item in cloudData["ralObjects"]) {
           debugPrint(getObjectMethodUID(item));
+          //Check if the UID of this object is in the failedSyncedOutputObjects, only add if not
+          String uid = getObjectMethodUID(item);
+          if (!failedSyncedOutputObjects.contains(uid)) {
+            mergedList.add(item);
+          }
         }
-        mergedList.addAll(cloudData["ralObjects"]);
       }
       for (final item in mergedList) {
         final docData = Map<String, dynamic>.from(item);
 
         //debugPrint(jsonEncode(docData));
-
+        docData.remove("needsSync");
         await setObjectMethod(docData, false, false);
+      }
+
+      // Traverse through all maps in deviceHashes.
+      // For each entry, extract the "UID", load the corresponding object,
+      // remove "needsSync" if it exists, and save the updated object.
+      for (final hashList in deviceHashes.values) {
+        for (final entry in hashList) {
+          if (entry is Map<String, dynamic> && entry.containsKey("UID")) {
+            final uid = entry["UID"];
+            final localDoc = await getObjectMethod(uid);
+            if (localDoc.containsKey("needsSync")) {
+              if (!failedSyncedOutputObjects.contains(uid)) {
+                localDoc.remove("needsSync");
+                await setObjectMethod(localDoc, false, false);
+              }
+            }
+          }
+        }
       }
       //
     } catch (e) {
