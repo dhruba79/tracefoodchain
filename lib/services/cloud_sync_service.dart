@@ -212,14 +212,23 @@ class CloudSyncService {
           deviceHashes["objectHashTable"].add({"UID": uid, "hash": hash});
         } else {
           //This is a method
-          if (doc2["needsSync"] != null) {
-            doc2.remove(
-                "needsSync"); //!need to avoid needsSync being in the Hash!
-            methodsToSyncToCloud.add(doc2);
-          }
-
-          final String hash = generateStableHash(doc2);
+          String hash = "";
           final String uid = getObjectMethodUID(doc2);
+          if (doc2["digitalSignatures"] == null) {
+            //! REMOVE LATER: Make sure old methods of the pre-cloud era get a digital signature
+            //Sync anyway after getting a digital signature
+            final doc3 = await setObjectMethod(doc2, true, false);
+            methodsToSyncToCloud.add(doc3);
+            hash = generateStableHash(doc3);
+          } else {
+            //Handle standard methods (sync upwards if they need a sync)
+            if (doc2["needsSync"] != null) {
+              doc2.remove(
+                  "needsSync"); //!need to avoid needsSync being in the Hash!
+              methodsToSyncToCloud.add(doc2);
+              hash = generateStableHash(doc2);
+            }
+          }
 
           deviceHashes["methodHashTable"].add({"UID": uid, "hash": hash});
         }
@@ -235,14 +244,15 @@ class CloudSyncService {
             setObjectMethod(
                 doc2, false, false); //persists removal of sync flag from method
           } else {
-            if (syncresult["responseDetails"] != null) {
-                if (doc2.containsKey("outputObjects") && doc2["outputObjects"] is List) {
-                for (final output in doc2["outputObjects"]) {
-                  if (output is Map<String, dynamic>) {
+            if (doc2.containsKey("outputObjects") &&
+                doc2["outputObjects"] is List) {
+              for (final output in doc2["outputObjects"]) {
+                if (output is Map<String, dynamic>) {
                   failedSyncedOutputObjects.add(output["identity"]["UID"]);
-                  }
                 }
-                }
+              }
+            }
+            if (syncresult["responseDetails"] != null) {
               switch (syncresult["response"]) {
                 case "409":
                   //ToDo: Flag methods or objects with merge conflicts
@@ -311,6 +321,7 @@ class CloudSyncService {
             syncSuccess = false;
             snackbarMessageNotifier.value =
                 "error syncing to cloud: ${syncresult["response"].toString()}";
+
             // globalSnackBarNotifier.value = {
             //   'type': 'error',
             //   'text': "error syncing to cloud",
