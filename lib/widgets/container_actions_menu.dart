@@ -167,7 +167,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
       final firstSale = await _databaseHelper.getFirstSale(context, coffee);
       final field = firstSale["inputObjects"][1];
       plotList.add(field["identity"]["alternateIDs"][0]["UID"]
-          .replaceAll(RegExp(r'\s+'), ''));
+          .replaceAll(RegExp(r'\s+'), ''));//This is because some CIAT cards have a space in the UID
       debugPrint(field["identity"]["alternateIDs"][0]["UID"]);
     }
 

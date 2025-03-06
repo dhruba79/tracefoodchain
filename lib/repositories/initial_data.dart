@@ -882,8 +882,17 @@ Map<String, dynamic> initialCloudConnectorTraceFoodchain = {
           },
           "unit": "json",
           "key": "findUserByEmail"
+        },
+        {
+          "value": {
+            "definition": "Endpoint that allows to retrieve a specific method by its UID. from cloud",
+            "url":
+                "https://europe-west3-tracefoodchain.cloudfunctions.net/getRalMethodByUid"
+          },
+          "unit": "json",
+          "key": "getRALMethodByUID"
         }
-        
+      //  ?UID=
  
       ],
       "locationHistoryRef": [],

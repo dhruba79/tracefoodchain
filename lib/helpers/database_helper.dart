@@ -107,7 +107,7 @@ class DatabaseHelper {
   }
 
 //This function looks for all containers (of all kinds) that are owned by the user and are not nested within other containers
-   List<Map<String, dynamic>> getContainers(String ownerUID)  {
+  List<Map<String, dynamic>> getContainers(String ownerUID) {
     List<Map<String, dynamic>> rList = [];
     debugPrint("getting containers owned by $ownerUID");
     for (var doc in localStorage.values) {
@@ -219,22 +219,9 @@ class DatabaseHelper {
     Map<String, dynamic> firstSale = await getObjectMethod(firstSaleUID);
     //if this method has not been synced from cloud, we need to force downsync!
     if (firstSale.isEmpty && appState.isConnected) {
-      Map<String, dynamic> deviceHashes = {
-        "objectHashTable": [],
-        "methodHashTable": [],
-      };
-      deviceHashes["methodHashTable"].add({"UID": firstSaleUID, "hash": "xxx"});
-      Map<String, dynamic> firstSaleDoc = await cloudSyncService.apiClient
-          .syncObjectsMethodsFromCloud("tracefoodchain.org", deviceHashes);
+      final firstSaleDoc = await cloudSyncService.apiClient.getDocumentFromCloud("tracefoodchain.org",firstSaleUID);
       if (firstSaleDoc.isNotEmpty) {
-        final firstMethod = firstSaleDoc["ralMethods"].firstWhere(
-          (method) => method["identity"]["UID"] == firstSaleUID,
-          orElse: () => {},
-        );
-        if (firstMethod.isNotEmpty) {
-          await setObjectMethod(
-              firstMethod, false, false); //ToDo: Check if this is working
-        }
+        await setObjectMethod(firstSaleDoc, false, false);
         firstSale = await getObjectMethod(firstSaleUID);
       }
     }

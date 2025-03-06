@@ -60,6 +60,43 @@ class CloudApiClient {
     return false;
   }
 
+  Future<Map<String, dynamic>> getDocumentFromCloud(
+      String domain, documentUID) async {
+    String? urlString;
+    try {
+      urlString = getCloudConnectionProperty(
+        domain,
+        "cloudFunctionsConnector",
+        "getRALMethodByUID",
+      )["url"];
+    } catch (e) {
+      debugPrint(
+          "Error getting cloud connection property 'syncObjectsMethodsFromCloud': $e");
+
+      return {};
+    }
+    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
+
+    if (urlString != null && apiKey != null) {
+      final uri = Uri.parse("$urlString?UID=$documentUID");
+      final response = await http.get(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        debugPrint(
+            "Failed to get method $documentUID from cloud: ${response.statusCode}");
+        return {};
+      }
+    } else {return {};}
+  }
+
   Future<Map<String, dynamic>> syncMethodToCloud(
       String domain, Map<String, dynamic> ralMethod) async {
     dynamic urlString;
