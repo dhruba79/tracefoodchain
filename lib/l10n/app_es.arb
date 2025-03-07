@@ -390,6 +390,10 @@
       "freeCapacity": "Capacidad libre",
       "selectContainerForItems": "Seleccionar contenedor\npara los artículos",
       "selectContainer": "Seleccionar contenedor",
-      "enterUIDhere": "Ingrese el UID aquí"
+      "enterUIDhere": "Ingrese el UID aquí",
+      "excelFileDownloaded": "Archivo Excel descargado",
+      "excelFileSavedAt": "Archivo Excel guardado en",
+      "failedToGenerateExcelFile": "Error al generar el archivo Excel",
+      "exportToExcel": "Exportar a Excel"
 
 }

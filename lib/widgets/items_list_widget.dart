@@ -171,9 +171,11 @@ class _ItemsListState extends State<ItemsList> {
       final result = await _apiService.analyzeGeoIds(plotList);
 
       _result = result;
+      int plotcount = 0;
       for (final plot in result.data) {
         rList.add(
-            {"geoid": plot["geoid"], "deforestation_risk": plot["EUDR_risk"]});
+            {"geoid": plotList[plotcount], "deforestation_risk": plot["EUDR_risk"]});
+        plotcount++;
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

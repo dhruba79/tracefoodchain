@@ -389,5 +389,10 @@
       "freeCapacity": "Free capacity",
       "selectContainerForItems": "Select container for items",
       "selectContainer": "Select container",
-      "enterUIDhere": "Enter UID here"
+      "enterUIDhere": "Enter UID here",
+      "excelFileDownloaded": "Excel file downloaded",
+      "excelFileSavedAt": "Excel file saved at",
+      "failedToGenerateExcelFile": "Failed to generate Excel file",
+      "exportToExcel": "Export to Excel"
+
 }
