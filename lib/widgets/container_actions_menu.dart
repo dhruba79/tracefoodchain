@@ -186,7 +186,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     final headers = [
       "GeoID",
       l10n.species,
-      l10n.amount,
+      l10n.amount2,
       l10n.unit,
       l10n.processingState
     ];

@@ -167,6 +167,7 @@
   "newTransferNotificationTitle": "New Transfer",
   "newTransferNotificationBody": "You have received a new item transfer",
   "coffee": "Coffee",
+  "amount2": "Amount",
   "speciesLabel": "Species: {species}",
   "@speciesLabel": {
     "placeholders": {
