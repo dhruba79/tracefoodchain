@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:trace_foodchain_app/helpers/fade_route.dart';
+import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
@@ -66,7 +67,8 @@ class SettingsScreen extends StatelessWidget {
                 : () async {
                     fshowInfoDialog(context, l10n.nologoutpossible);
                   },
-          )
+          ),
+        
           // if (appState.userRole == 'Farmer') ...[
           //   ListTile(
           //     title: Text(l10n.changeFarmerId,

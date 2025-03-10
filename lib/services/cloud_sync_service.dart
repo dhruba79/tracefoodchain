@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
@@ -13,6 +14,10 @@ import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/screens/home_screen.dart';
 import 'package:trace_foodchain_app/services/get_device_id.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'dart:html' as html;
 
 class CloudApiClient {
   final String domain;
@@ -94,7 +99,9 @@ class CloudApiClient {
             "Failed to get method $documentUID from cloud: ${response.statusCode}");
         return {};
       }
-    } else {return {};}
+    } else {
+      return {};
+    }
   }
 
   Future<Map<String, dynamic>> syncMethodToCloud(
@@ -165,8 +172,7 @@ class CloudApiClient {
 
       return {};
     }
-    final apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
-
+    String? apiKey = await FirebaseAuth.instance.currentUser?.getIdToken();
     if (urlString != null && apiKey != null) {
       try {
         final response = await http.post(
@@ -174,6 +180,7 @@ class CloudApiClient {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer $apiKey',
+            'TFC_UserId': accountUID
           },
           body: jsonEncode(deviceHashes),
         );
@@ -263,11 +270,12 @@ class CloudSyncService {
               doc2.remove(
                   "needsSync"); //!need to avoid needsSync being in the Hash!
               methodsToSyncToCloud.add(doc2);
-              hash = generateStableHash(doc2);
             }
+            hash = generateStableHash(doc2);
           }
 
-          deviceHashes["methodHashTable"].add({"UID": uid, "hash": hash});
+          if (hash != "")
+            deviceHashes["methodHashTable"].add({"UID": uid, "hash": hash});
         }
       }
       bool syncSuccess = true;
@@ -419,6 +427,7 @@ class CloudSyncService {
           }
         }
       }
+      bool downloadedFirst = false;
       for (final item in mergedList) {
         final docData = Map<String, dynamic>.from(item);
 

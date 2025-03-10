@@ -393,5 +393,7 @@
   "excelFileDownloaded": "Excel-Datei heruntergeladen",
   "excelFileSavedAt": "Excel-Datei gespeichert unter",
   "failedToGenerateExcelFile": "Fehler beim Generieren der Excel-Datei",
-  "exportToExcel": "Exportieren nach Excel"
+  "exportToExcel": "Exportieren nach Excel",
+  "resetPasswordEmailSent": "Passwort zurücksetzen E-Mail gesendet",
+  "forgotPasswordQuestion": "Passwort vergessen?"
 }

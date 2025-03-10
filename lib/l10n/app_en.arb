@@ -394,6 +394,8 @@
       "excelFileDownloaded": "Excel file downloaded",
       "excelFileSavedAt": "Excel file saved at",
       "failedToGenerateExcelFile": "Failed to generate Excel file",
-      "exportToExcel": "Export to Excel"
+      "exportToExcel": "Export to Excel",
+      "resetPasswordEmailSent": "Reset password email sent",
+      "forgotPasswordQuestion": "Forgot your password?"
 
 }

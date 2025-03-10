@@ -108,6 +108,7 @@ class DatabaseHelper {
 
 //This function looks for all containers (of all kinds) that are owned by the user and are not nested within other containers
   List<Map<String, dynamic>> getContainers(String ownerUID) {
+    if (accountUID!="") ownerUID = accountUID; // TESTACCOUNT
     List<Map<String, dynamic>> rList = [];
     debugPrint("getting containers owned by $ownerUID");
     for (var doc in localStorage.values) {

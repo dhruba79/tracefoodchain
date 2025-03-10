@@ -107,6 +107,23 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // Neue Methode: Passwort zurücksetzen
+  Future<void> _resetPassword() async {
+    final email = _emailController.text;
+    if (email.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
+      await fshowInfoDialog(context, l10n.pleaseEnterEmail);
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      final l10n = AppLocalizations.of(context)!;
+      await fshowInfoDialog(context, l10n.resetPasswordEmailSent);
+    } on FirebaseAuthException catch (e) {
+      await fshowInfoDialog(context, e.message ?? "Error");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -226,6 +243,18 @@ class _AuthScreenState extends State<AuthScreen> {
                                             }
                                             return null;
                                           },
+                                        ),
+                                        const SizedBox(height: 30),
+                                        TextButton(
+                                          onPressed: _resetPassword,
+                                          child: Text(
+                                            l10n.forgotPasswordQuestion,
+                                            style: const TextStyle(
+                                              color: Color(0xFF35DB00),
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
+                                          ),
                                         ),
                                         const SizedBox(height: 30),
                                         ElevatedButton(
