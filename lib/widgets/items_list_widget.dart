@@ -18,6 +18,53 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/coffe_actions_menu.dart';
 import 'package:trace_foodchain_app/widgets/container_actions_menu.dart';
 
+double convertToGreenBeanEquivalent(
+    Map<String, dynamic> harvest, String reportingUnit) {
+  final incomingAmount = double.tryParse(
+          getSpecificPropertyfromJSON(harvest, "amount").toString()) ??
+      0.0;
+  final incomingUnit = getSpecificPropertyUnitfromJSON(harvest, "amount");
+  final incomingProcessingState =
+      getSpecificPropertyfromJSON(harvest, "processingState").toString();
+
+  // Neuen Parameter "country" aus harvest lesen (Default: leer)
+  final country =
+      getSpecificPropertyfromJSON(harvest, "country")?.toString() ?? "";
+
+  // Verfügbare processing states abrufen
+  final processingStates = getProcessingStates(country);
+
+  // Korrekturfaktor des aktuellen processingState suchen
+  double currentFactor = 1.0;
+  for (final state in processingStates) {
+    final names = state["name"].values;
+    if (names.any((name) =>
+        name.toString().toLowerCase() == incomingProcessingState.toLowerCase())) {
+      currentFactor =  (state["weightCorrectionFactor"] as num).toDouble();
+      break;
+    }
+  }
+
+  // Korrekturfaktor für den Zustand "green" (Zielzustand)
+  double greenFactor = 1.0;
+  for (final state in processingStates) {
+    if (state["name"]["english"].toString().toLowerCase() == "green") {
+      greenFactor = (state["weightCorrectionFactor"] as num).toDouble();
+      break;
+    }
+  }
+
+  // Betrag in grünen Bohnen umrechnen
+  final greenBeanEquivalentOldUnit =
+      incomingAmount * ( currentFactor/greenFactor);
+
+  // Umrechnung in gewünschte Reporting-Einheit
+  double greenBeanEquivalentNewUnit =
+      convertQuantity(greenBeanEquivalentOldUnit, incomingUnit, reportingUnit);
+
+  return greenBeanEquivalentNewUnit;
+}
+
 // Helper function: Conversion of quantity based on units
 double convertQuantity(double quantity, String fromUnit, String toUnit) {
   // Example: Currently no conversion factor is applied. Extend if necessary.
@@ -173,8 +220,10 @@ class _ItemsListState extends State<ItemsList> {
       _result = result;
       int plotcount = 0;
       for (final plot in result.data) {
-        rList.add(
-            {"geoid": plotList[plotcount], "deforestation_risk": plot["EUDR_risk"]});
+        rList.add({
+          "geoid": plotList[plotcount],
+          "deforestation_risk": plot["EUDR_risk"]
+        });
         plotcount++;
       }
     } catch (e) {
@@ -190,7 +239,8 @@ class _ItemsListState extends State<ItemsList> {
     return rList;
   }
 
-  Future<void> _generateAndSharePdf(List<Map<String, dynamic>> plots) async {
+  Future<void> _generateAndSharePdf(List<Map<String, dynamic>> plots,
+      double reportingAmount, String reportingUnit) async {
     final l10n = AppLocalizations.of(context)!;
     if (_result == null) {
       // ScaffoldMessenger.of(context).showSnackBar(
@@ -213,7 +263,7 @@ class _ItemsListState extends State<ItemsList> {
         description: l10n.sampleDescription,
         tradeName: l10n.sampleTradeName,
         scientificName: l10n.sampleScientificName,
-        quantity: l10n.sampleQuantity,
+        quantity: reportingAmount.toStringAsFixed(2) + " " + reportingUnit,
         country: l10n.sampleCountry,
         plots: plots,
         signatoryName: l10n.sampleName,

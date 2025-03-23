@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
         //Repaint Inbox count
         if (FirebaseAuth.instance.currentUser != null) {
           String ownerUID = FirebaseAuth.instance.currentUser!.uid;
-          if (accountUID!="") ownerUID = accountUID; // TESTACCOUNT
+          // if (accountUID!="") ownerUID = accountUID; // TESTACCOUNT
           inbox = await databaseHelper.getInboxItems(ownerUID);
           inboxCount.value = inbox.length;
         }
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
       //Repaint Inbox count
       if (FirebaseAuth.instance.currentUser != null) {
         String ownerUID = FirebaseAuth.instance.currentUser!.uid;
-        if (accountUID!="") ownerUID = accountUID; // TESTACCOUNT
+        // if (accountUID!="") ownerUID = accountUID; // TESTACCOUNT
         inbox = await databaseHelper.getInboxItems(ownerUID);
         inboxCount.value = inbox.length;
       }

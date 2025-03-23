@@ -17,7 +17,7 @@ import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'dart:html' as html;
+//import 'dart:html' as html;
 
 class CloudApiClient {
   final String domain;
@@ -179,8 +179,7 @@ class CloudApiClient {
           Uri.parse(urlString),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',
-            'TFC_UserId': accountUID
+            'Authorization': 'Bearer $apiKey',            
           },
           body: jsonEncode(deviceHashes),
         );

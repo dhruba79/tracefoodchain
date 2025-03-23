@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:trace_foodchain_app/helpers/database_helper.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'package:trace_foodchain_app/widgets/items_list_widget.dart';
 import 'package:trace_foodchain_app/widgets/online_sale_dialog.dart';
 import 'package:trace_foodchain_app/widgets/shared_widgets.dart';
 import 'package:trace_foodchain_app/widgets/stepper_sell_coffee.dart';
@@ -13,13 +14,13 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 // Only import dart:html on web.
-import 'dart:html' as html;
+//import 'dart:html' as html;
 
 class ContainerActionsMenu extends StatefulWidget {
   final Map<String, dynamic> container;
   final List<Map<String, dynamic>> contents;
   final Function(List<String>) onPerformAnalysis;
-  final Function(List<Map<String, dynamic>>) onGenerateAndSharePdf;
+  final Function(List<Map<String, dynamic>>,double,String) onGenerateAndSharePdf;
   final Function() onRepaint;
   final bool isConnected;
   final Function(String) onDeleteContainer;
@@ -150,8 +151,8 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
         ),
         PopupMenuItem(
           child: ListTile(
-                leading: const Icon(Icons.table_chart, size: 20),
-                title: Text(l10n.exportToExcel,
+              leading: const Icon(Icons.table_chart, size: 20),
+              title: Text(l10n.exportToExcel,
                   style: const TextStyle(color: Colors.black)),
               onTap: () {
                 Navigator.pop(context, "close menu");
@@ -173,7 +174,7 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
   }
 
   Future<void> _generateExcel(BuildContext context) async {
-     final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context)!;
     // Generate and Download data as Excel file
     // GeoID along with the corresponding data.
     // Each purchase is recorded as a single line, with details such as quantity, unit, and processing state at time of purchase.
@@ -234,8 +235,6 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
       sheet.updateCell(
           CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex),
           processingState);
-
-      
     }
 
     // Encode the file into bytes
@@ -243,14 +242,13 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     if (fileBytes != null) {
       if (kIsWeb) {
         // For Flutter Web: initiate a download using a blob.
-        final blob = html.Blob([fileBytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..download = 'tracefoodchain_data.xlsx'
-          ..click();
-        html.Url.revokeObjectUrl(url);
-        await fshowInfoDialog(context, l10n.excelFileDownloaded);
-      
+        // final blob = html.Blob([fileBytes]);
+        // final url = html.Url.createObjectUrlFromBlob(blob);
+        // final anchor = html.AnchorElement(href: url)
+        //   ..download = 'tracefoodchain_data.xlsx'
+        //   ..click();
+        // html.Url.revokeObjectUrl(url);
+        // await fshowInfoDialog(context, l10n.excelFileDownloaded);
       } else {
         // For mobile or desktop: save the file to the application's documents directory.
         final directory = await getApplicationDocumentsDirectory();
@@ -275,24 +273,35 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     });
 
     List<String> plotList = [];
+    String? reportingUnit = "t";
+    double? reportingAmount;
     for (final coffee in widget.contents) {
-      final firstSale = await _databaseHelper.getFirstSale(context, coffee);
+      Map<String,dynamic> firstSale = Map<String, dynamic>.from(await _databaseHelper.getFirstSale(context, coffee));
       final field = firstSale["inputObjects"][1];
       plotList.add(field["identity"]["alternateIDs"][0]["UID"].replaceAll(
           RegExp(r'\s+'),
           '')); //This is because some CIAT cards have a space in the UID
       debugPrint(field["identity"]["alternateIDs"][0]["UID"]);
+      //ToDo: Get amount and unit and processing state.
+      //ToDo: Calculate the amount and unit as it would be in green bean equivalent.
+      debugPrint("Amount old: ${getSpecificPropertyfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
+      debugPrint("Unit old : ${getSpecificPropertyUnitfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
+      final convertedAmount = convertToGreenBeanEquivalent(
+          Map<String, dynamic>.from(firstSale["outputObjects"][0]),reportingUnit); //Converts the amount to green bean equivalent and into the right unit for reporting
+      debugPrint ("Amount new: $convertedAmount");
+      debugPrint ("Unit new: $reportingUnit");
+      reportingAmount = reportingAmount == null ? convertedAmount : reportingAmount + convertedAmount;
     }
 
     await fshowInfoDialog(context, l10n.ddsGenerationDemo);
 
     final results = await widget.onPerformAnalysis(plotList);
-    await widget.onGenerateAndSharePdf(results);
-
-    setState(() {
-      _isBuilding = false;
-      rebuildDDS.value = true;
-    });
+    await widget.onGenerateAndSharePdf(results,reportingAmount!,reportingUnit);
+    _isBuilding = false;
+    rebuildDDS.value = true;
+    if (mounted) {
+      setState(() {});
+    }
 
     Navigator.pop(context, "close menu");
   }

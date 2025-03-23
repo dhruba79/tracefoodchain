@@ -87,7 +87,7 @@ class PdfGenerator {
         pw.Text('Description: $description'),
         pw.Text('Trade Name: $tradeName'),
         pw.Text('Scientific Name: $scientificName'),
-        pw.Text('Quantity: $quantity'),
+        pw.Text('Quantity: $quantity (green beans)'),
       ],
     );
   }

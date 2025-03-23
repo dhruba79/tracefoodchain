@@ -23,8 +23,7 @@ import 'package:trace_foodchain_app/screens/splash_screen.dart';
 import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 
-
-final accountUID = "8bIquGNww2cChmaWEgdlpX0tgzv1";
+ 
 
 String country = "Honduras"; //TODO: enable other contries if needed;
 int cloudSyncFrequency =

@@ -26,7 +26,8 @@ class WhispApiService {
       if (response.statusCode == 200) {
         return AnalysisResult.fromJson(jsonDecode(response.body));
       } else {
-        throw Exception('API request failed');
+         throw Exception('API request failed: ${response.statusCode} ${response.body}');
+        
       }
     } catch (e) {
       // Log the error
