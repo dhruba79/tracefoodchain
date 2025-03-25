@@ -3,7 +3,7 @@ List<Map<String, dynamic>> weightsHonduras = [
   {"name": "latas", "toKgFactor": 14.968536},
   {"name": "quintales", "toKgFactor": 45.3592},
   {"name": "cargas", "toKgFactor": 90.7184},
-  {"name": "kg", "toKgFactor": 0.0},
+  {"name": "kg", "toKgFactor": 1.0},
   {"name": "t", "toKgFactor": 1000.0}
 ];
 

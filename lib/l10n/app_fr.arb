@@ -397,6 +397,7 @@
       "failedToGenerateExcelFile": "Échec de la génération du fichier Excel",
       "exportToExcel": "Exporter vers Excel",
       "resetPasswordEmailSent": "E-mail de réinitialisation du mot de passe envoyé",
-      "forgotPasswordQuestion": "Mot de passe oublié?"
+      "forgotPasswordQuestion": "Mot de passe oublié?",
+      "weightEquivalentGreenBeanKg": "Équivalent en poids de café vert (kg)"
   
 }

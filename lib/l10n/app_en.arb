@@ -396,6 +396,7 @@
       "failedToGenerateExcelFile": "Failed to generate Excel file",
       "exportToExcel": "Export to Excel",
       "resetPasswordEmailSent": "Reset password email sent",
-      "forgotPasswordQuestion": "Forgot your password?"
+      "forgotPasswordQuestion": "Forgot your password?",
+      "weightEquivalentGreenBeanKg": "weight equivalent in kg green beans"
 
 }

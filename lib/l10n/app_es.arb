@@ -397,6 +397,7 @@
       "failedToGenerateExcelFile": "Error al generar el archivo Excel",
       "exportToExcel": "Exportar a Excel",
       "resetPasswordEmailSent": "Se ha enviado un correo electrónico para restablecer la contraseña",
-      "forgotPasswordQuestion": "¿Olvidaste tu contraseña?"
+      "forgotPasswordQuestion": "¿Olvidaste tu contraseña?",
+      "weightEquivalentGreenBeanKg": "Peso equivalente de oro (kg)"
 
 }
