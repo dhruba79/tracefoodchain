@@ -23,6 +23,7 @@ import 'package:trace_foodchain_app/screens/splash_screen.dart';
 import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 
+
 String country = "Honduras"; //TODO: enable other contries if needed;
 int cloudSyncFrequency =
     600; //in case internet is connected, this will sync with the cloud every xxx seconds

@@ -203,44 +203,48 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     for (final coffee in widget.contents) {
       Map<String, dynamic> firstSale =
           await _databaseHelper.getFirstSale(context, coffee);
-      final field = firstSale["inputObjects"][1];
-      final geoID = field["identity"]["alternateIDs"][0]["UID"]
-          .replaceAll(RegExp(r'\s+'), '');
+      if (firstSale.isNotEmpty) {
+        final field = firstSale["inputObjects"][1];
+        final geoID = field["identity"]["alternateIDs"][0]["UID"]
+            .replaceAll(RegExp(r'\s+'), '');
 
-      // Get the initial state details at the time of purchase
-      Map<String, dynamic> coffeeInitialState =
-          Map<String, dynamic>.from(firstSale["outputObjects"][0]);
-      // Optionally, you can use coffeeCurrentState later if needed:
-      Map<String, dynamic> coffeeCurrentState =
-          await getObjectMethod(getObjectMethodUID(coffeeInitialState));
-      final species =
-          getSpecificPropertyfromJSON(coffeeInitialState, "species");
-      final amount = getSpecificPropertyfromJSON(coffeeInitialState, "amount");
-      final unit =
-          getSpecificPropertyUnitfromJSON(coffeeInitialState, "amount");
-      final processingState =
-          getSpecificPropertyfromJSON(coffeeInitialState, "processingState");
-      final convertedAmount = convertToGreenBeanEquivalent(
-          Map<String, dynamic>.from(coffeeInitialState), "kg");
-      // Append a new row with extracted data
-      final rowIndex = sheet!.maxRows;
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex),
-          geoID);
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex),
-          species);
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex),
-          amount);
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex), unit);
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex),
-          processingState);
-      sheet.updateCell(
-          CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex),
-          convertedAmount.toStringAsFixed(2));
+        // Get the initial state details at the time of purchase
+        Map<String, dynamic> coffeeInitialState =
+            Map<String, dynamic>.from(firstSale["outputObjects"][0]);
+        // Optionally, you can use coffeeCurrentState later if needed:
+        Map<String, dynamic> coffeeCurrentState =
+            await getObjectMethod(getObjectMethodUID(coffeeInitialState));
+        final species =
+            getSpecificPropertyfromJSON(coffeeInitialState, "species");
+        final amount =
+            getSpecificPropertyfromJSON(coffeeInitialState, "amount");
+        final unit =
+            getSpecificPropertyUnitfromJSON(coffeeInitialState, "amount");
+        final processingState =
+            getSpecificPropertyfromJSON(coffeeInitialState, "processingState");
+        final convertedAmount = convertToGreenBeanEquivalent(
+            Map<String, dynamic>.from(coffeeInitialState), "kg");
+        // Append a new row with extracted data
+        final rowIndex = sheet!.maxRows;
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex),
+            geoID);
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex),
+            species);
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex),
+            amount);
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex),
+            unit);
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex),
+            processingState);
+        sheet.updateCell(
+            CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex),
+            convertedAmount.toStringAsFixed(2));
+      }
     }
 
     // Encode the file into bytes
