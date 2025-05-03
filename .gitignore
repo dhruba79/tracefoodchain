@@ -49,6 +49,7 @@ app.*.map.json
 firebase.json
 /lib/firebase_options.dart
 /lib/services/tests.dart
+/lib/screens/geo_ids_view.dart
 
 android/app/google-services.json
 ios/Runner/GoogleServices-Info.plist

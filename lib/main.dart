@@ -311,6 +311,7 @@ Future<void> _initializeAppState(AppState appState) async {
       final cameras = await availableCameras();
       debugPrint("camera state is ${cameras.isNotEmpty}");
       appState.setHasCamera(cameras.isNotEmpty);
+      debugPrint("...done");
     } else {
       appState.setHasCamera(false);
       debugPrint("!!! camera access is not yet working on browser on Mac!");

@@ -6,6 +6,7 @@ import 'package:trace_foodchain_app/helpers/fade_route.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+// import 'package:trace_foodchain_app/screens/geo_ids_view.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 
@@ -69,12 +70,14 @@ class SettingsScreen extends StatelessWidget {
                   },
           ),
         
-          // if (appState.userRole == 'Farmer') ...[
+          // if (appState.userRole == 'SUPERADMIN') 
           //   ListTile(
-          //     title: Text(l10n.changeFarmerId,
+          //     title: Text("GEOIDs",
           //         style: TextStyle(color: Colors.black54)),
-          //     onTap: () => _showChangefarmerIdDialog(context),
-          //   ),
+          //     onTap: () =>   Navigator.push(
+          //       context,
+          //       MaterialPageRoute(builder: (_) => const GeoIDsView()),
+          //   )),
           //   ListTile(
           //     title: Text(l10n.associateWithDifferentFarm,
           //         style: TextStyle(color: Colors.black54)),
