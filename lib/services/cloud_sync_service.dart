@@ -418,7 +418,7 @@ class CloudSyncService {
         debugPrint(
             "Got ${cloudData["ralObjects"].length} updated objects from cloud");
         for (final item in cloudData["ralObjects"]) {
-          debugPrint(getObjectMethodUID(item));
+         // debugPrint(getObjectMethodUID(item));
           //Check if the UID of this object is in the failedSyncedOutputObjects, only add if not
           String uid = getObjectMethodUID(item);
           if (!failedSyncedOutputObjects.contains(uid)) {
@@ -426,7 +426,7 @@ class CloudSyncService {
           }
         }
       }
-      bool downloadedFirst = false;
+      // bool downloadedFirst = false;
       for (final item in mergedList) {
         final docData = Map<String, dynamic>.from(item);
 

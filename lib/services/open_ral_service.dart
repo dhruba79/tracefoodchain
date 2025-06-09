@@ -458,6 +458,32 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
   }
 }
 
+// ToDo: Convert to API call
+Future<List<Map<String, dynamic>>> getFirebaseObjectsByAlternateUID(String uid) async {
+  
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('TFC_objects')
+      .where('identity.alternateIDs', arrayContains: {'UID': uid, 'issuedBy': 'Asset Registry'})
+      .get();
+  
+  return querySnapshot.docs
+      .map((doc) => doc.data() as Map<String, dynamic>)
+      .toList();
+}
+
+// ToDo: Convert to API call - this is a helper function to get all objects of the current user - self-registred fields!
+Stream<QuerySnapshot> getMyObjectsStream() {
+  final currentUserUID = FirebaseAuth.instance.currentUser?.uid;
+  if (currentUserUID == null) {
+    throw Exception('User not authenticated');
+  }
+  
+  return FirebaseFirestore.instance
+      .collection('TFC_objects')
+      .where('currentOwners', arrayContains: {'UID': currentUserUID})
+      .snapshots();
+}
+
 Future<Map<String, dynamic>> getObjectOrGenerateNew(
     String uid, List<String> types, String field) async {
   Map<String, dynamic> rDoc = {};

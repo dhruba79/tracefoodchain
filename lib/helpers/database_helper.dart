@@ -300,40 +300,113 @@ dynamic convertToJson(dynamic firestoreObj) {
   } else if (firestoreObj is Map) {
     final Map<String, dynamic> convertedObj = {};
     firestoreObj.forEach((key, value) {
-      if (value is Timestamp) {
-        convertedObj[key] = {
-          '_seconds': value.seconds,
-          '_nanoseconds': value.nanoseconds
-        };
-      } else if (value is DateTime) {
-        final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
-            (value.millisecondsSinceEpoch ~/ 1000) * 1000);
-        String isoString =
-            dateInSeconds.toIso8601String().split('.').first.trim();
-        // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
-        convertedObj[key] = isoString;
-      } else if (value is GeoPoint) {
-        convertedObj[key] = {
-          'latitude': value.latitude,
-          'longitude': value.longitude
-        };
-      } else {
-        convertedObj[key] = convertToJson(value);
+      try {
+        if (value is Timestamp) {
+          convertedObj[key] = {
+            '_seconds': value.seconds,
+            '_nanoseconds': value.nanoseconds,
+          };
+        } else if (value is DateTime) {
+          final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
+            (value.millisecondsSinceEpoch ~/ 1000) * 1000,
+          );
+          String isoString =
+              dateInSeconds.toIso8601String().split('.').first.trim();
+          convertedObj[key] = isoString;
+        } else if (value.runtimeType.toString() == 'GeoPoint') {
+          // Expliziter Typ-Check mit runtimeType
+          final latitude = value.latitude;
+          final longitude = value.longitude;
+          convertedObj[key] = {'latitude': latitude, 'longitude': longitude};
+        } else {
+          convertedObj[key] = convertToJson(value);
+        }
+      } catch (e) {
+        // Bei Fehlern versuchen wir, das GeoPoint direkt zu erkennen
+        try {
+          if (value != null &&
+              value.runtimeType.toString().contains('GeoPoint')) {
+            debugPrint("Spezielle GeoPoint-Konvertierung für $key");
+            convertedObj[key] = {
+              'latitude': value.latitude,
+              'longitude': value.longitude,
+            };
+          } else {
+            debugPrint(
+              "Konvertierungsfehler für Schlüssel $key: $e - Typ war: ${value?.runtimeType}",
+            );
+            convertedObj[key] = null; // Standardwert bei Fehlern
+          }
+        } catch (innerError) {
+          debugPrint("Innerer Fehler bei Konvertierung von $key: $innerError");
+          convertedObj[key] = null;
+        }
       }
     });
     return convertedObj;
   } else if (firestoreObj is DateTime) {
     final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
-        (firestoreObj.millisecondsSinceEpoch ~/ 1000) * 1000);
+      (firestoreObj.millisecondsSinceEpoch ~/ 1000) * 1000,
+    );
     String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
-    // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
-
     return isoString;
+  } else if (firestoreObj != null &&
+      firestoreObj.runtimeType.toString().contains('GeoPoint')) {
+    // Direkter Zugriff auf GeoPoint außerhalb einer Map
+    try {
+      return {
+        'latitude': firestoreObj.latitude,
+        'longitude': firestoreObj.longitude,
+      };
+    } catch (e) {
+      debugPrint("Fehler bei direkter GeoPoint-Konvertierung: $e");
+      return null;
+    }
   } else {
     // Simple datatype like string or number
     return firestoreObj;
   }
 }
+// dynamic convertToJson(dynamic firestoreObj) {
+//   if (firestoreObj is List) {
+//     return firestoreObj.map((item) => convertToJson(item)).toList();
+//   } else if (firestoreObj is Map) {
+//     final Map<String, dynamic> convertedObj = {};
+//     firestoreObj.forEach((key, value) {
+//       if (value is Timestamp) {
+//         convertedObj[key] = {
+//           '_seconds': value.seconds,
+//           '_nanoseconds': value.nanoseconds
+//         };
+//       } else if (value is DateTime) {
+//         final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
+//             (value.millisecondsSinceEpoch ~/ 1000) * 1000);
+//         String isoString =
+//             dateInSeconds.toIso8601String().split('.').first.trim();
+//         // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
+//         convertedObj[key] = isoString;
+//       } else if (value is GeoPoint) {
+//         convertedObj[key] = {
+//           'latitude': value.latitude,
+//           'longitude': value.longitude
+//         };
+//       } else {
+//         convertedObj[key] = convertToJson(value);
+//       }
+//     });
+//     return convertedObj;
+//   } else if (firestoreObj is DateTime) {
+//     final dateInSeconds = DateTime.fromMillisecondsSinceEpoch(
+//         (firestoreObj.millisecondsSinceEpoch ~/ 1000) * 1000);
+//     String isoString = dateInSeconds.toIso8601String().split('.').first.trim();
+//     // debugPrint("ISOSTRING: >>>" + isoString+"<<<");
+
+//     return isoString;
+//   } else {
+//     // Simple datatype like string or number
+//     return firestoreObj;
+//   }
+// }
 
 dynamic convertToFirestore(dynamic jsonObj) {
   if (jsonObj is List) {

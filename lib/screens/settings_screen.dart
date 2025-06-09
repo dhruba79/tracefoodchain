@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,11 @@ import 'package:trace_foodchain_app/providers/app_state.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 // import 'package:trace_foodchain_app/screens/geo_ids_view.dart';
 import 'package:trace_foodchain_app/screens/sign_up_screen.dart';
+import 'package:trace_foodchain_app/screens/field_registry_screen.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
+import 'package:trace_foodchain_app/services/asset_registry_api_service.dart';
+import 'package:trace_foodchain_app/services/user_registry_api_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Globale Variable zum Speichern des Modus
 bool isTestmode = false;
@@ -30,10 +35,10 @@ class SettingsScreen extends StatelessWidget {
             builder: (context, setState) {
               return SwitchListTile(
                 title: Text(
-                    l10n.dataMode), // Lokalisierter Titel, z. B. "Datenmodus"
+                    l10n.dataMode), // Lokalisierter Titel, z. B. "Datenmodus"
                 subtitle: Text(isTestmode
                     ? l10n.testMode
-                    : l10n.realMode), // z. B. "Testmodus" bzw. "Echtmodus"
+                    : l10n.realMode), // z. B. "Testmodus" bzw. "Echtmodus"
                 value: isTestmode,
                 onChanged: (bool value) {
                   setState(() {
@@ -43,6 +48,27 @@ class SettingsScreen extends StatelessWidget {
               );
             },
           ),
+          // Field Registry
+          ListTile(
+            contentPadding: const EdgeInsets.all(12),
+            leading: const Icon(Icons.agriculture),
+            title: Text(l10n.fieldRegistry),
+            subtitle: Text(l10n.fieldRegistryTitle),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const FieldRegistryScreen(),
+                ),
+              );
+            },
+          ),
+          // Test Asset Registry with User Registry Button
+          // ListTile(
+          //   contentPadding: const EdgeInsets.all(12),
+          //   leading: const Icon(Icons.security),
+          //   title: const Text("Test Asset Registry with User Registry"),
+          //   onTap: () => _testAssetRegistryWithUserRegistry(context),
+          // ),
           ListTile(
             contentPadding: const EdgeInsets.all(12),
             leading: const Icon(Icons.arrow_circle_right),
@@ -69,26 +95,72 @@ class SettingsScreen extends StatelessWidget {
                     fshowInfoDialog(context, l10n.nologoutpossible);
                   },
           ),
-        
-          // if (appState.userRole == 'SUPERADMIN') 
-          //   ListTile(
-          //     title: Text("GEOIDs",
-          //         style: TextStyle(color: Colors.black54)),
-          //     onTap: () =>   Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (_) => const GeoIDsView()),
-          //   )),
-          //   ListTile(
-          //     title: Text(l10n.associateWithDifferentFarm,
-          //         style: TextStyle(color: Colors.black54)),
-          //     onTap: () => _showAssociateFarmDialog(context),
-          //   ),
-          // ],
-          // Add more role-specific settings here
         ],
       ),
     );
   }
+
+ 
+
+  /// Zeigt einen Login-Dialog für die User Registry an
+  Future<Map<String, String>?> _showUserRegistryLoginDialog(
+      BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+
+    return showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.login),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(
+                labelText: l10n.email,
+                hintText: 'user@example.com',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: passwordController,
+              decoration: InputDecoration(
+                labelText: l10n.password,
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (emailController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.pleaseEnterEmailAndPassword)),
+                );
+                return;
+              }
+              Navigator.pop(context, {
+                'email': emailController.text,
+                'password': passwordController.text,
+              });
+            },
+            child: Text(l10n.login),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   void _showChangefarmerIdDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
