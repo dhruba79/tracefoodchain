@@ -416,8 +416,99 @@
   "registrationComplete": "Registration complete",
   "registrationError": "Registration error",
   "fieldAlreadyExists": "Field already exists",
-  "noFieldsRegistered": "No fields registered",
-  "csvFormatInfo": "CSV Format: Name, Description, Coordinates",
+  "noFieldsRegistered": "No fields registered",  "csvFormatInfo": "CSV Format: Name, Description, Coordinates",
   "invalidCsvFormat": "Invalid CSV format",
-  "fieldRegisteredSuccessfully": "Field registered successfully"
+  "fieldRegisteredSuccessfully": "Field registered successfully",
+  "progressStep1InitializingServices": "Step 1: Initializing services...",
+  "progressStep1UserRegistryLogin": "Step 1: User Registry login...",
+  "progressStep2RegisteringField": "Step 2: Registering field with Asset Registry...",
+  "progressStep2FieldRegisteredSuccessfully": "Step 2: Field successfully registered, extracting GeoID...",
+  "progressStep2FieldAlreadyExists": "Step 2: Field already exists, extracting GeoID...",
+  "progressStep3CheckingCentralDatabase": "Step 3: Checking central database (GeoID: {geoId})...",
+  "@progressStep3CheckingCentralDatabase": {
+    "placeholders": {
+      "geoId": {
+        "type": "String"
+      }
+    }
+  },
+  "progressStep3FieldNotFoundInCentralDb": "Step 3: Field not found in central database - proceeding with local registration...",
+  "processingCsvFile": "Processing CSV file...",
+  "fieldRegistrationInProgress": "Field registration in progress...",
+  "fieldXOfTotal": "Field {current} of {total}",
+  "@fieldXOfTotal": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "currentField": "Current field: {fieldName}",
+  "@currentField": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldRegistrationSuccessMessage": "✅ Field \"{fieldName}\" successfully registered!",
+  "@fieldRegistrationSuccessMessage": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldRegistrationErrorMessage": "❌ Error with \"{fieldName}\": {error}",
+  "@fieldRegistrationErrorMessage": {
+    "placeholders": {
+      "fieldName": {
+        "type": "String"
+      },      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldAlreadyExistsGeoIdExtracted": "✅ Field already exists - GeoID successfully extracted: {geoId}",
+  "@fieldAlreadyExistsGeoIdExtracted": {
+    "description": "Message when field already exists and GeoID was successfully extracted",
+    "placeholders": {
+      "geoId": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldAlreadyExistsGeoIdFailed": "⚠️ Field already exists - Failed to extract GeoID: {error}",
+  "@fieldAlreadyExistsGeoIdFailed": {
+    "description": "Message when field already exists but GeoID extraction failed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldRegistrationNewGeoIdExtracted": "✅ New field registered - GeoID successfully extracted: {geoId}",
+  "@fieldRegistrationNewGeoIdExtracted": {
+    "description": "Message when new field is registered and GeoID was successfully extracted",
+    "placeholders": {
+      "geoId": {
+        "type": "String"
+      }
+    }
+  },  "fieldRegistrationNewGeoIdFailed": "⚠️ New field registered - Failed to extract GeoID: {error}",
+  "@fieldRegistrationNewGeoIdFailed": {
+    "description": "Message when new field is registered but GeoID extraction failed",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "csvProcessingComplete": "CSV Processing Complete",
+  "fieldsSuccessfullyRegistered": "fields successfully registered",
+  "fieldsAlreadyExisted": "fields already existed",
+  "fieldsWithErrors": "fields had errors"
 }

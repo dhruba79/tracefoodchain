@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -12,6 +13,29 @@ import 'package:trace_foodchain_app/services/user_registry_api_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
 
+/// Eine einfache LatLng Klasse für Koordinaten
+class LatLng {
+  final double latitude;
+  final double longitude;
+
+  const LatLng(this.latitude, this.longitude);
+  List<double> toJson() => [latitude, longitude];
+
+  @override
+  String toString() => 'LatLng($latitude, $longitude)';
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is LatLng &&
+          runtimeType == other.runtimeType &&
+          latitude == other.latitude &&
+          longitude == other.longitude;
+
+  @override
+  int get hashCode => latitude.hashCode ^ longitude.hashCode;
+}
+
 class FieldRegistryScreen extends StatefulWidget {
   const FieldRegistryScreen({super.key});
 
@@ -23,6 +47,14 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
   List<Map<String, dynamic>> registeredFields = [];
   bool isLoading = false;
   bool isRegistering = false;
+
+  // Progress tracking variables
+  bool showProgressOverlay = false;
+  String currentProgressStep = '';
+  String currentFieldName = '';
+  int currentFieldIndex = 0;
+  int totalFields = 0;
+  List<String> progressSteps = [];
 
   /// Prüft, ob alle erforderlichen globalen Variablen initialisiert sind
   bool _isAppFullyInitialized() {
@@ -42,23 +74,6 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       debugPrint('Error checking app initialization: $e');
       return false;
     }
-  }
-
-  /// Wartet auf die vollständige Initialisierung der App mit Timeout
-  Future<bool> _waitForAppInitialization(
-      {Duration timeout = const Duration(seconds: 10)}) async {
-    final stopwatch = Stopwatch()..start();
-
-    while (stopwatch.elapsed < timeout) {
-      if (_isAppFullyInitialized()) {
-        return true;
-      }
-
-      // Warte 100ms bevor nächster Check
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
-
-    return false;
   }
 
   @override
@@ -227,11 +242,47 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     return csvCoordinates;
   }
 
+  /// Konvertiert WKT-Koordinaten zu GeoJSON-Format (LatLng-Liste)
+  List<List<double>> _convertWKTToGeoJSON(String wktCoordinates) {
+    try {
+      // Extrahiere die Koordinaten aus dem WKT-Format
+      // Format: POLYGON ((-93.698 41.975, -93.692 41.975, ...))
+      if (wktCoordinates.startsWith('POLYGON ')) {
+        // Entferne "POLYGON ((" und "))" und teile die Koordinaten
+        String coordsOnly =
+            wktCoordinates.replaceAll('POLYGON ((', '').replaceAll('))', '');
+
+        final coordinatePairs = coordsOnly.split(', ');
+        List<List<double>> switchedPoints = [];
+
+        for (String pair in coordinatePairs) {
+          final coords = pair.trim().split(' ');
+          if (coords.length == 2) {
+            final lon = double.tryParse(coords[0].trim()) ?? 0.0;
+            final lat = double.tryParse(coords[1].trim()) ?? 0.0;
+            // Erstelle LatLng-Objekte mit vertauschten Koordinaten (lon wird zu lat, lat wird zu lon)
+            final latLng = LatLng(lon,
+                lat); // longitude wird zu latitude, latitude wird zu longitude
+            switchedPoints.add(latLng.toJson());
+          }
+        }
+
+        return switchedPoints;
+      }
+    } catch (e) {
+      debugPrint('Error converting WKT to GeoJSON: $e');
+    }
+
+    // Fallback: Leere Koordinaten
+    return <List<double>>[];
+  }
+
   Future<void> _processCsvData(String csvContent) async {
     final l10n = AppLocalizations.of(context)!;
 
     setState(() {
       isRegistering = true;
+      showProgressOverlay = true;
     });
 
     try {
@@ -243,12 +294,21 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       }
 
       int successCount = 0;
+      int alreadyExistsCount = 0;
       int errorCount = 0;
-      List<String> errors = [];
-
+      List<String> errors = []; // Set total fields count for progress tracking
+      totalFields = csvData.length - 1; // Exclude header row
+      setState(() {
+        currentProgressStep = l10n.processingCsvFile;
+      });
       for (int i = 1; i < csvData.length; i++) {
         //Skip header row
         final row = csvData[i];
+
+        // Update progress - set current field index
+        setState(() {
+          currentFieldIndex = i;
+        });
 
         // Erwarte mindestens 3 Spalten: Name, Beschreibung, Koordinaten
         if (row.length < 3) {
@@ -274,19 +334,55 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
         }
 
         try {
-          await _registerSingleField(fieldNameDNI, coordinates);
-          successCount++;
+          setState(() {
+            currentFieldName = fieldNameDNI;
+          });
+          final returnCode =
+              await _registerSingleField(fieldNameDNI, coordinates);
+
+          if (returnCode == 'successfullyRegistered') {
+            debugPrint('Field "$fieldNameDNI" successfully registered');
+            successCount++;
+          } else if (returnCode == 'alreadyRegistered') {
+            debugPrint('Field "$fieldNameDNI" already exists');
+            alreadyExistsCount++;
+          } else {
+            errors.add('Line ${i + 1}: $returnCode');
+            errorCount++;
+          }
         } catch (e) {
           errors.add('Line ${i + 1}: Registration error - $e');
           errorCount++;
         }
       }
 
-      // Zeige Ergebnisse
-      String message = '$successCount fields successfully registered';
-      if (errorCount > 0) {
-        message += ', $errorCount errors';
+      // Zeige Ergebnisse in einem Dialog
+      String title = l10n.csvProcessingComplete;
+      String message = '';
+      if (successCount > 0) {
+        message += '$successCount ${l10n.fieldsSuccessfullyRegistered}\n';
       }
+      if (alreadyExistsCount > 0) {
+        message += '$alreadyExistsCount ${l10n.fieldsAlreadyExisted}\n';
+      }
+      if (errorCount > 0) {
+        message += '$errorCount ${l10n.fieldsWithErrors}';
+      }
+
+      // Zeige Info-Dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(title),
+          content: Text(message.trim()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.ok),
+            ),
+          ],
+        ),
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -298,9 +394,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       if (errors.isNotEmpty && errors.length <= 5) {
         // Zeige erste paar Fehler
         _showErrorDialog(errors.take(5).join('\n'));
-      }
-
-      // Aktualisiere die Liste
+      } // Aktualisiere die Liste
       await _loadRegisteredFields();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -309,20 +403,31 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     } finally {
       setState(() {
         isRegistering = false;
+        showProgressOverlay = false;
+        currentProgressStep = '';
+        currentFieldName = '';
+        currentFieldIndex = 0;
+        totalFields = 0;
       });
     }
   }
 
-  Future<void> _registerSingleField(
+  Future<String> _registerSingleField(
       String fieldName, String coordinates) async {
+    final l10n = AppLocalizations.of(context)!;
+    bool alreadyExists = false;
     // Sicherheitsprüfungen für globale Variablen
     if (!localStorage.isOpen) {
-      throw Exception('localStorage ist nicht initialisiert');
+      return ("registrationError: localStorage is not open");
     }
 
     UserRegistryService? userRegistryService;
     try {
-      // Schritt 1: Asset Registry Services initialisieren (basierend auf settings_screen.dart Code)
+      // Schritt 1: Asset Registry Services initialisieren
+      setState(() {
+        currentProgressStep = l10n.progressStep1InitializingServices;
+      });
+
       userRegistryService = UserRegistryService();
       await userRegistryService.initialize();
 
@@ -331,23 +436,31 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       final userPassword = dotenv.env['USER_REGISTRY_PASSWORD'] ?? '';
 
       if (userEmail.isEmpty || userPassword.isEmpty) {
-        throw Exception('User Registry credentials not configured in .env file');
+        return ("registrationError: User Registry credentials not configured in .env file");
       }
 
       // Anmelden mit User Registry
+      setState(() {
+        currentProgressStep = l10n.progressStep1UserRegistryLogin;
+      });
+
       final loginSuccess = await userRegistryService.login(
         email: userEmail,
         password: userPassword,
       );
 
       if (!loginSuccess) {
-        throw Exception('User Registry Login fehlgeschlagen');
+        return ('registrationError: User Registry Login fehlgeschlagen');
       }
 
       // Asset Registry Service erstellen
       final assetRegistryService = await AssetRegistryService.withUserRegistry(
         userRegistryService: userRegistryService,
       ); // Schritt 2: Feld bei Asset Registry registrieren
+      setState(() {
+        currentProgressStep = l10n.progressStep2RegisteringField;
+      });
+
       final registerResponse = await assetRegistryService.registerFieldBoundary(
         s2Index:
             '8, 13', // Beispiel S2 Index, könnte aus Koordinaten berechnet werden
@@ -356,20 +469,61 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       );
 
       String? geoId;
-
       if (registerResponse.statusCode == 200) {
         // Erfolgreiche Registrierung
-        debugPrint('New field successfully registered: ${registerResponse.body}');
+        setState(() {
+          currentProgressStep = l10n.progressStep2FieldRegisteredSuccessfully;
+        });
+
+        debugPrint(
+            'New field successfully registered: ${registerResponse.body}');
         try {
           final responseData =
               jsonDecode(registerResponse.body) as Map<String, dynamic>;
-          geoId = responseData['geoid'] as String?;
+          final extractedGeoId = responseData['geoid'] as String?;
+
+          if (extractedGeoId != null) {
+            geoId = extractedGeoId;
+            // Erfolgreiche GeoID-Extraktion für neues Feld anzeigen
+            await _showRegistrationResult(
+                l10n.fieldRegistrationNewGeoIdExtracted(extractedGeoId), true);
+            //Neue GeoID wurde registriert, nun in TFC Persisteren
+            Map<String, dynamic> newField = await getOpenRALTemplate("field");
+            //Name
+            newField["identity"]["name"] = fieldName; //GeoID
+            newField["identity"]["alternateIDs"] = [
+              {"UID": geoId, "issuedBy": "Asset Registry"}
+            ];
+            //Feldgrenzen - konvertiere WKT zu GeoJSON Format
+            final coordinates_geojson = json.encode({
+              "coordinates": _convertWKTToGeoJSON(coordinates),
+            });
+            setSpecificPropertyJSON(newField, "boundaries",
+                json.encode(coordinates_geojson), "geoJSON");
+            //Registrator UID => currentOwners
+            newField["currentOwners"] = [
+              {
+                "UID": appUserDoc!["identity"]["UID"],
+              }
+            ];
+            final newFieldUID = await generateDigitalSibling(newField);
+            debugPrint(
+                "New field with new GeoID registered in TFC with UID: $newFieldUID");
+          } else {
+            // GeoID-Extraktion fehlgeschlagen
+            return ('registrationError: Could not extract geoID from response: No geoID in response');
+          }
         } catch (e) {
-          throw Exception('Could not extract geoID from response: $e');
-            //ToDo In case we get no geoID back, something went wrong and we need to display this!
+          await _showRegistrationResult(
+              l10n.fieldRegistrationNewGeoIdFailed(e.toString()), false);
+          return ('registrationError: Could not extract geoID from response: $e');
         }
       } else if (registerResponse.statusCode == 400) {
         // Feld existiert bereits
+        setState(() {
+          currentProgressStep = l10n.progressStep2FieldAlreadyExists;
+        });
+
         try {
           debugPrint('Field already exists, trying to extract geoID...');
           final responseData =
@@ -378,101 +532,93 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
           final matchedGeoIds =
               responseData['matched geo ids'] as List<dynamic>?;
           if (matchedGeoIds != null && matchedGeoIds.isNotEmpty) {
-            geoId = matchedGeoIds.first as String;
+            alreadyExists = true;
+            final extractedGeoId = matchedGeoIds.first as String;
+            geoId = extractedGeoId;
+            // Erfolgreiche GeoID-Extraktion für existierendes Feld anzeigen
+            await _showRegistrationResult(
+                l10n.fieldAlreadyExistsGeoIdExtracted(extractedGeoId), true);
+          } else {
+            return ('registrationError: No matched geo ids found in response');
           }
         } catch (e) {
-          throw Exception(
-              'Field already exists, but could not extract geoID: $e');
-                //ToDo In case we get no geoID back, something went wrong and we need to display this!
+          await _showRegistrationResult(
+              l10n.fieldAlreadyExistsGeoIdFailed(e.toString()), false);
+          return ('registrationError: Field already exists, but could not extract geoID: $e');
         }
       } else {
-        throw Exception(
-            'Asset Registry ERROR: ${registerResponse.statusCode} - ${registerResponse.body}');
-            //ToDo In case we get no geoID back, something went wrong and we need to display this!  
-      }
-      if (geoId == null) {
-        throw Exception('Keine geoID erhalten');
-        //ToDo In case we get no geoID back, something went wrong and we need to display this!
-      }
+        return ('registrationError: Asset Registry ERROR: ${registerResponse.statusCode} - ${registerResponse.body}');
+      } // An diesem Punkt sollte geoId immer gesetzt sein
+
+      //! We got a finalGeoId, can be newly registered or already existing
+      final finalGeoId = geoId;
 
       // Schritt 3: Prüfen ob Feld mit dieser GeoID bereits in der zentralen Firebase-Datenbank existiert
+      setState(() {
+        currentProgressStep =
+            l10n.progressStep3CheckingCentralDatabase(finalGeoId);
+      });
+
       debugPrint(
-          'Prüfe ob Feld mit GeoID $geoId bereits in Firebase existiert...');
+          'checking if GeoID $finalGeoId already exists in TFC database...');
+
       final existingFirebaseObjects =
-          await getFirebaseObjectsByAlternateUID(geoId);
+          await getFirebaseObjectsByAlternateUID(finalGeoId);
 
       if (existingFirebaseObjects.isNotEmpty) {
         debugPrint(
-            'Feld mit GeoID $geoId existiert bereits in der zentralen Datenbank');
-        //ToDo how to handle this??    
-        throw Exception(
-            'Feld mit GeoID $geoId ist bereits in der zentralen Datenbank registriert');
+            'Field with GeoID $finalGeoId is already registered in the central database (${existingFirebaseObjects.first["identity"]["UID"]}) - adding user as owner');
+        //Add the appuser UID as owner to currentOwners list
+        final existingField = existingFirebaseObjects.first;
+        //Check the currentOwners list and add the appUserDoc UID if not already present
+        final currentOwners = existingField["currentOwners"] ?? [];
+        final appUserUID = appUserDoc!["identity"]["UID"];
+        if (!currentOwners.any((owner) => owner["UID"] == appUserUID)) {
+          currentOwners.add({"UID": appUserUID});
+          existingField["currentOwners"] = currentOwners;
+          // Update the field in the database
+          await changeObjectData(existingField);
+        }
+        return ('alreadyRegistered');
       }
-
+      setState(() {
+        currentProgressStep = l10n.progressStep3FieldNotFoundInCentralDb;
+      });
       debugPrint(
-          'Feld mit GeoID $geoId existiert noch nicht in der zentralen Datenbank - Fortfahren mit lokaler Registrierung');
+          'Field with GeoID $finalGeoId does not exist in the central database - proceeding with TFC registration');
 
-      // Schritt 4: Prüfen ob bereits als openRAL Objekt existiert
-      // HINWEIS: Dieser Code ist derzeit deaktiviert, da die OpenRAL-Integration noch nicht vollständig implementiert ist
-      if (1 == 2) {
-        // Zusätzliche Sicherheitsprüfungen für OpenRAL-Integration
-        if (!openRALTemplates.isOpen) {
-          throw Exception('openRALTemplates ist nicht initialisiert');
+      Map<String, dynamic> newField = await getOpenRALTemplate("field");
+      //Name
+      newField["identity"]["name"] = fieldName; //GeoID
+      newField["identity"]["alternateIDs"] = [
+        {"UID": geoId, "issuedBy": "Asset Registry"}
+      ];
+      //Feldgrenzen - konvertiere WKT zu GeoJSON Format
+      final coordinates_geojson = json.encode({
+        "coordinates": _convertWKTToGeoJSON(coordinates),
+      });
+
+      setSpecificPropertyJSON(
+          newField, "boundaries", json.encode(coordinates_geojson), "geoJSON");
+      //Registrator UID => currentOwners
+      newField["currentOwners"] = [
+        {
+          "UID": appUserDoc!["identity"]["UID"],
         }
+      ];
+      final newFieldUID = await generateDigitalSibling(newField);
+      debugPrint("New field registered in TFC with UID: $newFieldUID");
+      if (!alreadyExists)
+        await _showRegistrationResult(
+            l10n.fieldRegistrationSuccessMessage(fieldName), true);
 
-        if (appUserDoc == null) {
-          throw Exception('appUserDoc ist nicht initialisiert');
-        }
-
-        // final existingField =
-        //     await getObjectOrGenerateNew(geoId, ["field"], "alternateUid");
-
-        // if (getObjectMethodUID(existingField).isNotEmpty) {
-        //   // Feld existiert bereits in der lokalen Datenbank
-        //   throw Exception('Feld bereits in lokaler Datenbank vorhanden');
-        // }
-
-        // // Schritt 4: Neues openRAL Field Objekt erstellen
-        // final fieldObject = await getOpenRALTemplate("field");
-        // setObjectMethodUID(fieldObject, const Uuid().v4());
-
-        // // Identity setzen
-        // fieldObject["identity"]["name"] = fieldName;
-        // fieldObject["identity"]["alternateIDs"] = [
-        //   {"UID": geoId, "issuedBy": "Asset Registry"}
-        // ];
-
-        // // Koordinaten als spezifische Eigenschaft hinzufügen
-        // setSpecificPropertyJSON(fieldObject, "coordinates", coordinates, "String");
-
-        // // Schritt 5: generateDigitalSibling verwenden
-        // final generateMethod = await getOpenRALTemplate("generateDigitalSibling");
-        // setObjectMethodUID(generateMethod, const Uuid().v4());
-
-        // // Executor setzen (aktueller Benutzer)
-        // if (appUserDoc != null) {
-        //   generateMethod["executor"] = appUserDoc!;
-        // }
-        // generateMethod["methodState"] = "finished";
-
-        // // Objekt speichern
-        // await setObjectMethod(fieldObject, false, false);
-
-        // // Output Object zur Methode hinzufügen
-        // addOutputobject(generateMethod, fieldObject, "item");
-
-        // // Method history aktualisieren
-        // await updateMethodHistoryInAllAffectedObjects(
-        //   getObjectMethodUID(generateMethod),
-        //   generateMethod["template"]["RALType"],
-        // );
-
-        // // Methode speichern und signieren
-        // await setObjectMethod(generateMethod, true, true);
-      }
+      if (alreadyExists) return ('alreadyRegistered');
+      return 'successfullyRegistered';
     } catch (e) {
       // Fehlerbehandlung
       debugPrint('Error in _registerSingleField: $e');
+      await _showRegistrationResult(
+          l10n.fieldRegistrationErrorMessage(fieldName, e.toString()), false);
       rethrow;
     } finally {
       // Abmelden (falls userRegistryService initialisiert wurde)
@@ -484,6 +630,16 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
         }
       }
     }
+  }
+
+  /// Zeigt das Ergebnis der Registrierung für 2 Sekunden an
+  Future<void> _showRegistrationResult(String message, bool isSuccess) async {
+    setState(() {
+      currentProgressStep = message;
+    });
+
+    // Warte 2 Sekunden bevor das Overlay geschlossen wird
+    await Future.delayed(const Duration(seconds: 2));
   }
 
   void _showErrorDialog(String errors) {
@@ -507,7 +663,6 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.fieldRegistry),
@@ -522,107 +677,269 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
             ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          if (kIsWeb) // Info über CSV-Format nur im Web anzeigen
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.csvFormatInfo,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Beispiel:\nRegistrator,Feldname,,,,,\"[-88.364428,14.793867];[-88.364428,14.794047];[-88.364242,14.794047];[-88.364242,14.793867];[-88.364428,14.793867]\"',
-                    style: TextStyle(fontFamily: 'monospace', fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          if (isRegistering) const LinearProgressIndicator(),
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : registeredFields.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.agriculture,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              l10n.noFieldsRegistered,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadRegisteredFields,
-                        child: ListView.builder(
-                          itemCount: registeredFields.length,
-                          itemBuilder: (context, index) {
-                            final field = registeredFields[index];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              child: ListTile(
-                                leading: const CircleAvatar(
-                                  backgroundColor: Colors.green,
-                                  child: Icon(
-                                    Icons.agriculture,
-                                    color: Colors.white,
+          Column(
+            children: [
+              // if (kIsWeb) // Info über CSV-Format nur im Web anzeigen
+              //   Container(
+              //     width: double.infinity,
+              //     padding: const EdgeInsets.all(16),
+              //     margin: const EdgeInsets.all(16),
+              //     decoration: BoxDecoration(
+              //       color: Colors.blue.shade50,
+              //       borderRadius: BorderRadius.circular(8),
+              //       border: Border.all(color: Colors.blue.shade200),
+              //     ),
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.start,
+              //       children: [
+              //         Text(
+              //           l10n.csvFormatInfo,
+              //           style: const TextStyle(fontWeight: FontWeight.bold),
+              //         ),
+              //         const SizedBox(height: 8),
+              //         const Text(
+              //           'Beispiel:\nRegistrator,Feldname,,,,,\"[-88.364428,14.793867];[-88.364428,14.794047];[-88.364242,14.794047];[-88.364242,14.793867];[-88.364428,14.793867]\"',
+              //           style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              if (isRegistering) const LinearProgressIndicator(),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : registeredFields.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.map,
+                                  size: 64,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.noFieldsRegistered,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
                                   ),
                                 ),
-                                title: Text(
-                                  field["name"] ?? "Unbenanntes Feld",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (field["geoId"]?.isNotEmpty == true)
-                                      Text('${l10n.geoId}: ${field["geoId"]}'),
-                                    if (field["area"]?.isNotEmpty == true)
-                                      Text('${l10n.area}: ${field["area"]} ha'),
-                                  ],
-                                ),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () {
-                                  // TODO: Implementiere Detailansicht für Feld
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Felddetails noch nicht implementiert'),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadRegisteredFields,
+                            child: ListView.builder(
+                              itemCount: registeredFields.length,
+                              itemBuilder: (context, index) {
+                                final field = registeredFields[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  child: ListTile(
+                                    leading: const CircleAvatar(
+                                      backgroundColor: Colors.green,
+                                      child: Icon(
+                                        Icons.map,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
-                            );
-                          },
+                                    title: Text(
+                                      field["name"] ?? "Unbenanntes Feld",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        if (field["geoId"]?.isNotEmpty == true)
+                                          Text(
+                                              '${l10n.geoId}: ${field["geoId"]}'),
+                                        if (field["area"]?.isNotEmpty == true)
+                                          Text(
+                                              '${l10n.area}: ${field["area"]} ha'),
+                                      ],
+                                    ),
+                                    trailing: const Icon(Icons.copy),
+                                    onTap: () {
+                                      // Copy GeoID to clipboard for Flutter web
+                                      if (kIsWeb &&
+                                          field["geoId"]?.isNotEmpty == true) {
+                                        // Use the web clipboard API
+                                        final geoId = field["geoId"] as String;
+                                        html.window.navigator.clipboard
+                                            ?.writeText(geoId)
+                                            .then((_) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'GeoID copied to clipboard: $geoId'),
+                                            ),
+                                          );
+                                        }).catchError((error) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                  'Failed to copy GeoID to clipboard'),
+                                            ),
+                                          );
+                                        });
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+              ),
+            ],
+          ),
+          // Progress Overlay
+          if (showProgressOverlay)
+            Container(
+              color: Colors.black54,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(32),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Show CircularProgressIndicator only if not showing result
+                      if (!currentProgressStep.startsWith('✅') &&
+                          !currentProgressStep.startsWith('❌'))
+                        const CircularProgressIndicator(),
+                      // Show success/error icon when showing result
+                      if (currentProgressStep.startsWith('✅'))
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.green[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            size: 32,
+                            color: Colors.green[800],
+                          ),
+                        ),
+                      if (currentProgressStep.startsWith('❌'))
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error,
+                            size: 32,
+                            color: Colors.red[800],
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+                      Text(
+                        l10n.fieldRegistrationInProgress,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      if (totalFields > 0)
+                        Column(
+                          children: [
+                            Text(
+                              l10n.fieldXOfTotal(currentFieldIndex.toString(),
+                                  totalFields.toString()),
+                              style: Theme.of(context).textTheme.bodyLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: currentFieldIndex / totalFields,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Colors.green),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      if (currentFieldName.isNotEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.blue[200]!),
+                          ),
+                          child: Text(
+                            l10n.currentField(currentFieldName),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.blue[800],
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: currentProgressStep.startsWith('✅')
+                              ? Colors.green[50]
+                              : currentProgressStep.startsWith('❌')
+                                  ? Colors.red[50]
+                                  : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                          border: currentProgressStep.startsWith('✅')
+                              ? Border.all(color: Colors.green[200]!)
+                              : currentProgressStep.startsWith('❌')
+                                  ? Border.all(color: Colors.red[200]!)
+                                  : null,
+                        ),
+                        child: Text(
+                          currentProgressStep,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: currentProgressStep.startsWith('✅')
+                                        ? Colors.green[800]
+                                        : currentProgressStep.startsWith('❌')
+                                            ? Colors.red[800]
+                                            : null,
+                                  ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-          ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
       floatingActionButton: kIsWeb

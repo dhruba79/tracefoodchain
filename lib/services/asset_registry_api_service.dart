@@ -91,7 +91,7 @@ class AssetRegistryService {
     required String wkt,
   }) async {
     final body = jsonEncode(<String, dynamic>{
-      's2_index': s2Index, // Example: "8, 13"
+     // 's2_index': s2Index, // Example: "8, 13"
       'wkt': wkt,
     });
 

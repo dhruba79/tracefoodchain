@@ -51,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
           // Field Registry
           ListTile(
             contentPadding: const EdgeInsets.all(12),
-            leading: const Icon(Icons.agriculture),
+            leading: const Icon(Icons.map),
             title: Text(l10n.fieldRegistry),
             subtitle: Text(l10n.fieldRegistryTitle),
             onTap: () {

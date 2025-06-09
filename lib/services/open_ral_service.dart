@@ -667,3 +667,72 @@ void _convertSpecialTypes(dynamic obj) {
     }
   }
 }
+
+Future<String> generateDigitalSibling(Map<String, dynamic> newItem) async {
+  if (getObjectMethodUID(newItem) == "") {
+    setObjectMethodUID(newItem, const Uuid().v4());
+  }
+  final generateDSJob = await getOpenRALTemplate("generateDigitalSibling");
+  //Add Executor
+  generateDSJob["executor"] = appUserDoc!;
+  generateDSJob["methodState"] = "finished";
+  //Step 1: get method an uuid (for method history entries)
+  setObjectMethodUID(generateDSJob, const Uuid().v4());
+  //Step 2: save the object a first time to get it the method history change
+  await setObjectMethod(newItem, false, false);
+  //Step 3: add the output objects with updated method history to the method
+  addOutputobject(generateDSJob, newItem, "item");
+  //Step 4: update method history in all affected objects (will also tag them for syncing)
+  await updateMethodHistories(generateDSJob);
+  //Step 5: again add Outputobjects to generate valid representation in the method
+  newItem = await getObjectMethod(getObjectMethodUID(newItem));
+  addOutputobject(generateDSJob, newItem, "item");
+  //Step 6: persist process
+  await setObjectMethod(generateDSJob, true, true); //sign it!
+  return getObjectMethodUID(newItem);
+}
+
+Future<void> changeObjectData(Map<String, dynamic> newObject) async {
+  final oldObject = await getObjectMethod(newObject["identity"]["UID"]);
+  await setObjectMethod(newObject, false, false);
+  final changeObjectDataJob = await getOpenRALTemplate("changeObjectData");
+  //Add Executor
+  changeObjectDataJob["executor"] = appUserDoc!;
+  changeObjectDataJob["methodState"] = "finished";
+  //Step 1: get method an uuid (for method history entries)
+  setObjectMethodUID(changeObjectDataJob, const Uuid().v4());
+  // Inputobject = alter Zustand des Objects
+  addInputobject(changeObjectDataJob, oldObject, "item");
+  //Step 2: save the object a first time to get it the method history change
+  await setObjectMethod(changeObjectDataJob, false, false);
+  //Step 3: add the output objects with updated method history to the method
+  addOutputobject(changeObjectDataJob, newObject, "item");
+  //Step 4: update method history in all affected objects (will also tag them for syncing)
+  await updateMethodHistories(changeObjectDataJob);
+  //Step 5: again add Outputobjects to generate valid representation in the method
+  newObject = await getObjectMethod(getObjectMethodUID(newObject));
+  addOutputobject(changeObjectDataJob, newObject, "item");
+  //Step 6: persist process
+  await setObjectMethod(changeObjectDataJob, true, true); //sign it!
+}
+
+Map<String, dynamic> addLinkedObjectRef(
+  Map<String, dynamic> object,
+  Map<String, dynamic> linkedObject,
+  String role,
+) {
+  final test = object["linkedObjectRef"].firstWhere(
+    (k) => (k["UID"] == linkedObject["identity"]["UID"] && k["role"] == role),
+    orElse: () => null,
+  );
+  if (test == null) {
+    // noch nicht verlinked
+    object["linkedObjectRef"].add({
+      "UID": linkedObject["identity"]["UID"],
+      "role": role,
+    });
+  }
+  return object;
+}
+
+
