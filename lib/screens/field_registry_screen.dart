@@ -7,10 +7,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as excel;
+import 'package:path_provider/path_provider.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/asset_registry_api_service.dart';
 import 'package:trace_foodchain_app/services/user_registry_api_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
+import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
 
 /// Eine einfache LatLng Klasse für Koordinaten
@@ -660,22 +663,75 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     );
   }
 
+  Future<void> _generateFieldsExcel(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Create Excel file
+    var excelFile = excel.Excel.createExcel();
+    var sheet = excelFile.sheets[excelFile.getDefaultSheet()];
+
+    // Add header row
+    final headers = [
+      l10n.fieldName,
+      l10n.geoId,
+    ];
+
+    // Add headers to first row
+    for (var i = 0; i < headers.length; i++) {
+      sheet!.cell(excel.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
+        ..value = headers[i] as dynamic;
+    }
+
+    // Add field data
+    for (int i = 0; i < registeredFields.length; i++) {
+      final field = registeredFields[i];
+      final rowIndex = i + 1; // Start from row 1 (0 is header)
+
+      // Field name
+      sheet!.updateCell(
+          excel.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex),
+          field["name"] ?? "Unbenanntes Feld");
+
+      // GeoID
+      sheet.updateCell(
+          excel.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex),
+          field["geoId"] ?? "");
+    }
+
+    // Encode the file into bytes
+    final List<int>? fileBytes = excelFile.encode();
+    if (fileBytes != null) {
+      if (kIsWeb) {
+        // For Flutter Web: initiate a download using a blob
+        final blob = html.Blob([fileBytes]);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..download = 'registered_fields.xlsx'
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        await fshowInfoDialog(context, l10n.excelFileDownloaded);
+      } else {
+        // For mobile or desktop: save the file to the application's documents directory
+        final directory = await getApplicationDocumentsDirectory();
+        final filePath = '${directory.path}/registered_fields.xlsx';
+        final file = File(filePath)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(fileBytes);
+        debugPrint("Excel file saved: $filePath");
+        await fshowInfoDialog(context, "${l10n.excelFileSavedAt}: $filePath");
+      }
+    } else {
+      debugPrint("Failed to generate Excel file.");
+      await fshowInfoDialog(context, l10n.failedToGenerateExcelFile);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.fieldRegistry),
-        actions: [
-          if (kIsWeb) // Nur im Web-Modus CSV-Upload anbieten
-            IconButton(
-              icon: const Icon(Icons.upload_file),
-              onPressed: (isRegistering || !_isAppFullyInitialized())
-                  ? null
-                  : _uploadCsvFile,
-              tooltip: l10n.uploadCsv,
-            ),
-        ],
       ),
       body: Stack(
         children: [
@@ -943,12 +999,35 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
         ],
       ),
       floatingActionButton: kIsWeb
-          ? FloatingActionButton.extended(
-              onPressed: (isRegistering || !_isAppFullyInitialized())
-                  ? null
-                  : _uploadCsvFile,
-              icon: const Icon(Icons.upload_file),
-              label: Text(l10n.uploadCsv),
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                SizedBox(
+                  width: 200, // Feste Breite für beide Buttons
+                  child: FloatingActionButton.extended(
+                    heroTag: "exportExcel",
+                    onPressed: (isRegistering ||
+                            !_isAppFullyInitialized() ||
+                            registeredFields.isEmpty)
+                        ? null
+                        : () => _generateFieldsExcel(context),
+                    icon: const Icon(Icons.table_chart),
+                    label: Text(l10n.exportToExcel),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: 200, // Feste Breite für beide Buttons
+                  child: FloatingActionButton.extended(
+                    heroTag: "uploadCsv",
+                    onPressed: (isRegistering || !_isAppFullyInitialized())
+                        ? null
+                        : _uploadCsvFile,
+                    icon: const Icon(Icons.upload_file),
+                    label: Text(l10n.uploadCsv),
+                  ),
+                ),
+              ],
             )
           : null,
     );
