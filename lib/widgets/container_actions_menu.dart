@@ -14,7 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 // Only import dart:html on web.
-import 'dart:html' as html;
+//import 'dart:html' as html;
 
 class ContainerActionsMenu extends StatefulWidget {
   final Map<String, dynamic> container;
@@ -251,15 +251,15 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
     final List<int>? fileBytes = excel.encode();
     if (fileBytes != null) {
       if (kIsWeb) {
-        // For Flutter Web: initiate a download using a blob.
-        final blob = html.Blob([fileBytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..download =
-              'content_of_${truncateUID(widget.container["identity"]["alternateIDs"][0]["UID"])}.xlsx'
-          ..click();
-        html.Url.revokeObjectUrl(url);
-        await fshowInfoDialog(context, l10n.excelFileDownloaded);
+        // // For Flutter Web: initiate a download using a blob.
+        // final blob = html.Blob([fileBytes]);
+        // final url = html.Url.createObjectUrlFromBlob(blob);
+        // final anchor = html.AnchorElement(href: url)
+        //   ..download =
+        //       'content_of_${truncateUID(widget.container["identity"]["alternateIDs"][0]["UID"])}.xlsx'
+        //   ..click();
+        // html.Url.revokeObjectUrl(url);
+        // await fshowInfoDialog(context, l10n.excelFileDownloaded);
       } else {
         // For mobile or desktop: save the file to the application's documents directory.
         final directory = await getApplicationDocumentsDirectory();
@@ -296,15 +296,15 @@ class _ContainerActionsMenuState extends State<ContainerActionsMenu> {
       debugPrint(field["identity"]["alternateIDs"][0]["UID"]);
       //ToDo: Get amount and unit and processing state.
       //ToDo: Calculate the amount and unit as it would be in green bean equivalent.
-      debugPrint(
-          "Amount old: ${getSpecificPropertyfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
-      debugPrint(
-          "Unit old : ${getSpecificPropertyUnitfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
+      // debugPrint(
+      //     "Amount old: ${getSpecificPropertyfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
+      // debugPrint(
+      //     "Unit old : ${getSpecificPropertyUnitfromJSON(Map<String, dynamic>.from(firstSale["outputObjects"][0]), "amount")}");
       final convertedAmount = convertToGreenBeanEquivalent(
           Map<String, dynamic>.from(firstSale["outputObjects"][0]),
           reportingUnit); //Converts the amount to green bean equivalent and into the right unit for reporting
-      debugPrint("Amount new: $convertedAmount");
-      debugPrint("Unit new: $reportingUnit");
+      // debugPrint("Amount new: $convertedAmount");
+      // debugPrint("Unit new: $reportingUnit");
       reportingAmount = reportingAmount == null
           ? convertedAmount
           : reportingAmount + convertedAmount;

@@ -183,7 +183,8 @@ class _ItemsListState extends State<ItemsList> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
   final WhispApiService _apiService =
-      WhispApiService(baseUrl: 'https://whisp.openforis.org');
+      WhispApiService(baseUrl: 'https://whisp.openforis.org',
+          apiKey: "379620da-05a2-40d7-8c20-15f840092e1d");
   //ToDo: Read from WHISP cloudConnector
   AnalysisResult? _result;
 
@@ -222,7 +223,7 @@ class _ItemsListState extends State<ItemsList> {
       for (final plot in result.data) {
         rList.add({
           "geoid": plotList[plotcount],
-          "deforestation_risk": plot["EUDR_risk"]
+        "deforestation_risk": plot["risk_pcrop"] //Was EUDR_risk before 31.05.2025
         });
         plotcount++;
       }

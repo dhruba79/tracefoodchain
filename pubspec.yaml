@@ -31,7 +31,7 @@ dependencies:
   hive: ^2.0.0
   fl_chart: ^0.69.0
   mockito: ^5.4.4
-  workmanager: ^0.5.2
+  workmanager: ^0.6.0 
   url_launcher: ^6.3.0
   uuid: ^4.4.2
   flutter_speed_dial: ^7.0.0
@@ -56,6 +56,7 @@ dependencies:
   excel: ^2.1.0
   file_picker: ^10.1.9
   csv: ^6.0.0
+  
 
 
   # flutter_test: any

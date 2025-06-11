@@ -5,9 +5,11 @@ import 'package:trace_foodchain_app/models/whisp_result_model.dart';
 
 class WhispApiService {
   final String baseUrl;
+  final String apiKey;
 
-  WhispApiService({required this.baseUrl}) {
+  WhispApiService({required this.baseUrl, required this.apiKey}) {
     assert(baseUrl.startsWith('https://'), 'API URL must use HTTPS');
+    assert(apiKey.isNotEmpty, 'API key cannot be empty');
   }
 
   Future<AnalysisResult> analyzeGeoIds(List<String> geoIds) async {
@@ -15,19 +17,21 @@ class WhispApiService {
     if (geoIds.isEmpty) {
       throw ArgumentError('Geo IDs list cannot be empty');
     }
-
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/geo-ids'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/api/submit/geo-ids'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
         body: jsonEncode({'geoIds': geoIds}),
       );
 
       if (response.statusCode == 200) {
         return AnalysisResult.fromJson(jsonDecode(response.body));
       } else {
-         throw Exception('API request failed: ${response.statusCode} ${response.body}');
-        
+        throw Exception(
+            'API request failed: ${response.statusCode} ${response.body}');
       }
     } catch (e) {
       // Log the error

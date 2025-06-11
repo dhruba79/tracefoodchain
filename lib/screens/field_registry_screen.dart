@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:html' as html;
+//import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -703,13 +703,13 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     if (fileBytes != null) {
       if (kIsWeb) {
         // For Flutter Web: initiate a download using a blob
-        final blob = html.Blob([fileBytes]);
-        final url = html.Url.createObjectUrlFromBlob(blob);
-        final anchor = html.AnchorElement(href: url)
-          ..download = 'registered_fields.xlsx'
-          ..click();
-        html.Url.revokeObjectUrl(url);
-        await fshowInfoDialog(context, l10n.excelFileDownloaded);
+        // final blob = html.Blob([fileBytes]);
+        // final url = html.Url.createObjectUrlFromBlob(blob);
+        // final anchor = html.AnchorElement(href: url)
+        //   ..download = 'registered_fields.xlsx'
+        //   ..click();
+        // html.Url.revokeObjectUrl(url);
+        // await fshowInfoDialog(context, l10n.excelFileDownloaded);
       } else {
         // For mobile or desktop: save the file to the application's documents directory
         final directory = await getApplicationDocumentsDirectory();
@@ -828,27 +828,27 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                                       // Copy GeoID to clipboard for Flutter web
                                       if (kIsWeb &&
                                           field["geoId"]?.isNotEmpty == true) {
-                                        // Use the web clipboard API
-                                        final geoId = field["geoId"] as String;
-                                        html.window.navigator.clipboard
-                                            ?.writeText(geoId)
-                                            .then((_) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  'GeoID copied to clipboard: $geoId'),
-                                            ),
-                                          );
-                                        }).catchError((error) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                  'Failed to copy GeoID to clipboard'),
-                                            ),
-                                          );
-                                        });
+                                        // // Use the web clipboard API
+                                        // final geoId = field["geoId"] as String;
+                                        // html.window.navigator.clipboard
+                                        //     ?.writeText(geoId)
+                                        //     .then((_) {
+                                        //   ScaffoldMessenger.of(context)
+                                        //       .showSnackBar(
+                                        //     SnackBar(
+                                        //       content: Text(
+                                        //           'GeoID copied to clipboard: $geoId'),
+                                        //     ),
+                                        //   );
+                                        // }).catchError((error) {
+                                        //   ScaffoldMessenger.of(context)
+                                        //       .showSnackBar(
+                                        //     SnackBar(
+                                        //       content: Text(
+                                        //           'Failed to copy GeoID to clipboard'),
+                                        //     ),
+                                        //   );
+                                        // });
                                       }
                                     },
                                   ),
