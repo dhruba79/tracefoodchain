@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:archive/archive.dart';
 
 bool _isProcessing = false;
 
@@ -81,10 +81,11 @@ class _QRCodeReceiverState extends State<QRCodeReceiver> {
         return chunk;
       }).join();
 
-      // Decode and decompress data
+      // Decode and decompress data using archive package
       final bytes = base64.decode(assembledData.trim());
-      final decompressed = utf8.decode(gzip.decode(bytes));
-      final decodedData = json.decode(decompressed);
+      final decompressed = GZipDecoder().decodeBytes(bytes);
+      final decompressedString = utf8.decode(decompressed);
+      final decodedData = json.decode(decompressedString);
 
       // Zeitmessung beenden und Dauer berechnen
       final duration = _startTime != null

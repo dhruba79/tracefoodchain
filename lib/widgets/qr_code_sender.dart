@@ -1,11 +1,14 @@
+//This widget now works on both Flutter and Flutter Web using the archive package for compression.
+
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
+import 'package:archive/archive.dart';
 
 enum QrErrorCorrectLevel { L, M, Q, H }
 
@@ -66,10 +69,11 @@ class _QRCodeSenderState extends State<QRCodeSender> {
   }
 
   List<String> _splitData(String data) {
-    // Compress and encode the data
+    // Compress and encode the data using archive package (works on all platforms)
     final minifiedJson = json.encode(json.decode(data)); // Minify JSON
-    final compressed = gzip.encode(utf8.encode(minifiedJson));
-    final base64Data = base64.encode(compressed);
+    final utf8Data = utf8.encode(minifiedJson);
+    final compressed = GZipEncoder().encode(utf8Data);
+    final base64Data = base64.encode(Uint8List.fromList(compressed!));
 
     return List.generate(
       (base64Data.length / chunkSize).ceil(),
