@@ -179,7 +179,7 @@ class CloudApiClient {
           Uri.parse(urlString),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $apiKey',  
+            'Authorization': 'Bearer $apiKey',
           },
           body: jsonEncode(deviceHashes),
         );
@@ -307,7 +307,7 @@ class CloudSyncService {
                     //     - clientVersionInvalid
                     //     - conflictReasonUnknown
                     Map<String, dynamic> conflictMethod =
-                        await getObjectMethod(getObjectMethodUID(doc2));
+                        await getLocalObjectMethod(getObjectMethodUID(doc2));
                     conflictMethod["hasMergeConflict"] = true;
                     conflictMethod["mergeConflictReason"] =
                         syncresult["responseDetails"]["methodConflict"];
@@ -320,7 +320,7 @@ class CloudSyncService {
                     for (final object in syncresult["responseDetails"]
                         ["conflictObjects"]) {
                       Map<String, dynamic> conflictObject =
-                          await getObjectMethod(object["objectUid"]);
+                          await getLocalObjectMethod(object["objectUid"]);
                       conflictObject["hasMergeConflict"] = true;
                       await setObjectMethod(conflictObject, false, true);
                     }
@@ -351,7 +351,7 @@ class CloudSyncService {
                   if (syncresult["responseDetails"]
                       .containsKey("invalidSignature")) {
                     Map<String, dynamic> conflictMethod =
-                        await getObjectMethod(getObjectMethodUID(doc2));
+                        await getLocalObjectMethod(getObjectMethodUID(doc2));
                     conflictMethod["hasMergeConflict"] = true;
                     conflictMethod["mergeConflictReason"] =
                         "invalid digital signature";
@@ -418,7 +418,7 @@ class CloudSyncService {
         debugPrint(
             "Got ${cloudData["ralObjects"].length} updated objects from cloud");
         for (final item in cloudData["ralObjects"]) {
-         // debugPrint(getObjectMethodUID(item));
+          // debugPrint(getObjectMethodUID(item));
           //Check if the UID of this object is in the failedSyncedOutputObjects, only add if not
           String uid = getObjectMethodUID(item);
           if (!failedSyncedOutputObjects.contains(uid)) {
@@ -442,7 +442,7 @@ class CloudSyncService {
         for (final entry in hashList) {
           if (entry is Map<String, dynamic> && entry.containsKey("UID")) {
             final uid = entry["UID"];
-            final localDoc = await getObjectMethod(uid);
+            final localDoc = await getLocalObjectMethod(uid);
             if (localDoc.containsKey("needsSync")) {
               if (!failedSyncedOutputObjects.contains(uid)) {
                 localDoc.remove("needsSync");

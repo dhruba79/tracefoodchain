@@ -107,6 +107,7 @@ class _CoffeeProcessingStateSelectorState
     final l10n = AppLocalizations.of(context)!;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        debugPrint("Layoutbilder 5");
         double availableWidth = constraints.maxWidth;
         int crossAxisCount = (availableWidth / 120).floor();
         double itemWidth = (availableWidth / crossAxisCount) - 16;

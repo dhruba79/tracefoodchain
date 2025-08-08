@@ -198,7 +198,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeOwnershipMethod);
     //Step 5: again add Outputobjects to generate valid representation in the method
-    item = await getObjectMethod(getObjectMethodUID(item));
+    item = await getLocalObjectMethod(getObjectMethodUID(item));
     addOutputobject(changeOwnershipMethod, item, "item");
     //Step 6: persist process
     await setObjectMethod(changeOwnershipMethod, true, true); //sign it!
@@ -222,7 +222,7 @@ class _OnlineSaleDialogState extends State<OnlineSaleDialog> {
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeContainerMethod);
     //Step 5: again add Outputobjects to generate valid representation in the method
-    item = await getObjectMethod(getObjectMethodUID(item));
+    item = await getLocalObjectMethod(getObjectMethodUID(item));
     addOutputobject(changeContainerMethod, item, "item");
     //Step 6: persist process
     await setObjectMethod(changeContainerMethod, true, true); //sign it!

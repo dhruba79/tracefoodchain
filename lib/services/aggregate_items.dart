@@ -52,18 +52,18 @@ Future<void> aggregateItems(
     await updateMethodHistories(addItem);
     //Step 5: again add Outputobjects to generate valid representation in the method
     receivingContainer =
-        await getObjectMethod(getObjectMethodUID(receivingContainer));
+        await getLocalObjectMethod(getObjectMethodUID(receivingContainer));
     addOutputobject(addItem, receivingContainer, "item");
     //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
-    receivingContainer = await getObjectMethod(getObjectMethodUID(
+    receivingContainer = await getLocalObjectMethod(getObjectMethodUID(
         receivingContainer)); //Reload new item with correct method history
   }
 
   // Step 3: Process each selected item
   for (String itemUID in selectedItemUIDs) {
-    Map<String, dynamic> item = await getObjectMethod(itemUID);
+    Map<String, dynamic> item = await getLocalObjectMethod(itemUID);
 
     if (item.isNotEmpty) {
       // Create changeContainer process
@@ -91,7 +91,7 @@ Future<void> aggregateItems(
       //Step 4: update method history in all affected objects (will also tag them for syncing)
       await updateMethodHistories(changeContainerProcess);
       //Step 5: again add Outputobjects to generate valid representation in the method
-      item = await getObjectMethod(getObjectMethodUID(item));
+      item = await getLocalObjectMethod(getObjectMethodUID(item));
       addOutputobject(changeContainerProcess, item, "item");
       //Step 6: persist process
       await setObjectMethod(changeContainerProcess, true, true); //sign it!

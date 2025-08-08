@@ -18,9 +18,13 @@ import 'dart:async';
 import 'package:flutter/scheduler.dart'; // Falls benötigt
 import '../services/get_device_id.dart';
 
+import 'package:trace_foodchain_app/widgets/tracked_value_notifier.dart';
+
 String displayContext = "action";
-ValueNotifier<bool> rebuildList = ValueNotifier<bool>(false);
-ValueNotifier<String?> snackbarMessageNotifier = ValueNotifier<String?>(null);
+TrackedValueNotifier<bool> rebuildList =
+    TrackedValueNotifier<bool>(false, "rebuildList");
+TrackedValueNotifier<String?> snackbarMessageNotifier =
+    TrackedValueNotifier<String?>(null, "snackbarMessageNotifier");
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ValueListenableBuilder(
                 valueListenable: inboxCount,
                 builder: (context, int value, child) {
+                  if (!mounted) return Container();
                   return Badge(
                     offset: const Offset(-3, 5),
                     isLabelVisible: inboxCount.value > 0,
@@ -175,6 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ValueListenableBuilder(
                               valueListenable: rebuildList,
                               builder: (context, bool value, child) {
+                                if (!mounted) return Container();
                                 rebuildList.value = false;
                                 Widget? screen;
                                 switch (appState.userRole) {
@@ -211,6 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ValueListenableBuilder<String?>(
               valueListenable: snackbarMessageNotifier,
               builder: (context, message, child) {
+                if (!mounted) return Container();
                 if (message != null && message.isNotEmpty) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -230,6 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: ValueListenableBuilder(
             valueListenable: rebuildList,
             builder: (context, bool value, child) {
+              if (!mounted) return Container();
               rebuildList.value = false;
               return RoleBasedSpeedDial(displayContext: displayContext);
             }),
@@ -356,12 +364,13 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       MaterialPageRoute(builder: (_) => const SettingsScreen()),
     ).then((_) async {
-      setState(() {});
-      final databaseHelper = DatabaseHelper();
+      // setState(() {});
+
       //Repaint Container list
       repaintContainerList.value = true;
       //Repaint Inbox count
       if (FirebaseAuth.instance.currentUser != null) {
+        final databaseHelper = DatabaseHelper();
         String ownerUID = FirebaseAuth.instance.currentUser!.uid;
         inbox = await databaseHelper.getInboxItems(ownerUID);
         inboxCount.value = inbox.length;

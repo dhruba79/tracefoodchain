@@ -11,8 +11,10 @@ import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/widgets/items_list_widget.dart';
 import 'package:trace_foodchain_app/screens/container_selection_screen.dart'; // Neuer Import
+import 'package:trace_foodchain_app/widgets/tracked_value_notifier.dart';
 
-ValueNotifier<bool> rebuildInbox = ValueNotifier<bool>(false);
+TrackedValueNotifier<bool> rebuildInbox =
+    TrackedValueNotifier<bool>(false, "rebuildInbox");
 
 class InboxScreen extends StatefulWidget {
   const InboxScreen({super.key});
@@ -23,13 +25,16 @@ class InboxScreen extends StatefulWidget {
 
 class _InboxScreenState extends State<InboxScreen> {
   final DatabaseHelper _databaseHelper = DatabaseHelper();
-
   // Neue Methode innerhalb der State-Klasse
   void _selectNewContainer(Map<String, dynamic> item) {
     Navigator.of(context)
         .push(MaterialPageRoute(
             builder: (_) => ContainerSelectionScreen(item: item)))
-        .then((_) => setState(() {}));
+        .then((_) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -86,6 +91,7 @@ class _InboxScreenState extends State<InboxScreen> {
               child: ValueListenableBuilder(
                   valueListenable: rebuildInbox,
                   builder: (context, bool value, child) {
+                    if (!mounted) return Container();
                     rebuildInbox.value = false;
                     return CustomScrollView(
                       slivers: [
@@ -460,6 +466,7 @@ class _InboxScreenState extends State<InboxScreen> {
                       const SizedBox(height: 8),
                       // Animated progress bar for fill level
                       LayoutBuilder(builder: (context, constraints) {
+                        debugPrint("Layoutbilder 4");
                         double maxCapacity = getSpecificPropertyfromJSON(
                                 container, "max capacity") is num
                             ? getSpecificPropertyfromJSON(

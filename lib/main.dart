@@ -23,6 +23,8 @@ import 'package:trace_foodchain_app/screens/splash_screen.dart';
 import 'package:trace_foodchain_app/services/cloud_sync_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 
+import 'package:trace_foodchain_app/widgets/tracked_value_notifier.dart';
+
 String country = "Honduras"; //TODO: enable other contries if needed;
 int cloudSyncFrequency =
     600; //in case internet is connected, this will sync with the cloud every xxx seconds
@@ -30,12 +32,52 @@ late Box<Map<dynamic, dynamic>> localStorage;
 late Box<Map<dynamic, dynamic>> openRALTemplates;
 late Map<String, Map<String, dynamic>> cloudConnectors;
 Map<String, dynamic>? appUserDoc;
-ValueNotifier<bool> repaintContainerList = ValueNotifier<bool>(false);
-ValueNotifier<bool> rebuildSpeedDial = ValueNotifier<bool>(false);
+TrackedValueNotifier<bool> repaintContainerList =
+    TrackedValueNotifier<bool>(false, "repaintContainerList");
+TrackedValueNotifier<bool> rebuildSpeedDial =
+    TrackedValueNotifier<bool>(false, "rebuildSpeedDial");
+TrackedValueNotifier<bool> rebuildDDS =
+    TrackedValueNotifier<bool>(false, "rebuildDDS");
+
+// Debug-Wrapper für ValueNotifiers
+class DebugValueNotifier<T> extends ValueNotifier<T> {
+  final String name;
+
+  DebugValueNotifier(super.value, this.name);
+
+  @override
+  set value(T newValue) {
+    debugPrint(
+        "🔄 ValueNotifier '$name' value changed from $value to $newValue");
+
+    // Check for listeners
+    if (hasListeners) {
+      debugPrint("📢 ValueNotifier '$name' has listeners");
+    } else {
+      debugPrint("⚠️ ValueNotifier '$name' has no listeners");
+    }
+
+    super.value = newValue;
+  }
+
+  @override
+  void notifyListeners() {
+    debugPrint("🔔 ValueNotifier '$name' notifying listeners");
+    try {
+      super.notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint("❌ Error in ValueNotifier '$name' notifyListeners: $e");
+      debugPrint("Stack trace: $stackTrace");
+      rethrow;
+    }
+  }
+}
+
 bool secureCommunicationEnabled = false;
 
 List<Map<String, dynamic>> inbox = [];
-ValueNotifier<int> inboxCount = ValueNotifier<int>(0);
+TrackedValueNotifier<int> inboxCount =
+    TrackedValueNotifier<int>(0, "inboxCount");
 
 bool batchSalePossible = false;
 CloudSyncService cloudSyncService = CloudSyncService('tracefoodchain.org');
@@ -235,6 +277,12 @@ extension CustomColorScheme on ColorScheme {
 }
 
 void main() async {
+  // Enable detailed stack traces for debugging
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("=== FULL STACK TRACE ===");
+    debugPrint(details.stack.toString());
+  };
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(

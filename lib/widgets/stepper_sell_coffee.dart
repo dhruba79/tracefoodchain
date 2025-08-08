@@ -252,7 +252,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(transfer_ownership);
                             //Step 5: again add Outputobjects to generate valid representation in the method
-                            coffee = await getObjectMethod(
+                            coffee = await getLocalObjectMethod(
                                 getObjectMethodUID(coffee));
                             transfer_ownership = addOutputobject(
                                 transfer_ownership, coffee, "boughtItem");
@@ -290,7 +290,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                             //Step 4: update method history in all affected objects (will also tag them for syncing)
                             await updateMethodHistories(change_container);
                             //Step 5: again add Outputobjects to generate valid representation in the method
-                            coffee = await getObjectMethod(
+                            coffee = await getLocalObjectMethod(
                                 getObjectMethodUID(coffee));
                             addOutputobject(change_container, coffee, "item");
                             //Step 6: persist process
@@ -322,7 +322,7 @@ class _CoffeeSaleStepperState extends State<CoffeeSaleStepper> {
                                 if (firstContainerMethod != null) {
                                   final firstContainerJobUID =
                                       firstContainerMethod["UID"];
-                                  final firstJob = await getObjectMethod(
+                                  final firstJob = await getLocalObjectMethod(
                                       firstContainerJobUID);
                                   transmittedList.add(
                                       firstJob); //This adds the first container change job of the coffee to the transfer which contains the field info

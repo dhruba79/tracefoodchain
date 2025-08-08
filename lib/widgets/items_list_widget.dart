@@ -17,6 +17,7 @@ import 'package:trace_foodchain_app/services/whisp_api_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:trace_foodchain_app/widgets/coffe_actions_menu.dart';
 import 'package:trace_foodchain_app/widgets/container_actions_menu.dart';
+import 'package:trace_foodchain_app/widgets/debug_value_listenable_builder.dart';
 
 double convertToGreenBeanEquivalent(
     Map<String, dynamic> harvest, String reportingUnit) {
@@ -39,8 +40,9 @@ double convertToGreenBeanEquivalent(
   for (final state in processingStates) {
     final names = state["name"].values;
     if (names.any((name) =>
-        name.toString().toLowerCase() == incomingProcessingState.toLowerCase())) {
-      currentFactor =  (state["weightCorrectionFactor"] as num).toDouble();
+        name.toString().toLowerCase() ==
+        incomingProcessingState.toLowerCase())) {
+      currentFactor = (state["weightCorrectionFactor"] as num).toDouble();
       break;
     }
   }
@@ -56,7 +58,7 @@ double convertToGreenBeanEquivalent(
 
   // Betrag in grünen Bohnen umrechnen
   final greenBeanEquivalentOldUnit =
-      incomingAmount * ( currentFactor/greenFactor);
+      incomingAmount * (currentFactor / greenFactor);
 
   // Umrechnung in gewünschte Reporting-Einheit
   double greenBeanEquivalentNewUnit =
@@ -160,7 +162,6 @@ double computeCoffeeSum(Map<String, dynamic> container, double maxCapacity) {
 
 final Set<String> selectedItems = {};
 
-ValueNotifier<bool> rebuildDDS = ValueNotifier<bool>(false);
 bool multiselectPossible = false;
 
 class ItemsList extends StatefulWidget {
@@ -182,11 +183,11 @@ class _ItemsListState extends State<ItemsList> {
   final ValueNotifier<bool> _selectionChanged = ValueNotifier<bool>(false);
   final DatabaseHelper _databaseHelper = DatabaseHelper();
 
-  final WhispApiService _apiService =
-      WhispApiService(baseUrl: 'https://whisp.openforis.org',
-          apiKey: "379620da-05a2-40d7-8c20-15f840092e1d");
+  final WhispApiService _apiService = WhispApiService(
+      baseUrl: 'https://whisp.openforis.org',
+      apiKey: "379620da-05a2-40d7-8c20-15f840092e1d");
   //ToDo: Read from WHISP cloudConnector
-  AnalysisResult? _result;
+  Map<String, dynamic>? _result;
 
   final PdfGenerator _pdfGenerator = PdfGenerator();
 
@@ -220,10 +221,12 @@ class _ItemsListState extends State<ItemsList> {
 
       _result = result;
       int plotcount = 0;
-      for (final plot in result.data) {
+      for (final plot in result["data"]["features"]) {
+        debugPrint("Processing plot: ${plot}}");
         rList.add({
           "geoid": plotList[plotcount],
-        "deforestation_risk": plot["risk_pcrop"] //Was EUDR_risk before 31.05.2025
+          "deforestation_risk": plot["properties"]
+              ["risk_pcrop"] //Was EUDR_risk before 31.05.2025
         });
         plotcount++;
       }
@@ -291,16 +294,26 @@ class _ItemsListState extends State<ItemsList> {
   }
 
   @override
+  void dispose() {
+    _selectionChanged.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     final l10n = AppLocalizations.of(context)!;
-    return ValueListenableBuilder(
+    return DebugValueListenableBuilder(
         valueListenable: repaintContainerList,
+        debugName: "repaintContainerList in ItemsList",
         builder: (context, bool value, child) {
+          if (!mounted) return Container();
           repaintContainerList.value = false;
-          return ValueListenableBuilder(
+          return DebugValueListenableBuilder(
               valueListenable: _selectionChanged,
+              debugName: "_selectionChanged in ItemsList",
               builder: (context, _, __) {
+                if (!mounted) return Container();
                 final List<Map<String, dynamic>> containers = _databaseHelper
                     .getContainers(appUserDoc!["identity"]["UID"]);
 
@@ -377,6 +390,7 @@ class _ItemsListState extends State<ItemsList> {
             children: [
               const SizedBox(height: 8),
               LayoutBuilder(builder: (context, constraints) {
+                debugPrint("Layoutbilder 2");
                 final tileWidth = constraints.maxWidth;
                 return _buildCardHeader(container, contents, tileWidth);
               }),
@@ -412,6 +426,7 @@ class _ItemsListState extends State<ItemsList> {
           final nestedContents = snapshot.data ?? [];
           return LayoutBuilder(
             builder: (context, constraints) {
+              debugPrint("Layoutbilder 1");
               final tileWidth = constraints.maxWidth;
               // Now you can use tileWidth as needed
               // print("ExpansionTile width: $tileWidth");
@@ -495,21 +510,24 @@ class _ItemsListState extends State<ItemsList> {
                             child: const Icon(Icons.cloud_done,
                                 color: Colors.black54, size: 20)),
                     const SizedBox(width: 12),
-                    CoffeeActionsMenu(
-                      isConnected: appState.isConnected,
-                      coffee: coffee,
-                      onProcessingStateChange: (updatedCoffee) {
-                        // Handle the updated coffee item
-                        setState(() {
-                          // Update your state or data as needed
-                        });
-                      },
-                      onRepaint: () {
-                        // Trigger a repaint of your list or parent widget
-                        setState(() {
-                          repaintContainerList.value = true;
-                        });
-                      },
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: CoffeeActionsMenu(
+                        isConnected: appState.isConnected,
+                        coffee: coffee,
+                        onProcessingStateChange: (updatedCoffee) {
+                          // Handle the updated coffee item
+                          setState(() {
+                            // Update your state or data as needed
+                          });
+                        },
+                        onRepaint: () {
+                          // Trigger a repaint of your list or parent widget
+                          setState(() {
+                            repaintContainerList.value = true;
+                          });
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -665,21 +683,24 @@ class _ItemsListState extends State<ItemsList> {
                           color: Colors.black54, size: 20)), //cloud_done
 
               const SizedBox(width: 12),
-              ContainerActionsMenu(
-                container: container,
-                contents: const [],
-                onPerformAnalysis: _performAnalysis,
-                onGenerateAndSharePdf: _generateAndSharePdf,
-                onRepaint: () {
-                  setState(() {
-                    repaintContainerList.value = true;
-                  });
-                },
-                isConnected: appState.isConnected,
-                onDeleteContainer: (String uid) async {
-                  await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
-                      'localStorage', uid);
-                },
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: ContainerActionsMenu(
+                  container: container,
+                  contents: const [],
+                  onPerformAnalysis: _performAnalysis,
+                  onGenerateAndSharePdf: _generateAndSharePdf,
+                  onRepaint: () {
+                    setState(() {
+                      repaintContainerList.value = true;
+                    });
+                  },
+                  isConnected: appState.isConnected,
+                  onDeleteContainer: (String uid) async {
+                    await _databaseHelper.deleteFromBox<Map<dynamic, dynamic>>(
+                        'localStorage', uid);
+                  },
+                ),
               ),
             ],
           ),
@@ -769,25 +790,28 @@ class _ItemsListState extends State<ItemsList> {
                     const SizedBox(width: 12),
                     // Popupmenu
 
-                    Transform.translate(
-                      offset: const Offset(
-                          0, -12), // adjust the y offset to move it up
-                      child: ContainerActionsMenu(
-                        container: container,
-                        contents: contents,
-                        onPerformAnalysis: _performAnalysis,
-                        onGenerateAndSharePdf: _generateAndSharePdf,
-                        onRepaint: () {
-                          setState(() {
-                            repaintContainerList.value = true;
-                          });
-                        },
-                        isConnected: appState.isConnected,
-                        onDeleteContainer: (String uid) async {
-                          await _databaseHelper
-                              .deleteFromBox<Map<dynamic, dynamic>>(
-                                  'localStorage', uid);
-                        },
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: Transform.translate(
+                        offset: const Offset(
+                            0, -12), // adjust the y offset to move it up
+                        child: ContainerActionsMenu(
+                          container: container,
+                          contents: contents,
+                          onPerformAnalysis: _performAnalysis,
+                          onGenerateAndSharePdf: _generateAndSharePdf,
+                          onRepaint: () {
+                            setState(() {
+                              repaintContainerList.value = true;
+                            });
+                          },
+                          isConnected: appState.isConnected,
+                          onDeleteContainer: (String uid) async {
+                            await _databaseHelper
+                                .deleteFromBox<Map<dynamic, dynamic>>(
+                                    'localStorage', uid);
+                          },
+                        ),
                       ),
                     )
                   ],
@@ -811,6 +835,7 @@ class _ItemsListState extends State<ItemsList> {
                     const SizedBox(height: 8),
                     // Animated progress bar for fill level
                     LayoutBuilder(builder: (context, constraints) {
+                      debugPrint("Layoutbilder 1");
                       double maxCapacity =
                           getSpecificPropertyfromJSON(container, "max capacity")
                                   is num

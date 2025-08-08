@@ -103,7 +103,8 @@ Future<Map<String, dynamic>> getRALObjectMethodTemplateAsJSON(
 }
 
 //Get object or method from local database
-Future<Map<String, dynamic>> getObjectMethod(String objectMethodUID) async {
+Future<Map<String, dynamic>> getLocalObjectMethod(
+    String objectMethodUID) async {
   Map<String, dynamic> doc2 = {};
   try {
     for (var doc in localStorage.values) {
@@ -117,6 +118,7 @@ Future<Map<String, dynamic>> getObjectMethod(String objectMethodUID) async {
   } catch (e) {
     return {};
   }
+
   return doc2;
 }
 
@@ -430,7 +432,7 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
 
   for (final uid in ouidList) {
     debugPrint("checking $uid");
-    final oDoc = await getObjectMethod(uid);
+    final oDoc = await getLocalObjectMethod(uid);
     if (oDoc.isNotEmpty) {
       try {
         if (oDoc["methodHistoryRef"]
@@ -459,13 +461,13 @@ Future updateMethodHistories(Map<String, dynamic> jsonDoc) async {
 }
 
 // ToDo: Convert to API call
-Future<List<Map<String, dynamic>>> getFirebaseObjectsByAlternateUID(String uid) async {
-  
+Future<List<Map<String, dynamic>>> getFirebaseObjectsByAlternateUID(
+    String uid) async {
   final querySnapshot = await FirebaseFirestore.instance
       .collection('TFC_objects')
-      .where('identity.alternateIDs', arrayContains: {'UID': uid, 'issuedBy': 'Asset Registry'})
-      .get();
-  
+      .where('identity.alternateIDs',
+          arrayContains: {'UID': uid, 'issuedBy': 'Asset Registry'}).get();
+
   return querySnapshot.docs
       .map((doc) => doc.data() as Map<String, dynamic>)
       .toList();
@@ -473,15 +475,14 @@ Future<List<Map<String, dynamic>>> getFirebaseObjectsByAlternateUID(String uid) 
 
 // ToDo: Convert to API call - this is a helper function to get all objects of the current user - self-registred fields!
 Stream<QuerySnapshot> getMyObjectsStream() {
-  final currentUserUID = FirebaseAuth.instance.currentUser?.uid;
+  String? currentUserUID = FirebaseAuth.instance.currentUser?.uid;
   if (currentUserUID == null) {
     throw Exception('User not authenticated');
   }
-  
-  return FirebaseFirestore.instance
-      .collection('TFC_objects')
-      .where('currentOwners', arrayContains: {'UID': currentUserUID})
-      .snapshots();
+
+  return FirebaseFirestore.instance.collection('TFC_objects').where(
+      'currentOwners',
+      arrayContains: {'UID': currentUserUID}).snapshots();
 }
 
 Future<Map<String, dynamic>> getObjectOrGenerateNew(
@@ -685,35 +686,65 @@ Future<String> generateDigitalSibling(Map<String, dynamic> newItem) async {
   //Step 4: update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(generateDSJob);
   //Step 5: again add Outputobjects to generate valid representation in the method
-  newItem = await getObjectMethod(getObjectMethodUID(newItem));
+  newItem = await getLocalObjectMethod(getObjectMethodUID(newItem));
   addOutputobject(generateDSJob, newItem, "item");
   //Step 6: persist process
   await setObjectMethod(generateDSJob, true, true); //sign it!
   return getObjectMethodUID(newItem);
 }
 
-Future<void> changeObjectData(Map<String, dynamic> newObject) async {
-  final oldObject = await getObjectMethod(newObject["identity"]["UID"]);
-  await setObjectMethod(newObject, false, false);
+Future<void> changeObjectData(Map<String, dynamic> newObjectVersion) async {
+  //Get the old object version (from local storage or from cloud if newer and connected)
+  final oldObjectVersion = await getLocalObjectMethod(newObjectVersion["identity"]["UID"]);
+  //In case the object is not in local storage, we have to get it from the cloud in case we are online
+  if (oldObjectVersion.isEmpty) {
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (!connectivityResult.contains(ConnectivityResult.none)) {
+      //get it from TFC_objects
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('TFC_objects')
+          .where('identity.UID', isEqualTo: newObjectVersion["identity"]["UID"])
+          .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        oldObjectVersion.addAll(querySnapshot.docs.first.data());
+      }
+    }
+  }
+  //in case the object is still not found, we have to throw an error
+  if (oldObjectVersion.isEmpty) {
+    throw Exception(
+        "The object with UID ${newObjectVersion["identity"]["UID"]} could not be found in local storage or cloud!");
+  }
+  //Save the new version of the object locally
+  await setObjectMethod(newObjectVersion, false, false);
+
+  //Get the changeObjectData job template
   final changeObjectDataJob = await getOpenRALTemplate("changeObjectData");
   //Add Executor
   changeObjectDataJob["executor"] = appUserDoc!;
   changeObjectDataJob["methodState"] = "finished";
-  //Step 1: get method an uuid (for method history entries)
+  //get method an uuid (for method history entries)
   setObjectMethodUID(changeObjectDataJob, const Uuid().v4());
-  // Inputobject = alter Zustand des Objects
-  addInputobject(changeObjectDataJob, oldObject, "item");
-  //Step 2: save the object a first time to get it the method history change
+
+  // Inputobject = old version of the object
+  addInputobject(changeObjectDataJob, oldObjectVersion, "item");
+
+  //save the object a first time to get it the method history change
   await setObjectMethod(changeObjectDataJob, false, false);
-  //Step 3: add the output objects with updated method history to the method
-  addOutputobject(changeObjectDataJob, newObject, "item");
-  //Step 4: update method history in all affected objects (will also tag them for syncing)
+
+  //add the output objects with updated method history to the method
+  addOutputobject(changeObjectDataJob, newObjectVersion, "item");
+
+  //update method history in all affected objects (will also tag them for syncing)
   await updateMethodHistories(changeObjectDataJob);
-  //Step 5: again add Outputobjects to generate valid representation in the method
-  newObject = await getObjectMethod(getObjectMethodUID(newObject));
-  addOutputobject(changeObjectDataJob, newObject, "item");
+
+  //again add Outputobjects to generate valid representation including updated method history in the method
+  newObjectVersion = await getLocalObjectMethod(getObjectMethodUID(newObjectVersion));
+  addOutputobject(changeObjectDataJob, newObjectVersion, "item");
+
   //Step 6: persist process
-  await setObjectMethod(changeObjectDataJob, true, true); //sign it!
+  await setObjectMethod(
+      changeObjectDataJob, true, true); //including signing and syncing to cloud
 }
 
 Map<String, dynamic> addLinkedObjectRef(
@@ -734,5 +765,3 @@ Map<String, dynamic> addLinkedObjectRef(
   }
   return object;
 }
-
-

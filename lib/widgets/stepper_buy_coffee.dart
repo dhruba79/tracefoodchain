@@ -339,13 +339,13 @@ Future<List<Map<String, dynamic>>> initBuyCoffee(
     await updateMethodHistories(addItem);
     //Step 5: again add Outputobjects to generate valid representation in the method
     receivingContainer =
-        await getObjectMethod(getObjectMethodUID(receivingContainer));
+        await getLocalObjectMethod(getObjectMethodUID(receivingContainer));
     addOutputobject(addItem, receivingContainer, "item");
     //Step 6: persist process
     await setObjectMethod(addItem, true, true); //sign it!
 
     receivingContainer =
-        await getObjectMethod(getObjectMethodUID(receivingContainer));
+        await getLocalObjectMethod(getObjectMethodUID(receivingContainer));
   }
   debugPrint(
       "generated/loaded container ${getObjectMethodUID(receivingContainer)}");

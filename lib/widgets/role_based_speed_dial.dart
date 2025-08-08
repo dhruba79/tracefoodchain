@@ -55,6 +55,7 @@ class _RoleBasedSpeedDialState extends State<RoleBasedSpeedDial> {
     return ValueListenableBuilder(
         valueListenable: rebuildSpeedDial,
         builder: (context, bool value, child) {
+          if (!mounted) return Container();
           rebuildSpeedDial.value = false;
           return SpeedDial(
             backgroundColor: const Color(0xFF35DB00),

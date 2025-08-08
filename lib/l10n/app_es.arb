@@ -510,5 +510,112 @@
   "csvProcessingComplete": "Procesamiento de CSV Completado",
   "fieldsSuccessfullyRegistered": "campos registrados exitosamente",
   "fieldsAlreadyExisted": "campos ya existían",
-  "fieldsWithErrors": "campos con errores"
+  "fieldsWithErrors": "campos con errores",
+  "unnamedField": "Campo Sin Nombre",
+  "unknown": "Desconocido",
+  "today": "Hoy",
+  "yesterday": "Ayer",
+  "daysAgo": "hace {days} días",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "weeksAgo": "hace {weeks} semana{plural}",
+  "@weeksAgo": {
+    "placeholders": {
+      "weeks": {
+        "type": "String"
+      },
+      "plural": {
+        "type": "String"
+      }
+    }
+  },
+  "monthsAgo": "hace {months} mes{plural}",
+  "@monthsAgo": {
+    "placeholders": {
+      "months": {
+        "type": "String"
+      },
+      "plural": {
+        "type": "String"
+      }
+    }
+  },
+  "yearsAgo": "hace {years} año{plural}",
+  "@yearsAgo": {
+    "placeholders": {
+      "years": {
+        "type": "String"
+      },
+      "plural": {
+        "type": "String"
+      }
+    }
+  },
+  "allFields": "Todos los Campos",
+  "registeredToday": "Registrados Hoy",
+  "lastWeek": "Última Semana",
+  "lastMonth": "Último Mes",
+  "lastYear": "Último Año",
+  "filterByRegistrationDate": "Filtrar por fecha de registro",
+  "registrationErrors": "Errores de Registro",
+  "noFieldsForSelectedTimeframe": "No hay campos para el período seleccionado",
+  "registeredOn": "Registrado: {date}",
+  "@registeredOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldsCountSorted": "{count} de {total} {totalSingular, select, 1{campo} other{campos}} (ordenados por fecha)",
+  "@fieldsCountSorted": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      },
+      "totalSingular": {
+        "type": "String"
+      }
+    }
+  },
+  "csvLineError": "Línea {line}: {error}",
+  "@csvLineError": {
+    "placeholders": {
+      "line": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "csvLineNameCoordinatesRequired": "Línea {line}: Nombre y coordenadas son requeridos",
+  "@csvLineNameCoordinatesRequired": {
+    "placeholders": {
+      "line": {
+        "type": "String"
+      }
+    }
+  },
+  "csvLineRegistrationError": "Línea {line}: Error de registro - {error}",
+  "@csvLineRegistrationError": {
+    "placeholders": {
+      "line": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "registeredOnLabel": "Registrado el",
+  "specificDateLabel": "Fecha específica"
 }

@@ -227,7 +227,8 @@ Future<void> showChangeContainerDialog(
                       //Step 4: update method history in all affected objects (will also tag them for syncing)
                       await updateMethodHistories(changeContainerMethod);
                       //Step 5: again add Outputobjects to generate valid representation in the method
-                      item = await getObjectMethod(getObjectMethodUID(item));
+                      item =
+                          await getLocalObjectMethod(getObjectMethodUID(item));
                       addOutputobject(changeContainerMethod, item, "item");
                       //Step 6: persist process
                       await setObjectMethod(
@@ -381,7 +382,7 @@ Future<void> showProcessingStateDialog(
     //Step 4: update method history in all affected objects (will also tag them for syncing)
     await updateMethodHistories(changeProcessingState);
     //Step 5: again add Outputobjects to generate valid representation in the method
-    coffee = await getObjectMethod(getObjectMethodUID(coffee));
+    coffee = await getLocalObjectMethod(getObjectMethodUID(coffee));
     addOutputobject(changeProcessingState, coffee, "item");
     //Step 6: persist process
     await setObjectMethod(changeProcessingState, true, true); //sign it!

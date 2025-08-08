@@ -217,13 +217,14 @@ class DatabaseHelper {
     Map<String, dynamic> rstring = {};
     final firstSaleUID = coffee["methodHistoryRef"]
         .firstWhere((method) => method["RALType"] == "changeContainer")["UID"];
-    Map<String, dynamic> firstSale = await getObjectMethod(firstSaleUID);
+    Map<String, dynamic> firstSale = await getLocalObjectMethod(firstSaleUID);
     //if this method has not been synced from cloud, we need to force downsync!
     if (firstSale.isEmpty && appState.isConnected) {
-      final firstSaleDoc = await cloudSyncService.apiClient.getDocumentFromCloud("tracefoodchain.org",firstSaleUID);
+      final firstSaleDoc = await cloudSyncService.apiClient
+          .getDocumentFromCloud("tracefoodchain.org", firstSaleUID);
       if (firstSaleDoc.isNotEmpty) {
         await setObjectMethod(firstSaleDoc, false, false);
-        firstSale = await getObjectMethod(firstSaleUID);
+        firstSale = await getLocalObjectMethod(firstSaleUID);
       }
     }
 

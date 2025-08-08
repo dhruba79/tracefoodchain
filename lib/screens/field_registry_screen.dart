@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-//import 'dart:html' as html;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -8,13 +7,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as excel;
-import 'package:path_provider/path_provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:trace_foodchain_app/main.dart';
 import 'package:trace_foodchain_app/services/asset_registry_api_service.dart';
 import 'package:trace_foodchain_app/services/user_registry_api_service.dart';
 import 'package:trace_foodchain_app/services/open_ral_service.dart';
 import 'package:trace_foodchain_app/services/service_functions.dart';
 import 'package:trace_foodchain_app/screens/settings_screen.dart';
+import 'package:trace_foodchain_app/utils/file_download.dart';
 
 /// Eine einfache LatLng Klasse für Koordinaten
 class LatLng {
@@ -48,8 +48,12 @@ class FieldRegistryScreen extends StatefulWidget {
 
 class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
   List<Map<String, dynamic>> registeredFields = [];
+  List<Map<String, dynamic>> filteredFields = [];
   bool isLoading = false;
   bool isRegistering = false;
+  String selectedDateFilter =
+      'all'; // 'all', 'today', 'week', 'month', 'year', 'specific'
+  DateTime? selectedSpecificDate;
 
   // Progress tracking variables
   bool showProgressOverlay = false;
@@ -82,6 +86,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
   @override
   void initState() {
     super.initState();
+    filteredFields = []; // Initialisiere die gefilterte Liste
     _loadRegisteredFields();
   }
 
@@ -91,10 +96,11 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     });
 
     try {
-      // Lade registrierte Felder aus der lokalen OpenRAL-Datenbank
-      final fields = await _getFieldsFromLocalDatabase();
+      // Lade registrierte Felder aus der Cloud-Datenbank
+      final fields = await _getFieldsFromCloudDatabase();
       setState(() {
         registeredFields = fields;
+        _applyDateFilter(); // Wende den aktuellen Filter an
       });
     } catch (e) {
       debugPrint('Error loading fields: $e');
@@ -105,7 +111,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _getFieldsFromLocalDatabase() async {
+  Future<List<Map<String, dynamic>>> _getFieldsFromCloudDatabase() async {
     final List<Map<String, dynamic>> fields = [];
 
     try {
@@ -132,8 +138,8 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
           }
 
           // Extrahiere relevante Informationen
-          final String fieldName =
-              fieldData["identity"]?["name"] ?? "Unbenanntes Feld";
+          final String fieldName = fieldData["identity"]?["name"] ??
+              "Unnamed Field"; // Will be localized later
           final String fieldUID = fieldData["identity"]?["UID"] ?? "";
           String geoId = "";
 
@@ -156,6 +162,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
             "uid": fieldUID,
             "geoId": geoId,
             "area": area,
+            "methodHistoryRef": fieldData["methodHistoryRef"] ?? [],
           });
         }
       });
@@ -163,10 +170,163 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       // Warte kurz auf die ersten Daten und schließe dann den Stream
       await Future.delayed(const Duration(seconds: 2));
       await streamSubscription.cancel();
+
+      // Für jedes Feld das Registrierungsdatum laden
+      for (final field in fields) {
+        final registrationDate =
+            await _getRegistrationDate(field["methodHistoryRef"]);
+        field["registrationDate"] = registrationDate;
+      }
+
+      // Sortiere die Felder nach Registrierungsdatum (neueste zuerst)
+      fields.sort((a, b) {
+        final dateA = a["registrationDate"] as DateTime?;
+        final dateB = b["registrationDate"] as DateTime?;
+
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+
+        return dateB.compareTo(dateA); // Neueste zuerst
+      });
     } catch (e) {
       debugPrint('Error getting fields from stream: $e');
     }
     return fields;
+  }
+
+  /// Ermittelt das Registrierungsdatum durch das Suchen der generateDigitalSibling Methode
+  Future<DateTime?> _getRegistrationDate(List<dynamic> methodHistoryRef) async {
+    if (methodHistoryRef.isEmpty) return null;
+
+    try {
+      // Finde die generateDigitalSibling Methode in der methodHistoryRef
+      Map<String, dynamic>? generateDigitalSiblingRef;
+      for (final methodRef in methodHistoryRef) {
+        if (methodRef is Map<String, dynamic> &&
+            methodRef["RALType"] == "generateDigitalSibling") {
+          generateDigitalSiblingRef = methodRef;
+          break;
+        }
+      }
+
+      if (generateDigitalSiblingRef == null) {
+        debugPrint(
+            'No generateDigitalSibling method found in methodHistoryRef');
+        return null;
+      }
+
+      final methodUID = generateDigitalSiblingRef["UID"];
+      if (methodUID == null) {
+        debugPrint('No UID found in generateDigitalSibling method ref');
+        return null;
+      }
+
+      // Lade die Methode aus der TNF_methods Sammlung
+      final methodSnapshot = await FirebaseFirestore.instance
+          .collection('TFC_methods')
+          .doc(methodUID)
+          .get();
+
+      if (methodSnapshot.exists) {
+        final methodData = methodSnapshot.data();
+        final existenceStarts = methodData!['existenceStarts'];
+
+        if (existenceStarts != null) {
+          if (existenceStarts is Timestamp) {
+            return existenceStarts.toDate();
+          } else if (existenceStarts is String) {
+            return DateTime.tryParse(existenceStarts);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error getting registration date: $e');
+    }
+
+    return null;
+  }
+
+  /// Formatiert ein DateTime als echtes Datum (dd.MM.yyyy)
+  String _formatRealDate(DateTime? date) {
+    if (date == null) return 'Unbekannt';
+    return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+  }
+
+  /// Wendet den ausgewählten Datumsfilter an
+  void _applyDateFilter() {
+    final now = DateTime.now();
+
+    switch (selectedDateFilter) {
+      case 'today':
+        filteredFields = registeredFields.where((field) {
+          final regDate = field["registrationDate"] as DateTime?;
+          if (regDate == null) return false;
+          return regDate.year == now.year &&
+              regDate.month == now.month &&
+              regDate.day == now.day;
+        }).toList();
+        break;
+      case 'week':
+        final oneWeekAgo = now.subtract(const Duration(days: 7));
+        filteredFields = registeredFields.where((field) {
+          final regDate = field["registrationDate"] as DateTime?;
+          if (regDate == null) return false;
+          return regDate.isAfter(oneWeekAgo);
+        }).toList();
+        break;
+      case 'month':
+        final oneMonthAgo = DateTime(now.year, now.month - 1, now.day);
+        filteredFields = registeredFields.where((field) {
+          final regDate = field["registrationDate"] as DateTime?;
+          if (regDate == null) return false;
+          return regDate.isAfter(oneMonthAgo);
+        }).toList();
+        break;
+      case 'year':
+        final oneYearAgo = DateTime(now.year - 1, now.month, now.day);
+        filteredFields = registeredFields.where((field) {
+          final regDate = field["registrationDate"] as DateTime?;
+          if (regDate == null) return false;
+          return regDate.isAfter(oneYearAgo);
+        }).toList();
+        break;
+      case 'specific':
+        if (selectedSpecificDate != null) {
+          filteredFields = registeredFields.where((field) {
+            final regDate = field["registrationDate"] as DateTime?;
+            if (regDate == null) return false;
+            return regDate.year == selectedSpecificDate!.year &&
+                regDate.month == selectedSpecificDate!.month &&
+                regDate.day == selectedSpecificDate!.day;
+          }).toList();
+        } else {
+          filteredFields = List.from(registeredFields);
+        }
+        break;
+      case 'all':
+      default:
+        filteredFields = List.from(registeredFields);
+        break;
+    }
+  }
+
+  /// Öffnet einen Datumspicker zur Auswahl eines spezifischen Datums
+  Future<void> _selectSpecificDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: selectedSpecificDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null && picked != selectedSpecificDate) {
+      setState(() {
+        selectedSpecificDate = picked;
+        selectedDateFilter = 'specific';
+        _applyDateFilter();
+      });
+    }
   }
 
   Future<void> _uploadCsvFile() async {
@@ -315,7 +475,8 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
 
         // Erwarte mindestens 3 Spalten: Name, Beschreibung, Koordinaten
         if (row.length < 3) {
-          errors.add('Zeile ${i + 1}: ${l10n.invalidCsvFormat}');
+          errors.add(
+              l10n.csvLineError((i + 1).toString(), l10n.invalidCsvFormat));
           errorCount++;
           continue;
         }
@@ -331,7 +492,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
         final String coordinates = _convertCoordinatesToWKT(coordinatesRaw);
 
         if (fieldNameDNI.isEmpty || coordinatesRaw.isEmpty) {
-          errors.add('Line ${i + 1}: Name and coordinates are required');
+          errors.add(l10n.csvLineNameCoordinatesRequired((i + 1).toString()));
           errorCount++;
           continue;
         }
@@ -350,11 +511,12 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
             debugPrint('Field "$fieldNameDNI" already exists');
             alreadyExistsCount++;
           } else {
-            errors.add('Line ${i + 1}: $returnCode');
+            errors.add(l10n.csvLineError((i + 1).toString(), returnCode));
             errorCount++;
           }
         } catch (e) {
-          errors.add('Line ${i + 1}: Registration error - $e');
+          errors.add(
+              l10n.csvLineRegistrationError((i + 1).toString(), e.toString()));
           errorCount++;
         }
       }
@@ -646,17 +808,18 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
   }
 
   void _showErrorDialog(String errors) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Registrierungsfehler'),
+        title: Text(l10n.registrationErrors),
         content: SingleChildScrollView(
           child: Text(errors),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
@@ -674,6 +837,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     final headers = [
       l10n.fieldName,
       l10n.geoId,
+      'Registrierungsdatum',
     ];
 
     // Add headers to first row
@@ -683,8 +847,8 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     }
 
     // Add field data
-    for (int i = 0; i < registeredFields.length; i++) {
-      final field = registeredFields[i];
+    for (int i = 0; i < filteredFields.length; i++) {
+      final field = filteredFields[i];
       final rowIndex = i + 1; // Start from row 1 (0 is header)
 
       // Field name
@@ -696,29 +860,30 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
       sheet.updateCell(
           excel.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex),
           field["geoId"] ?? "");
+
+      // Registration Date
+      sheet.updateCell(
+          excel.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex),
+          field["registrationDate"] != null
+              ? field["registrationDate"]
+                  .toString()
+                  .substring(0, 10) // YYYY-MM-DD format
+              : "");
     }
 
     // Encode the file into bytes
     final List<int>? fileBytes = excelFile.encode();
     if (fileBytes != null) {
-      if (kIsWeb) {
-        // For Flutter Web: initiate a download using a blob
-        // final blob = html.Blob([fileBytes]);
-        // final url = html.Url.createObjectUrlFromBlob(blob);
-        // final anchor = html.AnchorElement(href: url)
-        //   ..download = 'registered_fields.xlsx'
-        //   ..click();
-        // html.Url.revokeObjectUrl(url);
-        // await fshowInfoDialog(context, l10n.excelFileDownloaded);
-      } else {
-        // For mobile or desktop: save the file to the application's documents directory
-        final directory = await getApplicationDocumentsDirectory();
-        final filePath = '${directory.path}/registered_fields.xlsx';
-        final file = File(filePath)
-          ..createSync(recursive: true)
-          ..writeAsBytesSync(fileBytes);
-        debugPrint("Excel file saved: $filePath");
-        await fshowInfoDialog(context, "${l10n.excelFileSavedAt}: $filePath");
+      try {
+        await downloadFile(fileBytes, 'registered_fields.xlsx');
+        if (kIsWeb) {
+          await fshowInfoDialog(context, l10n.excelFileDownloaded);
+        } else {
+          await fshowInfoDialog(context, l10n.excelFileSavedAt);
+        }
+      } catch (e) {
+        debugPrint("Error downloading file: $e");
+        await fshowInfoDialog(context, l10n.failedToGenerateExcelFile);
       }
     } else {
       debugPrint("Failed to generate Excel file.");
@@ -731,7 +896,69 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.fieldRegistry),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.fieldRegistry),
+            if (!isLoading && registeredFields.isNotEmpty)
+              Text(
+                l10n.fieldsCountSorted(
+                  filteredFields.length.toString(),
+                  registeredFields.length.toString(),
+                  registeredFields.length.toString(),
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+              ),
+          ],
+        ),
+        actions: [
+          // Datum-Filter Dropdown
+          if (!isLoading && registeredFields.isNotEmpty)
+            PopupMenuButton<String>(
+              initialValue: selectedDateFilter,
+              onSelected: (value) async {
+                if (value == 'specific') {
+                  await _selectSpecificDate();
+                } else {
+                  setState(() {
+                    selectedDateFilter = value;
+                    if (value != 'specific') {
+                      selectedSpecificDate = null;
+                    }
+                    _applyDateFilter();
+                  });
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(value: 'all', child: Text(l10n.allFields)),
+                PopupMenuItem(
+                    value: 'today', child: Text(l10n.registeredToday)),
+                PopupMenuItem(value: 'week', child: Text(l10n.lastWeek)),
+                PopupMenuItem(value: 'month', child: Text(l10n.lastMonth)),
+                PopupMenuItem(value: 'year', child: Text(l10n.lastYear)),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'specific',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today, size: 18),
+                      const SizedBox(width: 8),
+                      Text(selectedSpecificDate != null
+                          ? _formatRealDate(selectedSpecificDate)
+                          : l10n.specificDateLabel),
+                    ],
+                  ),
+                ),
+              ],
+              icon: Icon(
+                Icons.filter_list,
+                color: selectedDateFilter != 'all' ? Colors.blue : null,
+              ),
+              tooltip: l10n.filterByRegistrationDate,
+            ),
+        ],
       ),
       body: Stack(
         children: [
@@ -766,7 +993,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
               Expanded(
                 child: isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : registeredFields.isEmpty
+                    : filteredFields.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -778,7 +1005,9 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  l10n.noFieldsRegistered,
+                                  registeredFields.isEmpty
+                                      ? l10n.noFieldsRegistered
+                                      : l10n.noFieldsForSelectedTimeframe,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.grey,
@@ -790,9 +1019,9 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                         : RefreshIndicator(
                             onRefresh: _loadRegisteredFields,
                             child: ListView.builder(
-                              itemCount: registeredFields.length,
+                              itemCount: filteredFields.length,
                               itemBuilder: (context, index) {
-                                final field = registeredFields[index];
+                                final field = filteredFields[index];
                                 return Card(
                                   margin: const EdgeInsets.symmetric(
                                     horizontal: 16,
@@ -807,7 +1036,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                                       ),
                                     ),
                                     title: Text(
-                                      field["name"] ?? "Unbenanntes Feld",
+                                      field["name"] ?? l10n.unnamedField,
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold),
                                     ),
@@ -821,6 +1050,43 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                                         if (field["area"]?.isNotEmpty == true)
                                           Text(
                                               '${l10n.area}: ${field["area"]} ha'),
+                                        if (field["registrationDate"] != null)
+                                          Container(
+                                            margin:
+                                                const EdgeInsets.only(top: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue[50],
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.blue[200]!,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.calendar_today,
+                                                  size: 14,
+                                                  color: Colors.blue[700],
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${l10n.registeredOnLabel} ${_formatRealDate(field["registrationDate"])}',
+                                                  style: TextStyle(
+                                                    color: Colors.blue[700],
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                       ],
                                     ),
                                     trailing: const Icon(Icons.copy),
@@ -1008,7 +1274,7 @@ class _FieldRegistryScreenState extends State<FieldRegistryScreen> {
                     heroTag: "exportExcel",
                     onPressed: (isRegistering ||
                             !_isAppFullyInitialized() ||
-                            registeredFields.isEmpty)
+                            filteredFields.isEmpty)
                         ? null
                         : () => _generateFieldsExcel(context),
                     icon: const Icon(Icons.table_chart),

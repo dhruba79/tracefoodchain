@@ -421,12 +421,12 @@ class _AddEmptyItemDialogState extends State<AddEmptyItemDialog> {
       //Step 4: update method history in all affected objects (will also tag them for syncing)
       await updateMethodHistories(addItem);
       //Step 5: again add Outputobjects to generate valid representation in the method
-      newItem = await getObjectMethod(getObjectMethodUID(newItem));
+      newItem = await getLocalObjectMethod(getObjectMethodUID(newItem));
       addOutputobject(addItem, newItem, "item");
       //Step 6: persist process
       await setObjectMethod(addItem, true, true); //sign it!
 
-      final savedItem = await getObjectMethod(getObjectMethodUID(
+      final savedItem = await getLocalObjectMethod(getObjectMethodUID(
           newItem)); //Reload new item with correct method history
       widget.onItemAdded(savedItem);
     } catch (e) {}

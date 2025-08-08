@@ -303,12 +303,12 @@ class _SplashScreenState extends State<SplashScreen>
       //Step 4: update method history in all affected objects (will also tag them for syncing)
       await updateMethodHistories(addItem);
       //Step 5: again add Outputobjects to generate valid representation in the method
-      newUser = await getObjectMethod(getObjectMethodUID(newUser));
+      newUser = await getLocalObjectMethod(getObjectMethodUID(newUser));
       addOutputobject(addItem, newUser, "item");
       //Step 6: persist process
       await setObjectMethod(addItem, true, true); //sign it!
 
-      appUserDoc = await getObjectMethod(getObjectMethodUID(newUser));
+      appUserDoc = await getLocalObjectMethod(getObjectMethodUID(newUser));
     } else {
       //User mit dieser deviceId schon vorhanden.
       debugPrint("user profile found in local database");
@@ -330,7 +330,7 @@ class _SplashScreenState extends State<SplashScreen>
       // );
       final appState = Provider.of<AppState>(context, listen: false);
       appState.setUserRole('Trader');
-      appUserDoc = await getObjectMethod(getObjectMethodUID(appUserDoc!));
+      appUserDoc = await getLocalObjectMethod(getObjectMethodUID(appUserDoc!));
       appUserDoc =
           setSpecificPropertyJSON(appUserDoc!, "userRole", 'Trader', "String");
 
