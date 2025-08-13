@@ -1,0 +1,1 @@
+C:\ChristiansCode\tracefoodchain\build\app\intermediates\cxx\RelWithDebInfo\5a4v3338\obj\arm64-v8a

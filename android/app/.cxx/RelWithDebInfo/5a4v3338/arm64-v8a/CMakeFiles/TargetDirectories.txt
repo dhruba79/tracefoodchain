@@ -1,0 +1,2 @@
+C:/ChristiansCode/tracefoodchain/android/app/.cxx/RelWithDebInfo/5a4v3338/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/ChristiansCode/tracefoodchain/android/app/.cxx/RelWithDebInfo/5a4v3338/arm64-v8a/CMakeFiles/rebuild_cache.dir

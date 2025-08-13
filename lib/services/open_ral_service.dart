@@ -475,11 +475,10 @@ Future<List<Map<String, dynamic>>> getFirebaseObjectsByAlternateUID(
 
 // ToDo: Convert to API call - this is a helper function to get all objects of the current user - self-registred fields!
 Stream<QuerySnapshot> getMyObjectsStream() {
-  String? currentUserUID = FirebaseAuth.instance.currentUser?.uid;
+  String? currentUserUID = appUserDoc?["identity"]["UID"];
   if (currentUserUID == null) {
     throw Exception('User not authenticated');
   }
-
   return FirebaseFirestore.instance.collection('TFC_objects').where(
       'currentOwners',
       arrayContains: {'UID': currentUserUID}).snapshots();
@@ -695,7 +694,8 @@ Future<String> generateDigitalSibling(Map<String, dynamic> newItem) async {
 
 Future<void> changeObjectData(Map<String, dynamic> newObjectVersion) async {
   //Get the old object version (from local storage or from cloud if newer and connected)
-  final oldObjectVersion = await getLocalObjectMethod(newObjectVersion["identity"]["UID"]);
+  final oldObjectVersion =
+      await getLocalObjectMethod(newObjectVersion["identity"]["UID"]);
   //In case the object is not in local storage, we have to get it from the cloud in case we are online
   if (oldObjectVersion.isEmpty) {
     final connectivityResult = await (Connectivity().checkConnectivity());
@@ -739,7 +739,8 @@ Future<void> changeObjectData(Map<String, dynamic> newObjectVersion) async {
   await updateMethodHistories(changeObjectDataJob);
 
   //again add Outputobjects to generate valid representation including updated method history in the method
-  newObjectVersion = await getLocalObjectMethod(getObjectMethodUID(newObjectVersion));
+  newObjectVersion =
+      await getLocalObjectMethod(getObjectMethodUID(newObjectVersion));
   addOutputobject(changeObjectDataJob, newObjectVersion, "item");
 
   //Step 6: persist process

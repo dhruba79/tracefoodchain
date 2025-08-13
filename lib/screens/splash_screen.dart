@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -313,6 +314,31 @@ class _SplashScreenState extends State<SplashScreen>
       //User mit dieser deviceId schon vorhanden.
       debugPrint("user profile found in local database");
     }
+
+//DEBUG CHANGE: CHECK IF THE APPUSERDOC CAN BE FOUND IN CLOUD DATABASE. IF NOT WRITE IT DIRECTLY TO THE CLOUD,IF ONLINE
+//DEBUG CHANGE: CHECK IF THE APPUSERDOC CAN BE FOUND IN CLOUD DATABASE. IF NOT WRITE IT DIRECTLY TO THE CLOUD,IF ONLINE
+    if (appState.isConnected && appUserDoc != null) {
+      try {
+        final userDocRef = FirebaseFirestore.instance
+            .collection('TFC_objects')
+            .doc(FirebaseAuth.instance.currentUser!.uid);
+
+        final userDocSnapshot = await userDocRef.get();
+
+        if (!userDocSnapshot.exists) {
+          debugPrint("User doc not found in cloud, uploading local doc...");
+          snackbarMessageNotifier.value = "DEBUG: Uploading user profile to the cloud...";
+
+          await userDocRef.set(appUserDoc!);
+          debugPrint("User doc successfully uploaded to cloud");
+        } else {
+          debugPrint("User doc already exists in cloud");
+        }
+      } catch (e) {
+        debugPrint("Error checking/uploading user doc to cloud: $e");
+      }
+    }
+
     //Schaun ob user role vorhanden ist
     //! atm we skip role selection - everybody can do everything
     //! Role is set to trader for all users
