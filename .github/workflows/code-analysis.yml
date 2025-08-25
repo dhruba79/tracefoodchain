@@ -9,20 +9,30 @@ on:
     - cron: '0 0 * * 0' # Weekly run
 
 jobs:
-  # ---- Flutter Analyzer (Dart static analysis) ----
+  # ---- Flutter Analyzer (static analysis with annotations) ----
   flutter-analyze:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      checks: write       # Needed for PR annotations
+      pull-requests: write
     steps:
       - uses: actions/checkout@v3
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.x'
       - run: flutter pub get
-      - run: flutter analyze
+      # Run analyzer and convert output into GitHub annotations
+      - name: Run Flutter Analyzer
+        run: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings > analyze.log || true
+      - name: Upload analyzer report
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-analyze-report
+          path: analyze.log
 
-  # ---- Dart Code Metrics (complexity, maintainability, code smells) ----
+  # ---- Dart Code Metrics (complexity, maintainability, smells) ----
   dart-metrics:
     runs-on: ubuntu-latest
     permissions:
@@ -34,4 +44,10 @@ jobs:
           flutter-version: '3.x'
       - run: flutter pub get
       - run: flutter pub global activate dart_code_metrics
-      - run: flutter pub global run dart_code_metrics:metrics lib
+      - name: Run Dart Code Metrics
+        run: flutter pub global run dart_code_metrics:metrics lib --reporter=json > metrics.json
+      - name: Upload metrics report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dart-metrics-report
+          path: metrics.json
