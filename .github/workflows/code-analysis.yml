@@ -1,0 +1,37 @@
+name: Code Analysis
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly run
+
+jobs:
+  # ---- CodeQL Analysis (security scanning) ----
+  codeql:
+    uses: github/codeql-action/.github/workflows/codeql.yml@v2
+
+  # ---- Flutter Analyzer (Dart static analysis) ----
+  flutter-analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+      - run: flutter pub get
+      - run: flutter analyze
+
+  # ---- Dart Code Metrics (complexity, maintainability, code smells) ----
+  dart-metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+      - run: flutter pub get
+      - run: flutter pub global activate dart_code_metrics
+      - run: flutter pub global run dart_code_metrics:metrics lib
